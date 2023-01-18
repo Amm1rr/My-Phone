@@ -236,7 +236,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 End Sub
 
 Private Sub Run_Info(PackageName As String)
-	MyLog("Func: Run_Info")
+	MyLog("Func: Run_Info => " & PackageName)
 	Dim p As Phone
 	Dim i As Intent
 
@@ -252,7 +252,7 @@ Private Sub Run_Info(PackageName As String)
 End Sub
 
 Private Sub gestSetting_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
-'	MyLog("Event: gestSetting_gesture")
+	MyLog("Event: gestSetting_gesture")
 	If (DblClick) Then
 		'// Double Tap
 		If (DateTime.Now - LastClick) < 250 Then
@@ -349,7 +349,7 @@ End Sub
 'End Sub
 
 Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
-	MyLog("Event Activity_KeyPress")
+	MyLog("Event Activity_KeyPress & => " & KeyCode)
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
 			GoHome(False)
@@ -384,7 +384,7 @@ Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As
 End Sub
 
 Public Sub GoHome(ClearSearch As Boolean)
-	MyLog("Func: GoHome")
+	MyLog("Func: GoHome & => ClearSearch" & ClearSearch.As(String))
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		DisableDragAndDrop
@@ -442,7 +442,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 End Sub
 
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
-	MyLog("Event clvApps_ItemClick")
+	MyLog("Event clvApps_ItemClick & => " & Value)
 	ConfigCurrentAppApp(Position, Value)
 	
 	If (AppMenu.IsInitialized And AppMenu.Visible) Then
@@ -490,7 +490,7 @@ Private Sub LoadRecentlyList
 End Sub
 
 Private Sub FindRecentlyItem(pkgName As String) As Boolean
-	MyLog("Func: FindRecentlyItem")
+	MyLog("Func: FindRecentlyItem & => " & pkgName)
 	Dim i As Int = 0
 	For i = 0 To tagApps.CLV.Size - 1
 		If (tagApps.CLV.GetValue(i) = pkgName) Then Return True
@@ -499,7 +499,7 @@ Private Sub FindRecentlyItem(pkgName As String) As Boolean
 End Sub
 
 Public Sub AddToRecently(Text As String, Value As String)
-	MyLog("Func: AddToRecently")
+	MyLog("Func: AddToRecently & => " & Value)
 	
 '	tagApps.CLV.AddTextItem(Text, Value)
 	
@@ -718,7 +718,7 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 End Sub
 
 Private Sub CreateAppMenu(Position As Int, Value As Object)
-	MyLog("Func: CreateAppMenu")
+	MyLog("Func: CreateAppMenu => " & Value.As(String))
 	DisableDragAndDrop
 	ConfigCurrentAppApp(Position, Value.As(String))
 	If (AppMenu.IsInitialized) Then
@@ -753,7 +753,7 @@ Private Sub CreateAppMenu(Position As Int, Value As Object)
 End Sub
 
 Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
-'	MyLog("Event: clvRowMenu_Click")
+	MyLog("Event: clvRowMenu_Click => " & Value.As(String))
 	DisableDragAndDrop
 	dragAllow = False
 	
@@ -776,8 +776,9 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 End Sub
 
 Private Sub AppMenu_ItemClick (Postion As Int, Value As Object)
-'	MyLog("Event: AppMenu_ItemClick")
+	MyLog("Event: AppMenu_ItemClick")
 	AppMenu.Visible = False
+	Sleep(0)
 	Select Value
 		Case "Info"
 			Run_Info(CurrentAppApp.PackageName)
@@ -1173,7 +1174,7 @@ public Sub RemoveHomeItem(pkgName As String)
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
-	MyLog("Func: FindHomeItem")
+	MyLog("Func: FindHomeItem => " & pkgName)
 	Dim i As Int = 0
 	For i = 0 To clvHome.Size - 1
 		If (clvHome.GetValue(i) = pkgName) Then Return True
@@ -1635,7 +1636,7 @@ End Sub
 
 Private Sub txtAppsSearch_ClearButtonClick
 	MyLog("Event: txtAppsSearch_ClearButtonClick => ShowHideKey(False)")
-	ShowHideKeyboard(False)
+	ShowHideKeyboard(True)
 	DisableDragAndDrop
 End Sub
 
