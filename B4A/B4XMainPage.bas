@@ -199,10 +199,10 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 '		gestSetting.SetOnTouchListener(panSetting, "gestSetting_gesture")
 		
 		'//-- After Screen On, set as top on other apps
-		Dim jo As JavaObject = Root
-		Dim Window As JavaObject = jo.RunMethodJO("getContext", Null).RunMethod("getWindow", Null)
-		Window.RunMethod("addFlags", Array As Object(524288)) 'FLAG_SHOW_WHEN_LOCKED
-		Window.RunMethod("addFlags", Array As Object(128)) 'FLAG_KEEP_SCREEN_ON
+'		Dim jo As JavaObject = Root
+'		Dim Window As JavaObject = jo.RunMethodJO("getContext", Null).RunMethod("getWindow", Null)
+'		Window.RunMethod("addFlags", Array As Object(524288)) 'FLAG_SHOW_WHEN_LOCKED
+'		Window.RunMethod("addFlags", Array As Object(128)) 'FLAG_KEEP_SCREEN_ON
 		'//--
 		
 		dragger.Initialize(clvHome)
