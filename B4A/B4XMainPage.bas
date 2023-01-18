@@ -926,6 +926,13 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	
 End Sub
 
+Public Sub GetOverlayPermission
+	Dim c As RequestDrawOverPermission 'this is the name of the class
+	c.Initialize
+	Wait For (c.GetPermission) Complete (Success As Boolean)
+	MyLog("Permission: " & Success)
+End Sub
+
 Public Sub Is_NormalApp(pkgName As String) As Boolean
 	Dim pm As PackageManager
 	Dim packages As List
@@ -1636,8 +1643,8 @@ End Sub
 
 Private Sub txtAppsSearch_ClearButtonClick
 	MyLog("Event: txtAppsSearch_ClearButtonClick => ShowHideKey(False)")
-	ShowHideKeyboard(True)
 	DisableDragAndDrop
+	ShowHideKeyboard(True)
 End Sub
 
 
@@ -1781,3 +1788,9 @@ End Sub
 Private Sub lblAbout_LongClick
 	lblVersion_LongClick
 End Sub
+
+'Public Sub setAlwaysOnTop(frm As Object, Value As Boolean)
+'	Dim frmJO As JavaObject = frm
+'	Dim stage As JavaObject = frmJO.GetField("stage")
+'	stage.RunMethod("setAlwaysOnTop", Array(Value))
+'End Sub
