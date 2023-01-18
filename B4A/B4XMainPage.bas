@@ -47,7 +47,7 @@ Sub Class_Globals
 	Private ConfigFileName As String = "MyPhone.conf"
 	Public AppRowHeigh As Int = 50dip
 	Public HomeRowHeigh As Int = 50dip
-	Public HomeRowHeighMenu As Int = 30dip
+	Public HomeRowHeighMenu As Int = 55dip
 	Public AutoRunOnFind As Boolean
 	Public LogMode As Boolean = True
 	Public LogList As List
@@ -74,7 +74,8 @@ Sub Class_Globals
 			 ShowIcon As Boolean, _
 			 ShowKeyboard As Boolean, _
 			 AutoRunApp As Boolean, _
-			 MyPackage As String)
+			 MyPackage As String, _
+			 ShowIconHomeApps As Boolean)
 	
 	Public Manager As AdminManager
 	Private movecount As Int
@@ -99,6 +100,8 @@ Sub Class_Globals
 	Private clvLog As CustomListView
 	Private btnLogClose As Button
 	Private chkShowToastLog As CheckBox
+	Private imgIconHome As ImageView
+	Private chkShowIconsHome As CheckBox
 End Sub
 
 Public Sub MyLog (Text As String)
@@ -141,6 +144,7 @@ Public Sub Initialize
 	Pref.PhoneApp = Setting.GetDefault("PhoneApp", "")
 	Pref.ClockApp = Setting.GetDefault("ClockApp", "")
 	Pref.ShowIcon = Setting.GetDefault("ShowIcon", False).As(Boolean)
+	Pref.ShowIconHomeApps = Setting.GetDefault("ShowIconHomeApp", False).As(Boolean)
 	Pref.ShowKeyboard = Setting.GetDefault("ShowKeyboard", True).As(Boolean)
 	Pref.AutoRunApp = Setting.GetDefault("AutoRunApp", True)
 	Pref.MyPackage = "my.phone"
@@ -208,6 +212,13 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			lblAppTitle.Left = 35dip
 		Else
 			imgIconApp.Visible = False
+			lblAppTitle.Left = 5dip
+		End If
+		If Pref.ShowIconHomeApps Then
+			imgIconHome.Visible = True
+			lblAppTitle.Left = 35dip
+		Else
+			imgIconHome.Visible = False
 			lblAppTitle.Left = 5dip
 		End If
 		StartTimeClick = False
@@ -675,8 +686,8 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	panHRowMenuHome.Visible = True
 	
 	clvHRowMenu.Clear
-	clvHRowMenu.sv.SetColorAndBorder(Colors.LightGray, 2dip, Colors.Magenta, 0)
-	clvHRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
+'	clvHRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
+'	clvHRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
 	clvHRowMenu.AddTextItem("Info", "Info")
 	clvHRowMenu.AddTextItem("Delete", "Delete")
 	clvHRowMenu.AddTextItem("Sort", "Sort")
@@ -687,21 +698,22 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	Dim hig As Int
 	
 	wdh = 50%x
-	HomeRowHeighMenu = 60dip
-	hig = (clvHRowMenu.Size * HomeRowHeighMenu)' + HomeRowHeigh / 4
+	HomeRowHeighMenu = 55dip
 	
 	lft = (panHome.Width / 2) + (wdh  / 2)
+	hig = (clvHRowMenu.Size * HomeRowHeighMenu) '- HomeRowHeigh / 4
 	
-	panHRowMenuHome.Left = panHome.Width / 2
-	panHRowMenuHome.Height = hig
+	panHRowMenuHome.Left = lft '(panHome.Width - clvHRowMenu.sv.Width) + 8dip
 	panHRowMenuHome.Width = 50%x / 2
+	
 	tp = (panHome.Height / 2) - (hig / 2)
-	panHRowMenuHome.Top = tp
+		panHRowMenuHome.Top = tp + 50dip
+		panHRowMenuHome.Height = hig
 	clvHRowMenu.sv.Height = hig
-'	clvHRowMenu.sv.Width = wdh
-	clvHRowMenu.sv.Left = 5dip
-	Log("X: " & XPos)
-	Log("Y: " & YPos)
+	clvHRowMenu.sv.Width = wdh
+	clvHRowMenu.sv.Left = 10dip
+'	Log("X: " & XPos)
+'	Log("Y: " & YPos)
 
 End Sub
 
@@ -870,6 +882,20 @@ Private Sub CreateListItemHome(Text As String, _
 	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName. 
 	dd.GetViewByName(p, "lblHomeAppTitle").Text = Text
 	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
+	
+	If Pref.ShowIconHomeApps Then
+		imgIconHome.Visible = True
+		lblHomeAppTitle.Left = 35dip
+	Else
+		imgIconHome.Visible = False
+		lblHomeAppTitle.Left = 5dip
+	End If
+	
+	Try
+		imgIconHome.Bitmap = GetPackageIcon(Value)
+	Catch
+		Log("CreateListItemHome-Icon=> " & LastException)
+	End Try
 	
 	Return p
 End Sub
@@ -1257,9 +1283,10 @@ Private Sub btnSetting_Click
 	
 	chkShowKeyboard.Checked = Pref.ShowKeyboard
 	chkShowIcons.Checked = Pref.ShowIcon
+	chkShowIconsHome.Checked = Pref.ShowIconHomeApps
 	chkAutoRun.Checked = Pref.AutoRunApp
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
-	lblVersion.Text = Application.LabelName & " v1." & Application.VersionCode & " " & Application.VersionName
+	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
 '	If (cmbPhone.IsInitialized <> False) Then
 		If AppsList.IsInitialized Then
@@ -1331,7 +1358,8 @@ End Sub
 
 Private Sub btnClose_Click
 	SaveSettings
-	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+	SetupInstalledApps
+'	txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
 
 Private Sub CloseSetting
@@ -1352,6 +1380,7 @@ Public Sub SaveSettings
 	Pref.CameraApp = cmbCameraSetting.Tag.As(String)
 	Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
 	Pref.ShowIcon = chkShowIcons.Checked
+	Pref.ShowIconHomeApps = chkShowIconsHome.Checked
 	Pref.AutoRunApp = chkAutoRun.Checked
 	
 	Dim setting As KeyValueStore
@@ -1371,6 +1400,7 @@ Public Sub SaveSettings
 	setting.Put("PhoneApp", Pref.PhoneApp)
 	setting.Put("ClockApp", Pref.ClockApp)
 	setting.Put("ShowIcon", Pref.ShowIcon)
+	setting.Put("ShowIconHomeApp", Pref.ShowIcon)
 	setting.Put("AutoRunApp", Pref.AutoRunApp)
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
