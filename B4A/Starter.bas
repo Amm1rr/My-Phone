@@ -15,6 +15,28 @@ Sub Process_Globals
 	
 	Dim PhoneEvent As PhoneEvents
 	Dim PhID As PhoneId
+	
+	Public sql As SQL
+	Public AppsList As List			'-- All Installed Apps
+	Public NormalAppsList As List	'-- Normal Apps to show
+	Public HomeApps As List		'-- Home Screen Apps
+	
+	Public Pref As Settings
+	
+	Type App(Name As String, _
+			PackageName As String, _
+			index As Int, _
+			IsHomeApp As Boolean, _
+			Icon As Bitmap)
+	
+	Type Settings(CameraApp As String, _
+			 PhoneApp As String, _
+			 ClockApp As String, _
+			 ShowIcon As Boolean, _
+			 ShowKeyboard As Boolean, _
+			 AutoRunApp As Boolean, _
+			 MyPackage As String, _
+			 ShowIconHomeApps As Boolean)
 
 End Sub
 
@@ -22,7 +44,16 @@ Sub Service_Create
 	'This is the program entry point.
 	'This is a good place to load resources that are not specific to a single activity.
 	
+'	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
+		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
+'	End If
+	
+	sql.Initialize(File.DirInternal, "MyPhone.db", False)
+	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	
+	SetupAppsList
+	SetupSettings
 
 End Sub
 
@@ -46,7 +77,7 @@ End Sub
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 	B4XPages.MainPage.MyLog("Event: PE_PackageRemoved => " & Package)
 	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
-	B4XPages.MainPage.SetupInstalledApps
+	SetupAppsList
 	B4XPages.MainPage.RemoveAsRecently(Package)
 	B4XPages.MainPage.RemoveHomeItem(Package)
 	B4XPages.MainPage.SaveHomeList
@@ -55,6 +86,165 @@ End Sub
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	B4XPages.MainPage.MyLog("Event: PE_PackageAdded => " & Package)
 	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Installed!", True)
-	B4XPages.MainPage.SetupInstalledApps
+	SetupAppsList
 	B4XPages.MainPage.AddToRecently("", Package)
+End Sub
+
+Private Sub SetupSettings
+	Dim tmpResult As String
+	Dim CurSettingSql As ResultSet
+	CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
+	
+	For i = 0 To CurSettingSql.RowCount - 1
+		CurSettingSql.Position = i
+		tmpResult = CurSettingSql.GetString("KeySetting")
+		
+		Select tmpResult:
+			Case "CameraApp"
+				Pref.CameraApp = CurSettingSql.GetString("Value")
+				
+			Case "PhoneApp"
+				Pref.PhoneApp = CurSettingSql.GetString("Value")
+				
+			Case "ShowToastLog"
+				B4XPages.MainPage.ShowToastLog = CurSettingSql.GetString("Value")
+				
+			Case "AutoRunApp"
+				Pref.AutoRunApp = CurSettingSql.GetString("Value")
+				
+			Case "ShowKeyboard"
+				Pref.ShowKeyboard = CurSettingSql.GetString("Value")
+				
+			Case "ShowIconHomeApp"
+				Pref.ShowIconHomeApps = CurSettingSql.GetString("Value")
+				
+			Case "ShowIcon"
+				Pref.ShowIcon = CurSettingSql.GetString("Value")
+				
+			Case "ClockApp"
+				Pref.ClockApp = CurSettingSql.GetString("Value")
+			
+			Case "my.phone"
+				Pref.MyPackage = "my.phone"
+		End Select
+	Next
+	CurSettingSql.Close
+End Sub
+
+Private Sub SetupAppsList
+	
+	If Not (AppsList.IsInitialized) Then AppsList.Initialize
+	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
+	
+'	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
+
+	'// All Apps as Database
+	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps")
+	
+	'// All Apps as System
+	Dim pm As PackageManager
+	Dim packages As List
+		packages = pm.GetInstalledPackages
+	
+	If (ResApps.RowCount = packages.Size) Then
+		
+		'// Config Apps List
+		'
+		
+		ResApps.Close
+		
+		ResApps = sql.ExecQuery("SELECT * FROM Apps")
+		
+		Dim sortindex As Int
+		Do While ResApps.NextRow
+			AppsList.Add(ResApps.GetString("pkgName"))
+			
+			Dim currentapp As App
+				currentapp.PackageName = ResApps.GetString("pkgName")
+				currentapp.Name = ResApps.GetString("Name")
+				sortindex = sortindex + 1
+				currentapp.index = sortindex
+				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+				
+		Loop
+		ResApps.Close
+		
+		'// Home Apps
+		
+		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home")
+		
+		For i = 0 To ResHome.RowCount - 1
+			ResHome.Position = i
+			HomeApps.Add(ResHome.GetString("pkgName"))
+			
+			Dim currentHomeapp As App
+				currentHomeapp.PackageName = ResHome.GetString("pkgName")
+				currentHomeapp.Name = ResHome.GetString("Name")
+				sortindex = i + 1
+				currentHomeapp.index = sortindex
+				currentapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
+				
+		Next
+		ResHome.Close
+		
+	Else
+		
+		For i = 0 To packages.Size - 1
+			Dim p As String = packages.Get(i)
+			
+			'//-- This will test whether the app is a 'regular' app that
+			'//-- can be launched and if so you can then show it in your app drawer.
+			'//-- If the app has been uninstalled, or if it isn't for normal use,
+			'//-- then it will return false.
+			If pm.GetApplicationIntent(p).IsInitialized Then
+				Dim currentapp As App
+					currentapp.Name = pm.GetApplicationLabel(p)
+					currentapp.PackageName = p
+					sortindex = sortindex + 1
+					currentapp.index = sortindex
+					currentapp.Icon = GetPackageIcon(p)
+					currentapp.IsHomeApp = False
+				
+				AppsList.Add(currentapp)
+			End If
+		Next
+		
+		
+		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home")
+		
+		For i = 0 To ResHome.RowCount - 1
+			ResHome.Position = i
+			
+			Dim currentHomeapp As App
+				currentHomeapp.PackageName = ResHome.GetString("pkgName")
+				currentHomeapp.Name = ResHome.GetString("Name")
+				sortindex = i + 1
+				currentHomeapp.index = sortindex
+'				currentapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
+				currentHomeapp.IsHomeApp = True
+				
+			HomeApps.Add(currentHomeapp)
+		Next
+		ResHome.Close
+	End If
+	
+End Sub
+
+public Sub GetPackageIcon(PackageName As String) As Bitmap
+	Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(PackageName)
+	If Data Is BitmapDrawable Then
+		Dim Icon As BitmapDrawable = Data
+		Return Icon.Bitmap
+	Else
+		Return GetBmpFromDrawable(Data, 48dip)
+	End If
+End Sub
+
+Private Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
+	Dim BMP As Bitmap, BG As Canvas, Drect As Rect
+	BMP.InitializeMutable(Size,Size)
+	Drect.Initialize(0,0,Size,Size)
+	BG.Initialize2(BMP)
+	BG.DrawDrawable(Drawable,Drect)
+	Return BG.Bitmap
 End Sub
