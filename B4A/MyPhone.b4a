@@ -23,14 +23,13 @@ FileGroup8=Default Group
 FileGroup9=Default Group
 Group=Default Group
 Library1=administrator
-Library10=keyvaluestore
-Library11=phone
-Library12=randomaccessfile
-Library13=reflection
+Library10=phone
+Library11=randomaccessfile
+Library12=reflection
+Library13=sql
 Library14=tabstripviewpager
 Library15=xcustomlistview
 Library16=xui views
-Library17=sql
 Library2=as_textfieldadvanced
 Library3=asscrollingtags
 Library4=b4xpages
@@ -47,13 +46,13 @@ Module4=RequestDrawOverPermission
 Module5=Starter
 Module6=Wallpaper
 NumberOfFiles=11
-NumberOfLibraries=17
+NumberOfLibraries=16
 NumberOfModules=6
 Version=12.15
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 12
+	#VersionCode: 20
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait

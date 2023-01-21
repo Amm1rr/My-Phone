@@ -20,6 +20,7 @@ Sub Process_Globals
 	Public AppsList As List			'-- All Installed Apps
 	Public NormalAppsList As List	'-- Normal Apps to show
 	Public HomeApps As List		'-- Home Screen Apps
+	Public ShowToastLog As Boolean = True
 	
 	Public Pref As Settings
 	
@@ -44,16 +45,12 @@ Sub Service_Create
 	'This is the program entry point.
 	'This is a good place to load resources that are not specific to a single activity.
 	
-'	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
-		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
-'	End If
-	
-	sql.Initialize(File.DirInternal, "MyPhone.db", False)
+	CreateDB
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
 	
-	SetupAppsList
 	SetupSettings
+	SetupAppsList
 
 End Sub
 
@@ -93,7 +90,7 @@ End Sub
 Private Sub SetupSettings
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
-	CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
+		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
 	
 	For i = 0 To CurSettingSql.RowCount - 1
 		CurSettingSql.Position = i
@@ -106,29 +103,49 @@ Private Sub SetupSettings
 			Case "PhoneApp"
 				Pref.PhoneApp = CurSettingSql.GetString("Value")
 				
-			Case "ShowToastLog"
-				B4XPages.MainPage.ShowToastLog = CurSettingSql.GetString("Value")
-				
-			Case "AutoRunApp"
-				Pref.AutoRunApp = CurSettingSql.GetString("Value")
-				
-			Case "ShowKeyboard"
-				Pref.ShowKeyboard = CurSettingSql.GetString("Value")
-				
-			Case "ShowIconHomeApp"
-				Pref.ShowIconHomeApps = CurSettingSql.GetString("Value")
-				
-			Case "ShowIcon"
-				Pref.ShowIcon = CurSettingSql.GetString("Value")
-				
 			Case "ClockApp"
 				Pref.ClockApp = CurSettingSql.GetString("Value")
-			
+				
+			Case "ShowToastLog"
+				ShowToastLog = StrToBool(CurSettingSql.GetInt("Value"))
+				
+			Case "AutoRunApp"
+				Pref.AutoRunApp = StrToBool(CurSettingSql.GetInt("Value"))
+				
+			Case "ShowKeyboard"
+				Pref.ShowKeyboard = StrToBool(CurSettingSql.GetString("Value"))
+				
+			Case "ShowIconHomeApp"
+				Pref.ShowIconHomeApps = StrToBool(CurSettingSql.GetInt("Value"))
+				
+			Case "ShowIcon"
+				Pref.ShowIcon = StrToBool(CurSettingSql.GetInt("Value"))
+				
 			Case "my.phone"
 				Pref.MyPackage = "my.phone"
 		End Select
 	Next
 	CurSettingSql.Close
+End Sub
+
+Public Sub StrToBool(text As String) As Boolean
+	If (text.Length <= 0) Then Return False
+	
+	If (text.ToLowerCase = "true") Then Return True
+	
+	Dim tmp As Int
+	Try
+		tmp = text.As(Int)
+	Catch
+		tmp = 0
+	End Try
+	
+	If (tmp > 0) Then
+		Return True
+	Else
+		Return False
+	End If
+	
 End Sub
 
 Private Sub SetupAppsList
@@ -182,7 +199,7 @@ Private Sub SetupAppsList
 				currentHomeapp.Name = ResHome.GetString("Name")
 				sortindex = i + 1
 				currentHomeapp.index = sortindex
-				currentapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
+				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
 				
 		Next
 		ResHome.Close
@@ -230,14 +247,29 @@ Private Sub SetupAppsList
 	
 End Sub
 
+Public Sub CreateDB
+'	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
+		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
+'	End If
+	
+	sql.Initialize(File.DirInternal, "MyPhone.db", False)
+End Sub
+
 public Sub GetPackageIcon(PackageName As String) As Bitmap
-	Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(PackageName)
-	If Data Is BitmapDrawable Then
-		Dim Icon As BitmapDrawable = Data
-		Return Icon.Bitmap
-	Else
-		Return GetBmpFromDrawable(Data, 48dip)
-	End If
+	Try
+		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
+		
+		Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(PackageName)
+		If Data Is BitmapDrawable Then
+			Dim Icon As BitmapDrawable = Data
+			Return Icon.Bitmap
+		Else
+			Return GetBmpFromDrawable(Data, 48dip)
+		End If
+	Catch
+		Log(LastException)
+		Return Null
+	End Try
 End Sub
 
 Private Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
