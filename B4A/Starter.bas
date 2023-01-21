@@ -92,6 +92,8 @@ Private Sub SetupSettings
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
 	
+	Pref.MyPackage = Application.PackageName '"my.phone"
+	
 	For i = 0 To CurSettingSql.RowCount - 1
 		CurSettingSql.Position = i
 		tmpResult = CurSettingSql.GetString("KeySetting")
@@ -121,8 +123,6 @@ Private Sub SetupSettings
 			Case "ShowIcon"
 				Pref.ShowIcon = StrToBool(CurSettingSql.GetInt("Value"))
 				
-			Case "my.phone"
-				Pref.MyPackage = "my.phone"
 		End Select
 	Next
 	CurSettingSql.Close
@@ -174,7 +174,6 @@ Private Sub SetupAppsList
 		
 		Dim sortindex As Int
 		Do While ResApps.NextRow
-			AppsList.Add(ResApps.GetString("pkgName"))
 			
 			Dim currentapp As App
 				currentapp.PackageName = ResApps.GetString("pkgName")
@@ -183,6 +182,9 @@ Private Sub SetupAppsList
 				currentapp.index = sortindex
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				
+'			AppsList.Add(ResApps.GetString("pkgName"))
+			AppsList.Add(currentapp)
+			
 		Loop
 		ResApps.Close
 		
@@ -192,7 +194,6 @@ Private Sub SetupAppsList
 		
 		For i = 0 To ResHome.RowCount - 1
 			ResHome.Position = i
-			HomeApps.Add(ResHome.GetString("pkgName"))
 			
 			Dim currentHomeapp As App
 				currentHomeapp.PackageName = ResHome.GetString("pkgName")
@@ -201,6 +202,8 @@ Private Sub SetupAppsList
 				currentHomeapp.index = sortindex
 				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
 				
+'			HomeApps.Add(ResHome.GetString("pkgName"))
+			HomeApps.Add(currentHomeapp)
 		Next
 		ResHome.Close
 		
@@ -248,16 +251,16 @@ Private Sub SetupAppsList
 End Sub
 
 Public Sub CreateDB
-'	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
+	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
-'	End If
+	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
 End Sub
 
 public Sub GetPackageIcon(PackageName As String) As Bitmap
 	Try
-		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
+'		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
 		
 		Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(PackageName)
 		If Data Is BitmapDrawable Then

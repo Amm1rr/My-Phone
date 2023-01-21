@@ -114,60 +114,6 @@ Public Sub Initialize
 	
 	IMElib.Initialize("")
 	
-'	If (FirstStart) Then StartService(Starter)
-	
-	
-	Dim q As String = "SELECT * FROM Settings"
-	Dim ResSetting As ResultSet = Starter.sql.ExecQuery(q)
-	
-	Do While ResSetting.NextRow
-		
-		Dim value As String = ResSetting.GetString("Value")
-		
-		Select value
-			
-			Case "CameraApp"
-				Starter.Pref.CameraApp = value
-				
-			Case "PhoneApp"
-				Starter.Pref.PhoneApp = value
-				
-			Case "ClockApp"
-				Starter.Pref.ClockApp = value
-				
-			Case "ShowIcon"
-				Starter.Pref.ShowIcon = Starter.StrToBool(value)
-				
-			Case "ShowIconHomeApp"
-				Starter.Pref.ShowIconHomeApps = Starter.StrToBool(value)
-				
-			Case "ShowKeyboard"
-				Starter.Pref.ShowKeyboard = Starter.StrToBool(value)
-				
-			Case "AutoRunApp"
-				Starter.Pref.AutoRunApp = Starter.StrToBool(value)
-			
-			Case "MyPackage"
-				Starter.Pref.MyPackage = "my.phone"
-				
-			Case "ShowToastLog"
-				ShowToastLog = Starter.StrToBool(value)
-				
-		End Select
-	Loop
-	ResSetting.Close
-	
-'	Pref.CameraApp = GetSetting("CameraApp")
-'	Pref.PhoneApp = GetSetting("PhoneApp")
-'	Pref.ClockApp = GetSetting("ClockApp")
-'	Pref.ShowIcon = GetSetting("ShowIcon")
-'	Pref.ShowIconHomeApps = GetSetting("ShowIconHomeApp")
-'	Pref.ShowKeyboard = GetSetting("ShowKeyboard")
-'	Pref.AutoRunApp = GetSetting("AutoRunApp")
-'	Pref.MyPackage = "my.phone"
-'	
-'	ShowToastLog = GetSetting("ShowToastLog")
-	
 	DateTime.TimeFormat = "hh:mm:ss"
 	lblClock.Initialize("")
 	lblClock.Text = DateTime.Time(DateTime.Now)
@@ -588,7 +534,7 @@ Public Sub AddToRecently(Text As String, Value As String)
 		RecentlyList.Add(Value)
 		
 		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-		LogColor(q, Colors.Green)
+'		LogColor(q, Colors.Green)
 		
 		Try
 			Starter.sql.ExecNonQuery(q)
@@ -845,8 +791,8 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 	
 	MyLog("Func: AddToHomeList => " & pkgName & " -  name => " & Name)
 	
-	If (pkgName = Null) Or (pkgName.ToLowerCase = "null") Then Return
-	If (Name = Null) Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
+	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then Return
+	If (Name = Null) Or (Name = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
 	
 	If (FindHomeItem(pkgName) = False) Then
 		clvHome.Add(CreateListItemHome(Name, pkgName, Widt, HomeRowHeigh), pkgName)
@@ -1027,6 +973,7 @@ Public Sub Setup
 	'-- Add Apps to Home ListView
 	clvHome.Clear
 	For Each app In Starter.HomeApps
+'		LogColor(app, Colors.Green)
 		Dim ap As App = app
 		AddToHomeList(ap.Name, ap.PackageName, clvHome.sv.Width, False)
 	Next
@@ -1065,7 +1012,7 @@ public Sub RemoveHomeItem(pkgName As String)
 	Next
 	Dim query As String = "DELETE FROM Home WHERE pkgName='" & pkgName & "'"
 	Starter.sql.ExecNonQuery(query)
-	LogColor(query, Colors.Green)
+'	LogColor(query, Colors.Green)
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
@@ -1096,7 +1043,7 @@ Public Sub GetAppNamebyPackage(pkgName As String) As String
 		If (ap.PackageName = pkgName) Then Return ap.Name
 	Next
 
-'	'// Anothder Metho to take apps from database	
+'	'// Anothder Method to take apps from database	
 '	Dim resName As ResultSet
 '	resName = Starter.sql.ExecQuery("SELECT Name FROM AllApps WHERE pkgName='" & pkgName & "'")
 '	If (resName.RowCount > 0) Then
@@ -1317,31 +1264,14 @@ Public Sub SaveSettings
 	Starter.Pref.ShowIconHomeApps = chkShowIconsHome.Checked
 	Starter.Pref.AutoRunApp = chkAutoRun.Checked
 	
-'	Dim setting As KeyValueStore
-''	xui.SetDataFolder("MyPhone")
-'	setting.Initialize(File.DirInternal, ConfigFileName)
-'	
-'	Dim Str As StringBuilder
-'	Str.Initialize
-'	
-'	For i = 0 To clvHome.Size - 1
-'		Str.Append(clvHome.GetValue(i)).Append("|")
-'	Next
-'	setting.Put("HomeApps", Str.ToString)
-'	setting.Put("ShowKeyboard", Starter.Pref.ShowKeyboard)
-'	setting.Put("CameraApp", Starter.Pref.CameraApp)
-'	setting.Put("PhoneApp", Starter.Pref.PhoneApp)
-'	setting.Put("ClockApp", Starter.Pref.ClockApp)
-'	setting.Put("ShowIcon", Starter.Pref.ShowIcon)
-'	setting.Put("ShowIconHomeApp", Starter.Pref.ShowIcon)
-'	setting.Put("AutoRunApp", Starter.Pref.AutoRunApp)
+'	LogColor(Starter.Pref, Colors.Red)
 	
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApps','" & Starter.Pref.ShowIconHomeApps & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApps & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
@@ -1359,7 +1289,7 @@ Public Sub SaveHomeList
 		Starter.HomeApps.Add(pkg)
 		Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
 		Starter.sql.ExecNonQuery(query)
-		LogColor(query, Colors.Red)
+'		LogColor(query, Colors.Red)
 	Next
 	
 End Sub
@@ -1675,8 +1605,8 @@ End Sub
 
 
 Private Sub btnLogClose_Click
-	ShowToastLog = chkShowToastLog.Checked
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowToastLog'," & ShowToastLog & ")")
+	Starter.ShowToastLog = chkShowToastLog.Checked
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowToastLog'," & Starter.ShowToastLog & ")")
 	
 	panLog.Visible = False
 	panSetting.Visible = True

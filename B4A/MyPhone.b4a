@@ -1,18 +1,16 @@
 ﻿Build1=Default,my.phone,Freeware
 File1=AppRow.bal
-File10=Phone.png
-File11=Settings.bal
+File10=Settings.bal
 File2=Apps.bal
 File3=Camera.png
 File4=Home.bal
 File5=HomeRow.bal
 File6=HomeRowMenu.bal
-File7=Log.bal
-File8=MainPage.bal
-File9=MyPhone.db
+File7=MainPage.bal
+File8=MyPhone.db
+File9=Phone.png
 FileGroup1=Default Group
 FileGroup10=Default Group
-FileGroup11=Default Group
 FileGroup2=Default Group
 FileGroup3=Default Group
 FileGroup4=Default Group
@@ -24,12 +22,11 @@ FileGroup9=Default Group
 Group=Default Group
 Library1=administrator
 Library10=phone
-Library11=randomaccessfile
-Library12=reflection
-Library13=sql
-Library14=tabstripviewpager
-Library15=xcustomlistview
-Library16=xui views
+Library11=reflection
+Library12=sql
+Library13=tabstripviewpager
+Library14=xcustomlistview
+Library15=xui views
 Library2=as_textfieldadvanced
 Library3=asscrollingtags
 Library4=b4xpages
@@ -45,14 +42,14 @@ Module3=GlobalFunc
 Module4=RequestDrawOverPermission
 Module5=Starter
 Module6=Wallpaper
-NumberOfFiles=11
-NumberOfLibraries=16
+NumberOfFiles=10
+NumberOfLibraries=15
 NumberOfModules=6
 Version=12.15
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 20
+	#VersionCode: 21
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
