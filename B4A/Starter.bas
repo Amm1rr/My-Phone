@@ -21,6 +21,8 @@ Sub Process_Globals
 	Public NormalAppsList As List	'-- Normal Apps to show
 	Public HomeApps As List		'-- Home Screen Apps
 	Public ShowToastLog As Boolean = True
+	Public LogMode As Boolean = True
+	Public LogList As List
 	
 	Public Pref As Settings
 	
@@ -37,7 +39,7 @@ Sub Process_Globals
 			 ShowKeyboard As Boolean, _
 			 AutoRunApp As Boolean, _
 			 MyPackage As String, _
-			 ShowIconHomeApps As Boolean)
+			 ShowIconHomeApp As Boolean)
 
 End Sub
 
@@ -48,9 +50,11 @@ Sub Service_Create
 	CreateDB
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	LogList.Initialize
 	
 	SetupSettings
 	SetupAppsList
+	
 
 End Sub
 
@@ -72,7 +76,7 @@ Sub Service_Destroy
 End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
-	B4XPages.MainPage.MyLog("Event: PE_PackageRemoved => " & Package)
+	MyLog("Event: PE_PackageRemoved => " & Package)
 	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
 	SetupAppsList
 	B4XPages.MainPage.RemoveAsRecently(Package)
@@ -81,13 +85,27 @@ Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
-	B4XPages.MainPage.MyLog("Event: PE_PackageAdded => " & Package)
+	MyLog("Event: PE_PackageAdded => " & Package)
 	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Installed!", True)
 	SetupAppsList
 	B4XPages.MainPage.AddToRecently("", Package)
 End Sub
 
+Private Sub MyLog (Text As String)
+	If (LogMode) Then
+'		Dim txtWriter As TextWriter
+'		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
+'			txtWriter.WriteList(LogList)
+'			txtWriter.Close
+'		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
+		LogList.Add(Text)
+		Log(Text)
+		If (ShowToastLog) Then ToastMessageShow(Text, False)
+	End If
+End Sub
+
 Private Sub SetupSettings
+	MyLog("Service: => SetupSettings")
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -109,33 +127,36 @@ Private Sub SetupSettings
 				Pref.ClockApp = CurSettingSql.GetString("Value")
 				
 			Case "ShowToastLog"
-				ShowToastLog = StrToBool(CurSettingSql.GetInt("Value"))
+				ShowToastLog = ValToBool(CurSettingSql.GetString("Value"))
 				
 			Case "AutoRunApp"
-				Pref.AutoRunApp = StrToBool(CurSettingSql.GetInt("Value"))
+				Pref.AutoRunApp = ValToBool(CurSettingSql.GetString("Value"))
 				
 			Case "ShowKeyboard"
-				Pref.ShowKeyboard = StrToBool(CurSettingSql.GetString("Value"))
+				Pref.ShowKeyboard = ValToBool(CurSettingSql.GetString("Value"))
 				
 			Case "ShowIconHomeApp"
-				Pref.ShowIconHomeApps = StrToBool(CurSettingSql.GetInt("Value"))
+				Pref.ShowIconHomeApp = ValToBool(CurSettingSql.GetString("Value"))
 				
 			Case "ShowIcon"
-				Pref.ShowIcon = StrToBool(CurSettingSql.GetInt("Value"))
+				Pref.ShowIcon = ValToBool(CurSettingSql.GetString("Value"))
 				
 		End Select
 	Next
 	CurSettingSql.Close
+	
+'	LogColor("SetupSettings: " & Pref, Colors.Red)
+
 End Sub
 
-Public Sub StrToBool(text As String) As Boolean
-	If (text.Length <= 0) Then Return False
-	
-	If (text.ToLowerCase = "true") Then Return True
+Public Sub ValToBool(value As Object) As Boolean
+	If (value.As(String).Length <= 0) Then Return False
+	If (value.As(String).ToLowerCase = "false") Then Return False
+	If (value.As(String).ToLowerCase = "true") Then Return True
 	
 	Dim tmp As Int
 	Try
-		tmp = text.As(Int)
+		tmp = value.As(Int)
 	Catch
 		tmp = 0
 	End Try
@@ -253,16 +274,17 @@ End Sub
 Public Sub CreateDB
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
+		LogColor("Database Replaced!", Colors.Red)
 	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
 End Sub
 
-public Sub GetPackageIcon(PackageName As String) As Bitmap
+public Sub GetPackageIcon(pkgName As String) As Bitmap
 	Try
 '		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
 		
-		Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(PackageName)
+		Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(pkgName)
 		If Data Is BitmapDrawable Then
 			Dim Icon As BitmapDrawable = Data
 			Return Icon.Bitmap

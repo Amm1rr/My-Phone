@@ -48,8 +48,6 @@ Sub Class_Globals
 	Public HomeRowHeigh As Int = 50dip
 	Public HomeRowHeighMenu As Int = 55dip
 	Public AutoRunOnFind As Boolean
-	Public LogMode As Boolean = True
-	Public LogList As List
 	Public FirstStart As Boolean = True
 	Private tagColors As Int = Colors.DarkGray
 	
@@ -85,14 +83,14 @@ Sub Class_Globals
 	Private chkShowIconsHome As CheckBox
 End Sub
 
-Public Sub MyLog (Text As String)
-	If (LogMode) Then
+Private Sub MyLog (Text As String)
+	If (Starter.LogMode) Then
 '		Dim txtWriter As TextWriter
 '		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
 '			txtWriter.WriteList(LogList)
 '			txtWriter.Close
 '		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
-		LogList.Add(Text)
+		Starter.LogList.Add(Text)
 		Log(Text)
 		If (Starter.ShowToastLog) Then ToastMessageShow(Text, False)
 	End If
@@ -100,8 +98,6 @@ End Sub
 
 Public Sub Initialize
 	B4XPages.GetManager.LogEvents = True
-	
-	If Not (LogList.IsInitialized) Then LogList.Initialize
 
 	MyLog("Func: Initialize")
 	
@@ -198,7 +194,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		End Try
 		
 		Try
-			If Starter.Pref.ShowIconHomeApps Then
+			If Starter.Pref.ShowIconHomeApp Then
 				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 				imgIconHome.Visible = True
 				lblAppTitle.Left = 35dip
@@ -740,11 +736,11 @@ Private Sub CreateAppMenu(Position As Int, Value As Object)
 		AppMenu.SetColorAnimated(300, Colors.Gray, Colors.DarkGray)
 		AppMenu.AddSingleLine("Info")
 		AppMenu.AddSingleLine(CurrentAppApp.Name)
-		If (FindHomeItem(CurrentAppApp.PackageName) = False) Then
-			AppMenu.AddSingleLine("Add to Home")
-			MyLog("Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
-		Else
+'		MyLog("Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
+		If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
 			AppMenu.AddSingleLine("Remove from Home")
+		Else
+			AppMenu.AddSingleLine("Add to Home")
 		End If
 		AppMenu.AddSingleLine("Uninstall")
 		AppMenu.AddSingleLine("Hide")
@@ -895,7 +891,7 @@ Private Sub CreateListItemHome(Text As String, _
 	dd.GetViewByName(p, "lblHomeAppTitle").Text = Text
 	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
 	
-	If Starter.Pref.ShowIconHomeApps Then
+	If Starter.Pref.ShowIconHomeApp Then
 		imgIconHome.Visible = True
 		lblHomeAppTitle.Left = 35dip
 	Else
@@ -973,7 +969,7 @@ Public Sub Setup
 	'-- Add Apps to Home ListView
 	clvHome.Clear
 	For Each app In Starter.HomeApps
-'		LogColor(app, Colors.Green)
+		LogColor(app, Colors.Green)
 		Dim ap As App = app
 		AddToHomeList(ap.Name, ap.PackageName, clvHome.sv.Width, False)
 	Next
@@ -1000,25 +996,42 @@ Public Sub Is_HomeApp(pkgName As String) As Boolean
 End Sub
 
 public Sub RemoveHomeItem(pkgName As String)
+	MyLog("Func: RemoveHomeItem => " & pkgName)
+	
 	For i = 0 To clvHome.Size - 1
 		If (i < clvHome.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
 			Dim homevalue As String = clvHome.GetValue(i).As(String).ToLowerCase
 			If homevalue = pkgName Then
 				clvHome.RemoveAt(i)
-				ToastMessageShow(pkgName & " Deleted. " & i, False)
+'				Starter.HomeApps.RemoveAt(i)
+'				ToastMessageShow(pkgName & " Deleted. " & i, False)
 '				Exit
 			End If
 		End If
 	Next
 	Dim query As String = "DELETE FROM Home WHERE pkgName='" & pkgName & "'"
 	Starter.sql.ExecNonQuery(query)
+	
+	'//-- It's an extra function, just need one of this FOR (above or below)
+	'//
+	For i = 0 To Starter.HomeApps.Size - 1
+		Dim homevalue As String = Starter.HomeApps.Get(i)
+		If homevalue = pkgName Then
+			Starter.HomeApps.RemoveAt(i)
+			ToastMessageShow(pkgName & " Deleted. " & i, False)
+'			Exit
+		End If
+	Next
+	
+	ResetHomeList
+	
 '	LogColor(query, Colors.Green)
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
 	MyLog("Func: FindHomeItem => " & pkgName)
 	
-	If (pkgName = Null) Or (pkgName.ToLowerCase = "null") Then
+	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then
 		LogColor("WARNING! FindHomeItem => " & pkgName, Colors.Red)
 		MyLog("Func: FindHomeItem => WARNING! => pkgName => " & pkgName)
 		Return False
@@ -1032,7 +1045,7 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 End Sub
 
 Public Sub GetAppNamebyPackage(pkgName As String) As String
-	
+'	MyLog("Func: GetAppNamebyPackage => " & pkgName)
 	If (pkgName.Length > 8) Then
 		If pkgName.SubString(8) = "package:" Then pkgName = pkgName.SubString(8)
 	End If
@@ -1090,12 +1103,12 @@ Private Sub DisableDragAndDrop
 	End Try
 End Sub
 
-Private Sub RunApp(package As String)
-	MyLog("Func: RunApp")
+Private Sub RunApp(pkgName As String)
+	MyLog("Func: RunApp => " & pkgName)
 	Try
 		Dim Intent1 As Intent
 		Dim pm As PackageManager
-		Intent1 = pm.GetApplicationIntent (package)
+		Intent1 = pm.GetApplicationIntent (pkgName)
 		If Intent1.IsInitialized Then StartActivity (Intent1)
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -1128,7 +1141,6 @@ End Sub
 
 
 Private Sub btnSetting_Click
-	
 	MyLog("Event: btnSetting_Click => ShowHideKey(False)")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
@@ -1142,10 +1154,11 @@ Private Sub btnSetting_Click
 	panSetting.LoadLayout("Settings")
 	panSetting.BringToFront
 	
+'	LogColor(Starter.Pref, Colors.Red)
 	
 	chkShowKeyboard.Checked = Starter.Pref.ShowKeyboard
 	chkShowIcons.Checked = Starter.Pref.ShowIcon
-	chkShowIconsHome.Checked = Starter.Pref.ShowIconHomeApps
+	chkShowIconsHome.Checked = Starter.Pref.ShowIconHomeApp
 	chkAutoRun.Checked = Starter.Pref.AutoRunApp
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
@@ -1222,7 +1235,7 @@ Private Sub btnClose_Click
 	SaveSettings
 	SaveHomeList
 '	ResetHomeList
-'	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+	txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
 
 Public Sub ResetHomeList
@@ -1231,14 +1244,17 @@ Public Sub ResetHomeList
 	Starter.HomeApps.Clear
 	For i = 0 To ResHome.RowCount - 1
 		ResHome.Position = i
-		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
 		
-		Dim CurrentHomeApp As App
-			CurrentHomeApp.PackageName = ResHome.GetString("pkgName")
-			CurrentHomeApp.Name = ResHome.GetString("Name")
-			CurrentHomeApp.index = i + 1
-			CurrentHomeApp.Icon = Starter.GetPackageIcon(CurrentHomeApp.PackageName)
+		Dim pkg As String = ResHome.GetString("pkgName")
 		
+		Dim ap As App
+			ap.PackageName = pkg
+			ap.Name = ResHome.GetString("Name")
+			ap.index = i + 1
+			ap.Icon = Starter.GetPackageIcon(pkg)
+		
+'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
+		Starter.HomeApps.Add(ap)
 	Next
 	ResHome.Close
 End Sub
@@ -1261,7 +1277,7 @@ Public Sub SaveSettings
 	Starter.Pref.CameraApp = cmbCameraSetting.Tag.As(String)
 	Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
 	Starter.Pref.ShowIcon = chkShowIcons.Checked
-	Starter.Pref.ShowIconHomeApps = chkShowIconsHome.Checked
+	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
 	Starter.Pref.AutoRunApp = chkAutoRun.Checked
 	
 '	LogColor(Starter.Pref, Colors.Red)
@@ -1271,7 +1287,7 @@ Public Sub SaveSettings
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApps & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
 	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
@@ -1286,10 +1302,19 @@ Public Sub SaveHomeList
 	
 	For i = 0 To clvHome.Size - 1
 		Dim pkg As String = clvHome.GetValue(i)
-		Starter.HomeApps.Add(pkg)
+		Dim name As String = GetAppNamebyPackage(pkg)
 		Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
 		Starter.sql.ExecNonQuery(query)
 '		LogColor(query, Colors.Red)
+		
+		Dim ap As App
+			ap.PackageName = pkg
+			ap.Name = name
+			ap.index = i + 1
+			ap.Icon = Starter.GetPackageIcon(pkg)
+		
+'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
+		Starter.HomeApps.Add(ap)
 	Next
 	
 End Sub
@@ -1490,7 +1515,7 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
-	MyLog("Event: panApps_Touch => ShowHideKey(False)")
+'	MyLog("Event: panApps_Touch => ShowHideKey(False)")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
 End Sub
@@ -1625,7 +1650,7 @@ Private Sub lblVersion_Click
 	
 	chkShowToastLog.Checked = Starter.ShowToastLog
 	
-	For Each item In LogList
+	For Each item In Starter.LogList
 		clvLog.AddTextItem(item, item)
 	Next
 	
@@ -1633,9 +1658,9 @@ End Sub
 
 Private Sub lblVersion_LongClick
 	ToastMessageShow("Log List Reset Success.", False)
-	LogList.Clear
+	Starter.LogList.Clear
 	clvLog.Clear
-	File.WriteList(File.DirInternalCache, "MyLog.log", LogList)
+	File.WriteList(File.DirInternalCache, "MyLog.log", Starter.LogList)
 	
 	btnLogClose_Click
 End Sub
