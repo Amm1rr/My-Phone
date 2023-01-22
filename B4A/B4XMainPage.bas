@@ -46,7 +46,7 @@ Sub Class_Globals
 	Private ConfigFileName As String = "MyPhone.conf"
 	Public AppRowHeigh As Int = 50dip
 	Public HomeRowHeigh As Int = 50dip
-	Public HomeRowHeighMenu As Int = 55dip
+	Public HomeRowHeighMenu As Int = 110dip 'HomeRowHeigh * 3
 	Public AutoRunOnFind As Boolean
 	Public FirstStart As Boolean = True
 	Private tagColors As Int = Colors.DarkGray
@@ -409,7 +409,6 @@ End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
 '	MyLog("Event: TabStrip1_pageSelected")
-	Log($"Current page: ${Position}"$)
 	DisableDragAndDrop
 	CloseSetting
 	If (Position = 1) Then
@@ -706,7 +705,7 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	Dim hig As Int
 	
 	wdh = 50%x
-	HomeRowHeighMenu = 55
+	HomeRowHeighMenu = 110dip
 	
 	lft = (panHome.Width / 2) + (wdh  / 2)
 	hig = (clvHRowMenu.Size * HomeRowHeighMenu) '- HomeRowHeigh / 4
