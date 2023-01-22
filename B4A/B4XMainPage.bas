@@ -471,7 +471,7 @@ Private Sub LoadRecentlyList
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
 	
 	Dim ResRecentApps As ResultSet
-		ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps")
+	ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps WHERE ID IN (SELECT ID FROM RecentlyApps ORDER By ID DESC NULLS FIRST LIMIT 5)")
 	
 	tagApps.CLV.Clear
 	
@@ -550,7 +550,6 @@ Public Sub AddToRecently(Text As String, Value As String)
 '		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
 '		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
 
-'		Starter.sql.ExecNonQuery("DELETE FROM RecentlyApps ")
 		tagApps.mBase.Enabled = False
 		tagApps.CLV.Clear
 		
