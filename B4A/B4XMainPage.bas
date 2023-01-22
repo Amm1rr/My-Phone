@@ -413,11 +413,11 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	DisableDragAndDrop
 	CloseSetting
 	If (Position = 1) Then
-		MyLog("Event: TabStrip1_pageSelected => ShowHideKey(True)")
+'		MyLog("Event: TabStrip1_pageSelected => ShowHideKey(True)")
 		If Starter.Pref.ShowKeyboard Then ShowHideKeyboard(True)
 	Else
 		Try
-			MyLog("Event: TabStrip1_pageSelected => ShowHideKey(False)")
+'			MyLog("Event: TabStrip1_pageSelected => ShowHideKey(False)")
 			ShowHideKeyboard(False)
 		Catch
 			MyLog("Event: TabStrip1_pageSelected => Error Caught => " & LastException.Message)
@@ -549,7 +549,8 @@ Public Sub AddToRecently(Text As String, Value As String)
 	Else If (RecentlyList.Size >= 5) Then
 '		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
 '		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-		
+
+'		Starter.sql.ExecNonQuery("DELETE FROM RecentlyApps ")
 		tagApps.mBase.Enabled = False
 		tagApps.CLV.Clear
 		
@@ -706,7 +707,7 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	Dim hig As Int
 	
 	wdh = 50%x
-	HomeRowHeighMenu = 55dip
+	HomeRowHeighMenu = 55
 	
 	lft = (panHome.Width / 2) + (wdh  / 2)
 	hig = (clvHRowMenu.Size * HomeRowHeighMenu) '- HomeRowHeigh / 4
@@ -815,7 +816,7 @@ Private Sub AppMenu_ItemClick (Postion As Int, Value As Object)
 			Run_Info(pkgName)
 			
 		Case "Add to Home"
-			AddToHomeList(CurrentAppApp.Name, pkgName, clvHome.sv.Width, True)
+			AddToHomeList(CurrentAppApp.Name, pkgName, clvApps.sv.Width, True)
 		
 		Case "Remove from Home"
 			RemoveHomeItem(pkgName)
@@ -1234,7 +1235,7 @@ End Sub
 Private Sub btnClose_Click
 	SaveSettings
 	SaveHomeList
-'	ResetHomeList
+	ResetHomeList
 	txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
 
@@ -1242,6 +1243,8 @@ Public Sub ResetHomeList
 	MyLog("Func: ResetHomeList")
 	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home")
 	Starter.HomeApps.Clear
+	clvHome.sv.Enabled = False
+	clvHome.Clear
 	For i = 0 To ResHome.RowCount - 1
 		ResHome.Position = i
 		
@@ -1253,10 +1256,12 @@ Public Sub ResetHomeList
 			ap.index = i + 1
 			ap.Icon = Starter.GetPackageIcon(pkg)
 		
-'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
+		clvHome.Add(CreateListItemHome(ap.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
 		Starter.HomeApps.Add(ap)
+'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
 	Next
 	ResHome.Close
+	clvHome.sv.Enabled = True
 End Sub
 
 Private Sub CloseSetting
