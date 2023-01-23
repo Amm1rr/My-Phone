@@ -74,13 +74,13 @@ Sub Class_Globals
 	Private lblInfo As Label
 	Public tagApps As ASScrollingTags
 	Private chkAutoRun As CheckBox
-	Public lblSetAsDefaultLauncher As Label
 	Private lblVersionHome As Label
 	Private panLog As Panel
 	Private clvLog As CustomListView
 	Private btnLogClose As Button
 	Private chkShowToastLog As CheckBox
 	Private chkShowIconsHome As CheckBox
+	Private lblSetAsDefault As Label
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -152,7 +152,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	Tabstrip1.LoadLayout("Home", "Home")
 	Tabstrip1.LoadLayout("Apps", "Apps")
 	
-	lblVersionHome.Text = Application.LabelName & " " & Application.VersionCode & " " & Application.VersionName
+	lblVersionHome.Text = "Build " & Application.VersionCode & " " & Application.VersionName
 	
 	If (FirstStart) Then
 	
@@ -189,11 +189,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 				imgIconApp.Visible = False
 				lblAppTitle.Left = 5dip
 			End If
-		Catch
-			Log(LastException)
-		End Try
-		
-		Try
+			
 			If Starter.Pref.ShowIconHomeApp Then
 				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 				imgIconHome.Visible = True
@@ -203,14 +199,13 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 				imgIconHome.Visible = False
 				lblAppTitle.Left = 5dip
 			End If
+			
 		Catch
+			MyLog("B4XPage_Created: " & LastException)
 			Log(LastException)
 		End Try
 		
 		StartTimeClick = False
-		
-		If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then _
-			lblSetAsDefaultLauncher.Visible = True
 		
 		StartService(Starter)
 		
@@ -323,14 +318,14 @@ End Sub
 
 'Private Sub Activity_Resume
 '	MyLog("Event: Activity_Resume")
-'	If (GetDefaultLauncher <> Pref.MyPackage) Then _
-'		lblSetAsDefaultLauncher.Visible = True
+'	SetDefaultLauncher
+'	lblSetAsDefaultLauncher.Visible = True
 'End Sub
 '
 'Private Sub Activity_Pause(UserClosed As Boolean)
 '	MyLog("Event: Activity_Pause")
-'	If (B4XPages.MainPage.GetDefaultLauncher <> B4XPages.MainPage.Pref.MyPackage) Then _
-'		B4XPages.MainPage.lblSetAsDefaultLauncher.Visible = True
+'	B4XPages.MainPage.SetDefaultLauncher
+'	B4XPages.MainPage.lblSetAsDefaultLauncher.Visible = True
 '	GoHome(False)
 'End Sub
 
@@ -1547,13 +1542,20 @@ Private Sub lblSetAsDefaultLauncher_Click
 	SetDefaultLauncher
 End Sub
 
-Private Sub SetDefaultLauncher
+Public Sub SetDefaultLauncher
 	
-	If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then
+	Dim deflauncher As String = GetDefaultLauncher
+	
+	MyLog("Func: SetDefaultLauncher => " & Starter.Pref.MyPackage)
+	
+	If (deflauncher <> Starter.Pref.MyPackage) Then
 		Dim in As Intent
 		in.Initialize("android.settings.HOME_SETTINGS", "")
 		StartActivity(in)
+	Else
+		ToastMessageShow(Application.LabelName & " already set sefault launcher. have Fun ;)", False)
 	End If
+	
 	
 End Sub
 
@@ -1876,4 +1878,8 @@ Public Sub SetupInstalledApps_OLD
 '		''	Next
 '	End If
 	
+End Sub
+
+Private Sub lblSetAsDefault_Click
+	SetDefaultLauncher
 End Sub

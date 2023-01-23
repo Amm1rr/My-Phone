@@ -45,7 +45,7 @@ Module6=Wallpaper
 NumberOfFiles=10
 NumberOfLibraries=15
 NumberOfModules=6
-Version=12.15
+Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
@@ -107,15 +107,11 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 End Sub
 
 Sub Activity_Resume
-	If (B4XPages.MainPage.GetDefaultLauncher <> Starter.Pref.MyPackage) Then _
-		B4XPages.MainPage.lblSetAsDefaultLauncher.Visible = True
 '	B4XPages.MainPage.GoHome(False)
 	B4XPages.Delegate.Activity_Resume
 End Sub
 
 Sub Activity_Pause (UserClosed As Boolean)
-	If (B4XPages.MainPage.GetDefaultLauncher <> Starter.Pref.MyPackage) Then _
-		B4XPages.MainPage.lblSetAsDefaultLauncher.Visible = True
 	B4XPages.Delegate.Activity_Pause
 End Sub
 
