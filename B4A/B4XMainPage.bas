@@ -37,45 +37,25 @@ Sub Class_Globals
 	Private cmbCameraSetting As B4XComboBox
 	Private cmbClockSetting As B4XComboBox
 	Private imgIconApp As ImageView
+	Private imgIconHome As ImageView
 	Private clocktimer As Timer
 	Public txtAppsSearch As AS_TextFieldAdvanced
 	
-	Public AppsList As List
 	Private lstPackageNames As List
 	Private RecentlyList As List
-	Public HomeApps() As String	'-- Home Screen Apps
 	Private ConfigFileName As String = "MyPhone.conf"
 	Public AppRowHeigh As Int = 50dip
 	Public HomeRowHeigh As Int = 50dip
-	Public HomeRowHeighMenu As Int = 55dip
+	Public HomeRowHeighMenu As Int = 110dip 'HomeRowHeigh * 3
 	Public AutoRunOnFind As Boolean
-	Public LogMode As Boolean = True
-	Public LogList As List
 	Public FirstStart As Boolean = True
-	Public ShowToastLog As Boolean = True
+	Private tagColors As Int = Colors.DarkGray
 	
 	Public StartTimeClick As Boolean = True
 	Private dragAllow As Boolean = False
 	
 	Private YPos As Float
 	Private XPos As Float
-	
-	Public Pref As Settings
-	
-	Type App(Name As String, _
-			PackageName As String, _
-			index As Int, _
-			IsHomeApp As Boolean, _
-			Icon As Bitmap)
-	
-	Type Settings(CameraApp As String, _
-			 PhoneApp As String, _
-			 ClockApp As String, _
-			 ShowIcon As Boolean, _
-			 ShowKeyboard As Boolean, _
-			 AutoRunApp As Boolean, _
-			 MyPackage As String, _
-			 ShowIconHomeApps As Boolean)
 	
 	Public Manager As AdminManager
 	Private movecount As Int
@@ -88,8 +68,8 @@ Sub Class_Globals
 	Public clvHRowMenu As CustomListView
 	Public AppMenu As ListView
 	
-	Public CurrentAppApp As App
-	Public CurrentHomeApp As App
+	Private CurrentAppApp As App
+	Private CurrentHomeApp As App
 	
 	Private lblInfo As Label
 	Public tagApps As ASScrollingTags
@@ -100,26 +80,24 @@ Sub Class_Globals
 	Private clvLog As CustomListView
 	Private btnLogClose As Button
 	Private chkShowToastLog As CheckBox
-	Private imgIconHome As ImageView
 	Private chkShowIconsHome As CheckBox
 End Sub
 
-Public Sub MyLog (Text As String)
-	If (LogMode) Then
+Private Sub MyLog (Text As String)
+	If (Starter.LogMode) Then
 '		Dim txtWriter As TextWriter
 '		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
 '			txtWriter.WriteList(LogList)
 '			txtWriter.Close
 '		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
-		LogList.Add(Text)
+		Starter.LogList.Add(Text)
 		Log(Text)
-		If (ShowToastLog) Then ToastMessageShow(Text, False)
+		If (Starter.ShowToastLog) Then ToastMessageShow(Text, False)
 	End If
 End Sub
 
 Public Sub Initialize
 	B4XPages.GetManager.LogEvents = True
-	If Not (LogList.IsInitialized) Then LogList.Initialize
 
 	MyLog("Func: Initialize")
 	
@@ -131,25 +109,6 @@ Public Sub Initialize
 	xui.RegisterDesignerClass(dd)
 	
 	IMElib.Initialize("")
-	
-	Dim Setting As KeyValueStore
-	Setting.Initialize(File.DirInternal, ConfigFileName)
-	Dim apps As String = Setting.GetDefault("HomeApps", "")
-	HomeApps = Regex.Split("\|", apps)
-	
-	If Not (RecentlyList.IsInitialized) Then _
-		RecentlyList.Initialize
-	
-	Pref.CameraApp = Setting.GetDefault("CameraApp", "")
-	Pref.PhoneApp = Setting.GetDefault("PhoneApp", "")
-	Pref.ClockApp = Setting.GetDefault("ClockApp", "")
-	Pref.ShowIcon = Setting.GetDefault("ShowIcon", False).As(Boolean)
-	Pref.ShowIconHomeApps = Setting.GetDefault("ShowIconHomeApp", False).As(Boolean)
-	Pref.ShowKeyboard = Setting.GetDefault("ShowKeyboard", True).As(Boolean)
-	Pref.AutoRunApp = Setting.GetDefault("AutoRunApp", True)
-	Pref.MyPackage = "my.phone"
-	
-	ShowToastLog = Setting.GetDefault("ShowToastLog", True).As(Boolean)
 	
 	DateTime.TimeFormat = "hh:mm:ss"
 	lblClock.Initialize("")
@@ -171,6 +130,16 @@ Private Sub clocktimer_Tick
 	lblDate.Text = DateTime.Date(DateTime.Now)
 End Sub
 
+Public Sub GetSetting(Key As String) As String
+	Dim tmpResult As String
+	Private CurSql As Cursor
+	CurSql = Starter.sql.ExecQuery("SELECT " & Key & " FROM Settings")
+	CurSql.Position = 0
+	tmpResult = CurSql.GetString("")
+	CurSql.Close
+	Return tmpResult
+End Sub
+
 'This event will be called once, before the page becomes visible.
 Private Sub B4XPage_Created (Root1 As B4XView)
 	MyLog("Event: B4XPage_Created")
@@ -187,43 +156,60 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	If (FirstStart) Then
 	
-		SetupInstalledApps
+		Setup
 		
 		LoadRecentlyList
 		
-		imgPhone.Load(File.DirAssets, "Phone.png")
-		imgCamera.Load(File.DirAssets, "Camera.png")
+		If Not (imgPhone.IsInitialized) Then imgPhone.Initialize("", "")
+				imgPhone.Load(File.DirAssets, "Phone.png")
+		
+		If Not (imgCamera.IsInitialized) Then imgCamera.Initialize("", "")
+				imgCamera.Load(File.DirAssets, "Camera.png")
 		
 		gestHome.SetOnTouchListener(panHome, "gestHome_gesture")
 '		gestHomeList.SetOnTouchListener(clvHome.AsView, "gestHomeList_gesture")
 '		gestSetting.SetOnTouchListener(panSetting, "gestSetting_gesture")
 		
 		'//-- After Screen On, set as top on other apps
-		Dim jo As JavaObject = Root
-		Dim Window As JavaObject = jo.RunMethodJO("getContext", Null).RunMethod("getWindow", Null)
-		Window.RunMethod("addFlags", Array As Object(524288)) 'FLAG_SHOW_WHEN_LOCKED
-		Window.RunMethod("addFlags", Array As Object(128)) 'FLAG_KEEP_SCREEN_ON
+'		Dim jo As JavaObject = Root
+'		Dim Window As JavaObject = jo.RunMethodJO("getContext", Null).RunMethod("getWindow", Null)
+'		Window.RunMethod("addFlags", Array As Object(524288)) 'FLAG_SHOW_WHEN_LOCKED
+'		Window.RunMethod("addFlags", Array As Object(128)) 'FLAG_KEEP_SCREEN_ON
 		'//--
 		
 		dragger.Initialize(clvHome)
 		
-		If Pref.ShowIcon Then
-			imgIconApp.Visible = True
-			lblAppTitle.Left = 35dip
-		Else
-			imgIconApp.Visible = False
-			lblAppTitle.Left = 5dip
-		End If
-		If Pref.ShowIconHomeApps Then
-			imgIconHome.Visible = True
-			lblAppTitle.Left = 35dip
-		Else
-			imgIconHome.Visible = False
-			lblAppTitle.Left = 5dip
-		End If
+		Try
+			If Starter.Pref.ShowIcon Then
+				If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
+				imgIconApp.Visible = True
+				lblAppTitle.Left = 35dip
+			Else
+				If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
+				imgIconApp.Visible = False
+				lblAppTitle.Left = 5dip
+			End If
+		Catch
+			Log(LastException)
+		End Try
+		
+		Try
+			If Starter.Pref.ShowIconHomeApp Then
+				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
+				imgIconHome.Visible = True
+				lblAppTitle.Left = 35dip
+			Else
+				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
+				imgIconHome.Visible = False
+				lblAppTitle.Left = 5dip
+			End If
+		Catch
+			Log(LastException)
+		End Try
+		
 		StartTimeClick = False
 		
-		If (GetDefaultLauncher <> Pref.MyPackage) Then _
+		If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then _
 			lblSetAsDefaultLauncher.Visible = True
 		
 		StartService(Starter)
@@ -423,15 +409,14 @@ End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
 '	MyLog("Event: TabStrip1_pageSelected")
-	Log($"Current page: ${Position}"$)
 	DisableDragAndDrop
 	CloseSetting
 	If (Position = 1) Then
-		MyLog("Event: TabStrip1_pageSelected => ShowHideKey(True)")
-		If Pref.ShowKeyboard Then ShowHideKeyboard(True)
+'		MyLog("Event: TabStrip1_pageSelected => ShowHideKey(True)")
+		If Starter.Pref.ShowKeyboard Then ShowHideKeyboard(True)
 	Else
 		Try
-			MyLog("Event: TabStrip1_pageSelected => ShowHideKey(False)")
+'			MyLog("Event: TabStrip1_pageSelected => ShowHideKey(False)")
 			ShowHideKeyboard(False)
 		Catch
 			MyLog("Event: TabStrip1_pageSelected => Error Caught => " & LastException.Message)
@@ -452,39 +437,49 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 		clvApps.AsView.BringToFront
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
 		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName)
-		SaveRecentlyList
+'		SaveRecentlyList
 	End If
 End Sub
 
 Private Sub SaveRecentlyList
 	MyLog("Func: SaveRecentlyList")
-	Dim setting As KeyValueStore
-	setting.Initialize(File.DirInternal, ConfigFileName)
 	
 	Dim Str As StringBuilder
 	Str.Initialize
 	
-	Dim i As Int = 0
+	Dim query As String
+	Dim tmp As String
 	For i = 0 To RecentlyList.Size - 1
-		Str.Append(RecentlyList.Get(i)).Append("|")
+		tmp = "('" & GetAppNamebyPackage(RecentlyList.Get(i)) & "','" & RecentlyList.Get(i) & "')," & tmp
 	Next
-	setting.Put("RecentlyApps", Str.ToString)
+	
+	If tmp <> "" Then
+		tmp = tmp.SubString2(0, tmp.Length - 1)
+		query = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUE" & tmp
+		Starter.sql.ExecNonQuery(query)
+		LogColor(query, Colors.Green)
+		
+		Starter.sql.ExecNonQuery(query)
+	End If
+	
 End Sub
 
 Private Sub LoadRecentlyList
 	MyLog("Func: LoadRecentlyList")
-	Dim setting As KeyValueStore
-	setting.Initialize(File.DirInternal, ConfigFileName)
+	
+	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
+	
+	Dim ResRecentApps As ResultSet
+	ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps WHERE ID IN (SELECT ID FROM RecentlyApps ORDER By ID DESC NULLS FIRST LIMIT 5)")
 	
 	tagApps.CLV.Clear
-	Dim apps As String = setting.GetDefault("RecentlyApps", "")
-	If apps = "" Then Return
 	
-	Dim tmpTags() As String = Regex.Split("\|", apps)
-	
-	Dim i As Int = 0
-	For i = 0 To tmpTags.Length - 1
-		AddToRecently(GetAppNamebyPackage(tmpTags(i)), tmpTags(i))
+	For i = 0 To ResRecentApps.RowCount - 1
+		ResRecentApps.Position = i
+		Dim value As String = ResRecentApps.GetString("pkgName")
+'		AddToRecently(GetAppNamebyPackage(value), value)
+		tagApps.AddTag(ResRecentApps.GetString("Name"), tagColors, value)
+		RecentlyList.Add(value)
 	Next
 	
 End Sub
@@ -501,28 +496,19 @@ End Sub
 Public Sub AddToRecently(Text As String, Value As String)
 	MyLog("Func: AddToRecently & => " & Value)
 	
+	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
+	
 '	tagApps.CLV.AddTextItem(Text, Value)
 	
 '	If (RecentlyList.Size > 0) Then
 '		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 0)) Then Return
 '		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
 '	End If
-
-'	If PhEvent Then
-''		Log(Value)
-'		Value = Value.SubString(8)
-''		Log(Value)
-'		Text = GetAppNamebyPackage(Value)
-''		Log("Text: " & Text)
-'		ToastMessageShow("Text: " & Text, True)
-'	End If
-
-	Dim tagColors As Int = Colors.DarkGray
 	
 	'//-- Check if This Function Called from Service
 	'//-- If Text is "" , that is mean it's called from Service
 	'//-- 
-	If Text = "" Then
+	If (Text.Length > 0) And (Text = "") Then
 		Value = Value.SubString(8)
 		Text = GetAppNamebyPackage(Value)
 		tagColors = Colors.DarkGray
@@ -542,6 +528,16 @@ Public Sub AddToRecently(Text As String, Value As String)
 		tagApps.AddTag(Text, tagColors, Value)
 		RecentlyList.Add(Value)
 		
+		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+'		LogColor(q, Colors.Green)
+		
+		Try
+			Starter.sql.ExecNonQuery(q)
+		Catch
+			Log(LastException)
+		End Try
+		
+		
 '		Dim lstReverse As List = ReverseList(RecentlyList)
 '		RecentlyList = lstReverse
 '		tagApps.CLV.Clear
@@ -552,8 +548,7 @@ Public Sub AddToRecently(Text As String, Value As String)
 	Else If (RecentlyList.Size >= 5) Then
 '		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
 '		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-		
-		
+
 		tagApps.mBase.Enabled = False
 		tagApps.CLV.Clear
 		
@@ -575,16 +570,27 @@ Public Sub AddToRecently(Text As String, Value As String)
 		RecentlyList.Add(i2)
 		RecentlyList.Add(i3)
 		
+		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+		LogColor(q, Colors.Yellow)
+		Try
+			Starter.sql.ExecNonQuery(q)
+		Catch
+			Log(LastException)
+		End Try
+		
 		tagApps.mBase.Enabled = True
 		
 	Else
 		
 		tagApps.AddTag(Text, tagColors, Value)
 		RecentlyList.Add(Value)
+		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+		LogColor(q, Colors.Red)
+		Starter.sql.ExecNonQuery(q)
 		
 	End If
 	
-	SaveRecentlyList
+'	SaveRecentlyList
 	
 End Sub
 
@@ -609,12 +615,13 @@ Public Sub RemoveAsRecently (Value As Object)
 		If RecentlyList.Get(i) = Value Then
 			tagApps.CLV.RemoveAt(i)
 			RecentlyList.RemoveAt(i)
+			Starter.sql.ExecNonQuery("DELETE FROM RecentlyApps WHERE pkgName = '" & Value & "'")
 			MyLog("Func: RemoveAsRecently => " & Value.As(String) & " - Removed.")
 			Exit
 		End If
 	Next
 	
-	SaveRecentlyList
+'	SaveRecentlyList
 	
 '	For Each ap In RecentlyList
 '		If ap = tagApps.CLV.GetValue(Index) Then
@@ -698,7 +705,7 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	Dim hig As Int
 	
 	wdh = 50%x
-	HomeRowHeighMenu = 55dip
+	HomeRowHeighMenu = 110dip
 	
 	lft = (panHome.Width / 2) + (wdh  / 2)
 	hig = (clvHRowMenu.Size * HomeRowHeighMenu) '- HomeRowHeigh / 4
@@ -728,10 +735,11 @@ Private Sub CreateAppMenu(Position As Int, Value As Object)
 		AppMenu.SetColorAnimated(300, Colors.Gray, Colors.DarkGray)
 		AppMenu.AddSingleLine("Info")
 		AppMenu.AddSingleLine(CurrentAppApp.Name)
-		If (FindHomeItem(CurrentAppApp.PackageName) = False) Then
-			AppMenu.AddSingleLine("Add to Home")
-		Else
+'		MyLog("Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
+		If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
 			AppMenu.AddSingleLine("Remove from Home")
+		Else
+			AppMenu.AddSingleLine("Add to Home")
 		End If
 		AppMenu.AddSingleLine("Uninstall")
 		AppMenu.AddSingleLine("Hide")
@@ -762,8 +770,7 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 			Run_Info(CurrentHomeApp.PackageName)
 '			CurrentHomeApp.index = -1
 		Case "Delete"
-			clvHome.RemoveAt(CurrentHomeApp.index)
-			SaveHomeList
+			RemoveHomeItem(CurrentHomeApp.PackageName)
 '			CurrentHomeApp.index = -1
 			Log("Delete " & CurrentHomeApp.PackageName)
 			ToastMessageShow("Delete " & CurrentHomeApp.PackageName, False)
@@ -775,36 +782,54 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 	
 End Sub
 
+Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As Boolean)
+	
+	MyLog("Func: AddToHomeList => " & pkgName & " -  name => " & Name)
+	
+	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then Return
+	If (Name = Null) Or (Name = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
+	
+	If (FindHomeItem(pkgName) = False) Then
+		clvHome.Add(CreateListItemHome(Name, pkgName, Widt, HomeRowHeigh), pkgName)
+		If (Save) Then
+			Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & Name & "','" & pkgName & "')"
+			Starter.sql.ExecNonQuery(query)
+			LogColor(query, Colors.Blue)
+		End If
+		
+		Starter.HomeApps.Add(pkgName)
+	End If
+	
+	
+End Sub
+
 Private Sub AppMenu_ItemClick (Postion As Int, Value As Object)
 	MyLog("Event: AppMenu_ItemClick")
+	Dim pkgName As String  = CurrentAppApp.PackageName
+							 CurrentAppApp.index = -1
 	AppMenu.Visible = False
-	Sleep(0)
+'	Sleep(0)
 	Select Value
 		Case "Info"
-			Run_Info(CurrentAppApp.PackageName)
+			Run_Info(pkgName)
 			
 		Case "Add to Home"
-			If (FindHomeItem(CurrentHomeApp.PackageName) = False) Then
-				clvHome.Add(CreateListItemHome(CurrentAppApp.Name, CurrentAppApp.PackageName, clvHome.sv.Width, HomeRowHeigh), CurrentAppApp.PackageName)
-				SaveHomeList
-			End If
+			AddToHomeList(CurrentAppApp.Name, pkgName, clvApps.sv.Width, True)
 		
 		Case "Remove from Home"
-			RemoveHomeItem(CurrentAppApp.PackageName)
-			SaveHomeList
+			RemoveHomeItem(pkgName)
 			
-		Case CurrentAppApp.Name
-			RunApp(CurrentAppApp.PackageName)
+		Case pkgName
+			RunApp(pkgName)
 			
 		Case "Uninstall"
-			UninstallApp(CurrentAppApp.PackageName)
+			UninstallApp(pkgName)
 			
 		Case "Hide"
 			
 		Case "Rename"
 			
 	End Select
-'	CurrentAppApp.index = -1
 End Sub
 
 Public Sub UninstallApp(pkgName As String)
@@ -816,25 +841,6 @@ Public Sub UninstallApp(pkgName As String)
 	
 	StartActivity(im)
 	
-End Sub
-
-Sub GetPackageIcon(PackageName As String) As Bitmap
-	Dim PM As PackageManager, Data As Object = PM.GetApplicationIcon(PackageName)
-	If Data Is BitmapDrawable Then
-		Dim Icon As BitmapDrawable = Data
-		Return Icon.Bitmap
-	Else
-		Return GetBmpFromDrawable(Data, 48dip)
-	End If
-End Sub
-
-Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
-	Dim BMP As Bitmap, BG As Canvas, Drect As Rect
-	BMP.InitializeMutable(Size,Size)
-	Drect.Initialize(0,0,Size,Size)
-	BG.Initialize2(BMP)
-	BG.DrawDrawable(Drawable,Drect)
-	Return BG.Bitmap
 End Sub
 
 Private Sub CreateListItemApp(Text As String, _
@@ -852,7 +858,7 @@ Private Sub CreateListItemApp(Text As String, _
 	dd.GetViewByName(p, "lblAppTitle").Tag = Tag.Trim
 '	lblAppTitle.Text = Text
 
-	If Pref.ShowIcon Then
+	If Starter.Pref.ShowIcon Then
 		imgIconApp.Visible = True
 		lblAppTitle.Left = 35dip
 	Else
@@ -884,7 +890,7 @@ Private Sub CreateListItemHome(Text As String, _
 	dd.GetViewByName(p, "lblHomeAppTitle").Text = Text
 	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
 	
-	If Pref.ShowIconHomeApps Then
+	If Starter.Pref.ShowIconHomeApp Then
 		imgIconHome.Visible = True
 		lblHomeAppTitle.Left = 35dip
 	Else
@@ -893,7 +899,7 @@ Private Sub CreateListItemHome(Text As String, _
 	End If
 	
 	Try
-		imgIconHome.Bitmap = GetPackageIcon(Value)
+		imgIconHome.Bitmap = Starter.GetPackageIcon(Value)
 	Catch
 		Log("CreateListItemHome-Icon=> " & LastException)
 	End Try
@@ -905,9 +911,9 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	Dim i As Int
 	Dim AppCount As Int
 	clvApps.Clear
-	For i = 0 To AppsList.Size - 1
+	For i = 0 To Starter.AppsList.Size - 1
 		Dim Ap As App
-		Ap = AppsList.Get(i)
+		Ap = Starter.AppsList.Get(i)
 		If Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
 			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh, Ap.Icon), Ap.PackageName.As(String))
 			AppCount = AppCount + 1
@@ -915,7 +921,7 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	Next
 	
 	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
-		If (Pref.AutoRunApp) Then
+		If (Starter.Pref.AutoRunApp) Then
 			Dim pkg As String = clvApps.GetValue(0).As(String)
 			RunApp(pkg)
 			AddToRecently(GetAppNamebyPackage(pkg), pkg)
@@ -924,6 +930,13 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	
 	lblInfo.Text = AppCount & " apps"
 	
+End Sub
+
+Public Sub GetOverlayPermission
+	Dim c As RequestDrawOverPermission 'this is the name of the class
+	c.Initialize
+	Wait For (c.GetPermission) Complete (Success As Boolean)
+	MyLog("Permission: " & Success)
 End Sub
 
 Public Sub Is_NormalApp(pkgName As String) As Boolean
@@ -948,199 +961,21 @@ Public Sub Is_NormalApp(pkgName As String) As Boolean
 	
 End Sub
 
-Public Sub SetupInstalledApps
+Public Sub Setup
 	
-	MyLog("Func: SetupInstalledApps")
-
-'	Dim args(1) As Object
-'	Dim Obj1, Obj2, Obj3 As Reflector
-'	Dim size, i, flags As Int
-'	Dim Types(1), name, packName As String
-'	
-'	Obj1.Target = Obj1.GetContext
-'	Obj1.Target = Obj1.RunMethod("getPackageManager") ' PackageManager
-'	Obj2.Target = Obj1.RunMethod2("getInstalledPackages", 0, "java.lang.int") ' List<PackageInfo>
-'	size = Obj2.RunMethod("size")
+	MyLog("Func: Setup")
 	
-	'##
-	'## Create a List (AppsList) as Installed Softwares 
-	'##	and Sorting that to add ListBox control.
-	'##
+	'-- Add Apps to Home ListView
+	clvHome.Clear
+	For Each app In Starter.HomeApps
+		LogColor(app, Colors.Green)
+		Dim ap As App = app
+		AddToHomeList(ap.Name, ap.PackageName, clvHome.sv.Width, False)
+	Next
 	
-	If Not (AppsList.IsInitialized) Then AppsList.Initialize
+	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
 	
-	AppsList.Clear
-	
-	Dim sortindex As Int
-	
-	Dim i As Int
-	Dim pm As PackageManager
-	Dim packages As List
-	packages = pm.GetInstalledPackages
-	
-	
-	Dim setting As KeyValueStore
-	setting.Initialize(File.DirInternal, ConfigFileName)
-	Dim AppSize As Int = setting.GetDefault("AppSize", -1).As(Int)
-	Dim Str As StringBuilder
-	Str.Initialize
-	
-	If AppSize = packages.Size Then
-		
-		Dim apps As String = setting.GetDefault("Apps", "").As(String)
-		Dim strApps() As String = Regex.Split("\|", apps)
-		
-		Dim i As Int
-		For i = 0 To strApps.Length - 1
-			
-			Dim currentapp As App
-			currentapp.PackageName = strApps(i)
-			currentapp.Name = GetAppNamebyPackage(currentapp.PackageName)
-			sortindex = sortindex + 1
-			currentapp.index = sortindex
-				
-			Try
-				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
-			Catch
-				Log("SetupInstalledApps Second - Icon => " & LastException)
-			End Try
-				
-			If (Is_HomeApp(currentapp.PackageName)) Then
-				currentapp.IsHomeApp = True
-				clvHome.Add(CreateListItemHome(currentapp.Name, currentapp.PackageName, clvHome.AsView.Width, HomeRowHeigh), currentapp.PackageName)
-			End If
-				
-			AppsList.Add(currentapp)
-			
-		Next
-		
-	Else
-	
-		For i = 0 To packages.Size - 1
-			Dim p As String = packages.Get(i)
-			
-			'//-- This will test whether the app is a 'regular' app that 
-			'//-- can be launched and if so you can then show it in your app drawer.
-			'//-- If the app has been uninstalled, or if it isn't for normal use,
-			'//-- then it will return false.
-			If pm.GetApplicationIntent(p).IsInitialized Then
-				Dim currentapp As App
-				currentapp.Name = pm.GetApplicationLabel(p)
-				currentapp.PackageName = p
-				sortindex = sortindex + 1
-				currentapp.index = sortindex
-				
-				Str.Append(p & "|")
-				
-				Try
-					currentapp.Icon = GetPackageIcon(p)
-				Catch
-					Log("SetupInstalledApps - Icon => " & LastException)
-				End Try
-				
-				If (Is_HomeApp(currentapp.PackageName)) Then
-					currentapp.IsHomeApp = True
-					
-					'//-- Here We Can add Home apps to HomeListView
-					'//-- but to solve sort home list as saved
-					'//-- We add Home List Apps after Sort them.
-					'//-- Performance and Loading Time are same.
-	'				Dim r As Reflector
-	'				r.Target = currentapp
-	'				clvHome.Add(CreateListItemHome(currentapp.Name, currentapp.PackageName, clvHome.AsView.Width, HomeRowHeigh), currentapp.PackageName)
-				End If
-				
-				AppsList.Add(currentapp)
-			End If
-		Next
-		
-		
-		'//-- 			[Installed Apps]
-		'//-- #####################################
-		'//-- Alternative Mehtod for Get Installed Apps List
-		'//-- ,by Calling Java Functions --//
-	'	
-	'	For i = 0 To size - 1
-	'		Obj3.Target = Obj2.RunMethod2("get", i, "java.lang.int") ' PackageInfo
-	'		packName = Obj3.GetField("packageName")
-	'
-	'		Obj3.Target = Obj3.GetField("applicationInfo") ' ApplicationInfo
-	'		flags = Obj3.GetField("flags")
-	'		
-	''		If Bit.And(flags, 1) = 0 Then '//-- Only Show Installed apps by User
-	'		If Bit.And(flags, 0) = 0 Then '//-- Show All Apps, Include System Apps
-	'			args(0) = Obj3.Target
-	'			Types(0) = "android.content.pm.ApplicationInfo"
-	'			name = Obj1.RunMethod4("getApplicationLabel", args, Types)
-	'			
-	''			Try
-	''				Dim icon As BitmapDrawable
-	''				icon = Obj1.RunMethod4("getApplicationIcon", args, Types)
-	''			Catch
-	''				Log("Icon SetupInstalledApps - " & LastException)
-	''			End Try
-	'			
-	'			Dim currentapp As App
-	'			currentapp.Name = name
-	'			currentapp.PackageName = packName
-	'			sortindex = sortindex + 1
-	'			currentapp.index = sortindex
-	''			currentapp.Icon = icon
-	'			
-	'			If (Is_HomeApp(currentapp.PackageName)) Then currentapp.IsHomeApp = True
-	'			
-	'			AppsList.Add(currentapp)
-	'			
-	'		End If
-	'	Next
-
-		'//-- End of Alternative Method for Get Installed Apps
-		'//-- #####################################
-		'//-- 			[Installed Apps]	   --//
-		
-		
-		'-- Add Apps to Home ListView
-		clvHome.Clear
-		Dim i As Int
-		For i = 0 To HomeApps.Length - 1
-			For Each app In AppsList
-				Dim ap As App = app
-				If HomeApps(i) = ap.PackageName Then
-					clvHome.Add(CreateListItemHome(ap.Name, ap.PackageName, clvHome.AsView.Width, HomeRowHeigh), ap.PackageName)
-					Exit
-				End If
-			Next
-		Next
-		
-		AppsList.SortTypeCaseInsensitive("Name", True)
-		
-		setting.Put("AppSize", AppsList.Size)
-		setting.Put("Apps", Str.ToString)
-		
-		txtAppsSearch_TextChanged("")
-		
-	'	For i = 0 To HomeApps.Length - 1
-	'		For Each app In AppsList
-	'			Dim r As Reflector
-	'			r.Target = app
-	'			If (r.GetField("PackageName").As(String) = HomeApps(i).As(String)) Then
-	'				Dim ap As App = app
-	'				clvHome.Add(CreateListItemHome(ap.Name, clvHome.AsView.Width, HomeRowHeigh), ap.PackageName)
-	'			End If
-	'		Next
-	''		Dim l As Int
-	''		For l = 0 To AppsList.Size - 1
-	''			Dim tt As String
-	''			Dim r As Reflector
-	''			r.Target = AppsList.Get(l)
-	''			tt = r.GetField("PackageName")
-	''			If (tt = HomeApps(i)) Then
-	''				Dim app As App = AppsList.Get(l)
-	''				clvHome.AddTextItem(app.Name, app.PackageName)
-	''			End If
-	''		Next
-	''	Next
-	End If
+	txtAppsSearch_TextChanged("")
 	
 End Sub
 
@@ -1148,8 +983,8 @@ Public Sub Is_HomeApp(pkgName As String) As Boolean
 '	Log(HomeApps)
 	Dim i As Int
 	
-	For i = 0 To HomeApps.Length - 1
-		If (HomeApps(i) = pkgName) Then Return True
+	For i = 0 To Starter.HomeApps.Size - 1
+		If (Starter.HomeApps.Get(i) = pkgName) Then Return True
 	Next
 '	For Each ap In HomeApps
 '		If (pkgName = ap) Then Return True
@@ -1160,36 +995,74 @@ Public Sub Is_HomeApp(pkgName As String) As Boolean
 End Sub
 
 public Sub RemoveHomeItem(pkgName As String)
-	Dim i As Int = 0
+	MyLog("Func: RemoveHomeItem => " & pkgName)
+	
 	For i = 0 To clvHome.Size - 1
 		If (i < clvHome.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
 			Dim homevalue As String = clvHome.GetValue(i).As(String).ToLowerCase
 			If homevalue = pkgName Then
 				clvHome.RemoveAt(i)
-				ToastMessageShow(pkgName & " Deleted. " & i, False)
+'				Starter.HomeApps.RemoveAt(i)
+'				ToastMessageShow(pkgName & " Deleted. " & i, False)
 '				Exit
 			End If
 		End If
 	Next
+	Dim query As String = "DELETE FROM Home WHERE pkgName='" & pkgName & "'"
+	Starter.sql.ExecNonQuery(query)
+	
+	'//-- It's an extra function, just need one of this FOR (above or below)
+	'//
+	For i = 0 To Starter.HomeApps.Size - 1
+		Dim homevalue As String = Starter.HomeApps.Get(i)
+		If homevalue = pkgName Then
+			Starter.HomeApps.RemoveAt(i)
+			ToastMessageShow(pkgName & " Deleted. " & i, False)
+'			Exit
+		End If
+	Next
+	
+	ResetHomeList
+	
+'	LogColor(query, Colors.Green)
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
 	MyLog("Func: FindHomeItem => " & pkgName)
-	Dim i As Int = 0
-	For i = 0 To clvHome.Size - 1
-		If (clvHome.GetValue(i) = pkgName) Then Return True
+	
+	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then
+		LogColor("WARNING! FindHomeItem => " & pkgName, Colors.Red)
+		MyLog("Func: FindHomeItem => WARNING! => pkgName => " & pkgName)
+		Return False
+	End If
+	
+	For i = 0 To Starter.HomeApps.Size - 1
+'		If (clvHome.GetValue(i) = pkgName) Then Return True
+		If (Starter.HomeApps.Get(i) = pkgName) Then Return True
 	Next
 	Return False
 End Sub
 
 Public Sub GetAppNamebyPackage(pkgName As String) As String
+'	MyLog("Func: GetAppNamebyPackage => " & pkgName)
+	If (pkgName.Length > 8) Then
+		If pkgName.SubString(8) = "package:" Then pkgName = pkgName.SubString(8)
+	End If
 	
-	If pkgName.SubString(8) = "package:" Then pkgName = pkgName.SubString(8)
-	
-	For Each app In AppsList
+	'// First Method, Search in AppList, a List Variable
+	For Each app In Starter.AppsList
 		Dim ap As App = app
 		If (ap.PackageName = pkgName) Then Return ap.Name
 	Next
+
+'	'// Anothder Method to take apps from database	
+'	Dim resName As ResultSet
+'	resName = Starter.sql.ExecQuery("SELECT Name FROM AllApps WHERE pkgName='" & pkgName & "'")
+'	If (resName.RowCount > 0) Then
+'		resName.Position = 0
+'		Return resName.GetString("Name")
+'	End If
+	
 	Return ""
 End Sub
 
@@ -1229,12 +1102,12 @@ Private Sub DisableDragAndDrop
 	End Try
 End Sub
 
-Private Sub RunApp(package As String)
-	MyLog("Func: RunApp")
+Private Sub RunApp(pkgName As String)
+	MyLog("Func: RunApp => " & pkgName)
 	Try
 		Dim Intent1 As Intent
 		Dim pm As PackageManager
-		Intent1 = pm.GetApplicationIntent (package)
+		Intent1 = pm.GetApplicationIntent (pkgName)
 		If Intent1.IsInitialized Then StartActivity (Intent1)
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -1267,7 +1140,6 @@ End Sub
 
 
 Private Sub btnSetting_Click
-	
 	MyLog("Event: btnSetting_Click => ShowHideKey(False)")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
@@ -1281,44 +1153,45 @@ Private Sub btnSetting_Click
 	panSetting.LoadLayout("Settings")
 	panSetting.BringToFront
 	
+'	LogColor(Starter.Pref, Colors.Red)
 	
-	chkShowKeyboard.Checked = Pref.ShowKeyboard
-	chkShowIcons.Checked = Pref.ShowIcon
-	chkShowIconsHome.Checked = Pref.ShowIconHomeApps
-	chkAutoRun.Checked = Pref.AutoRunApp
+	chkShowKeyboard.Checked = Starter.Pref.ShowKeyboard
+	chkShowIcons.Checked = Starter.Pref.ShowIcon
+	chkShowIconsHome.Checked = Starter.Pref.ShowIconHomeApp
+	chkAutoRun.Checked = Starter.Pref.AutoRunApp
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
 '	If (cmbPhone.IsInitialized <> False) Then
-		If AppsList.IsInitialized Then
+	If Starter.AppsList.IsInitialized Then
 			Dim i As Int = 0
 			Dim lst As List
 			Dim CameraIndex, PhoneIndex, ClockIndex As Int = -1
 			lst.Initialize
 			lstPackageNames.Initialize
 			
-			For Each app In AppsList
+		For Each app In Starter.AppsList
 				Dim r As Reflector
 				Dim str As String
 				r.Target = app
 				str = r.GetField("Name").As(String)
 				
 				Dim pkgName As String
-				pkgName = r.GetField("PackageName").As(String)
+					pkgName = r.GetField("PackageName").As(String)
 				
-				If (pkgName.ToLowerCase = Pref.CameraApp.ToLowerCase) Then _
+			If (Starter.Pref.CameraApp <> Null) And (pkgName.ToLowerCase = Starter.Pref.CameraApp.ToLowerCase) Then _
 					CameraIndex = i
 				
-				If (pkgName.ToLowerCase = Pref.PhoneApp.ToLowerCase) Then _
+			If (Starter.Pref.PhoneApp <> Null) And (pkgName.ToLowerCase = Starter.Pref.PhoneApp.ToLowerCase) Then _
 					PhoneIndex = i
 				
-				If (pkgName.ToLowerCase = Pref.ClockApp.ToLowerCase) Then _
+			If (Starter.Pref.ClockApp <> Null) And (pkgName.ToLowerCase = Starter.Pref.ClockApp.ToLowerCase) Then _
 					ClockIndex = i
 				
 				lst.Add(str)
 				lstPackageNames.Add(pkgName)
 				i = i + 1
-			Next
+		Next
 			
 			If (lst.Size > -1) Then
 				cmbPhoneSetting.SetItems(lst)
@@ -1351,7 +1224,7 @@ Private Sub btnSetting_Click
 			
 			End If
 			
-		End If
+	End If
 		
 '	End If
 	
@@ -1359,8 +1232,34 @@ End Sub
 
 Private Sub btnClose_Click
 	SaveSettings
-	SetupInstalledApps
-'	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+	SaveHomeList
+	ResetHomeList
+	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+End Sub
+
+Public Sub ResetHomeList
+	MyLog("Func: ResetHomeList")
+	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home")
+	Starter.HomeApps.Clear
+	clvHome.sv.Enabled = False
+	clvHome.Clear
+	For i = 0 To ResHome.RowCount - 1
+		ResHome.Position = i
+		
+		Dim pkg As String = ResHome.GetString("pkgName")
+		
+		Dim ap As App
+			ap.PackageName = pkg
+			ap.Name = ResHome.GetString("Name")
+			ap.index = i + 1
+			ap.Icon = Starter.GetPackageIcon(pkg)
+		
+		clvHome.Add(CreateListItemHome(ap.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
+		Starter.HomeApps.Add(ap)
+'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
+	Next
+	ResHome.Close
+	clvHome.sv.Enabled = True
 End Sub
 
 Private Sub CloseSetting
@@ -1371,38 +1270,28 @@ Private Sub CloseSetting
 End Sub
 
 Public Sub SaveSettings
-	MyLog("Func: SaveSettings ")
+	MyLog("Func: SaveSettings")
 	
 	CloseSetting
 	
-	Pref.ShowKeyboard = chkShowKeyboard.Checked
+	Starter.Pref.ShowKeyboard = chkShowKeyboard.Checked
 	
-	Pref.ClockApp = cmbClockSetting.Tag.As(String)
-	Pref.CameraApp = cmbCameraSetting.Tag.As(String)
-	Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
-	Pref.ShowIcon = chkShowIcons.Checked
-	Pref.ShowIconHomeApps = chkShowIconsHome.Checked
-	Pref.AutoRunApp = chkAutoRun.Checked
+	Starter.Pref.ClockApp = cmbClockSetting.Tag.As(String)
+	Starter.Pref.CameraApp = cmbCameraSetting.Tag.As(String)
+	Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
+	Starter.Pref.ShowIcon = chkShowIcons.Checked
+	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
+	Starter.Pref.AutoRunApp = chkAutoRun.Checked
 	
-	Dim setting As KeyValueStore
-'	xui.SetDataFolder("MyPhone")
-	setting.Initialize(File.DirInternal, ConfigFileName)
+'	LogColor(Starter.Pref, Colors.Red)
 	
-	Dim Str As StringBuilder
-	Str.Initialize
-	
-	Dim i As Int = 0
-	For i = 0 To clvHome.Size - 1
-		Str.Append(clvHome.GetValue(i)).Append("|")
-	Next
-	setting.Put("HomeApps", Str.ToString)
-	setting.Put("ShowKeyboard", Pref.ShowKeyboard)
-	setting.Put("CameraApp", Pref.CameraApp)
-	setting.Put("PhoneApp", Pref.PhoneApp)
-	setting.Put("ClockApp", Pref.ClockApp)
-	setting.Put("ShowIcon", Pref.ShowIcon)
-	setting.Put("ShowIconHomeApp", Pref.ShowIcon)
-	setting.Put("AutoRunApp", Pref.AutoRunApp)
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
 	
@@ -1410,18 +1299,27 @@ End Sub
 
 Public Sub SaveHomeList
 	MyLog("Func: SaveHomeList")
-	Dim setting As KeyValueStore
-	setting.Initialize(File.DirInternal, ConfigFileName)
 	
-	Dim Str As StringBuilder
-	Str.Initialize
+	Starter.sql.ExecNonQuery("DELETE FROM Home")
+	Starter.HomeApps.Clear
 	
-	Dim i As Int = 0
 	For i = 0 To clvHome.Size - 1
-		Str.Append(clvHome.GetValue(i)).Append("|")
+		Dim pkg As String = clvHome.GetValue(i)
+		Dim name As String = GetAppNamebyPackage(pkg)
+		Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
+		Starter.sql.ExecNonQuery(query)
+'		LogColor(query, Colors.Red)
+		
+		Dim ap As App
+			ap.PackageName = pkg
+			ap.Name = name
+			ap.index = i + 1
+			ap.Icon = Starter.GetPackageIcon(pkg)
+		
+'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
+		Starter.HomeApps.Add(ap)
 	Next
-	setting.Put("HomeApps", Str.ToString)
-	HomeApps = Regex.Split("\|", Str.ToString)
+	
 End Sub
 
 Private Sub lblClock_Click
@@ -1443,7 +1341,7 @@ End Sub
 
 Public Sub Run_Clock
 	Try
-		RunApp(Pref.ClockApp)
+		RunApp(Starter.Pref.ClockApp)
 	Catch
 		ToastMessageShow(LastException.Message, True)
 		Log("Error Caught: " & LastException)
@@ -1479,16 +1377,16 @@ End Sub
 
 Private Sub panPhone_Click
 	DisableDragAndDrop
-	If (Pref.PhoneApp = "") Then
+	If (Starter.Pref.PhoneApp = "") Then
 		Run_PhoneDialer
 	Else
-		RunApp(Pref.PhoneApp)
+		RunApp(Starter.Pref.PhoneApp)
 	End If
 End Sub
 
 Private Sub panCamera_Click
 	DisableDragAndDrop
-	RunApp(Pref.CameraApp)
+	RunApp(Starter.Pref.CameraApp)
 End Sub
 
 Private Sub btnDelete_Click
@@ -1587,10 +1485,10 @@ End Sub
 
 Sub GetARGB(Color As Int) As Int()
 	Dim res(4) As Int
-	res(0) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff000000), 24)
-	res(1) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff0000), 16)
-	res(2) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff00), 8)
-	res(3) = Bit.And(Color, 0xff)
+		res(0) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff000000), 24)
+		res(1) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff0000), 16)
+		res(2) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff00), 8)
+		res(3) = Bit.And(Color, 0xff)
 	Return res
 End Sub
 
@@ -1620,7 +1518,7 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
-	MyLog("Event: panApps_Touch => ShowHideKey(False)")
+'	MyLog("Event: panApps_Touch => ShowHideKey(False)")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
 End Sub
@@ -1636,8 +1534,8 @@ End Sub
 
 Private Sub txtAppsSearch_ClearButtonClick
 	MyLog("Event: txtAppsSearch_ClearButtonClick => ShowHideKey(False)")
-	ShowHideKeyboard(True)
 	DisableDragAndDrop
+	ShowHideKeyboard(True)
 End Sub
 
 
@@ -1651,7 +1549,7 @@ End Sub
 
 Private Sub SetDefaultLauncher
 	
-	If (GetDefaultLauncher <> Pref.MyPackage) Then
+	If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then
 		Dim in As Intent
 		in.Initialize("android.settings.HOME_SETTINGS", "")
 		StartActivity(in)
@@ -1735,10 +1633,8 @@ End Sub
 
 
 Private Sub btnLogClose_Click
-	Dim Setting As KeyValueStore
-	Setting.Initialize(File.DirInternal, ConfigFileName)
-	Setting.Put("ShowToastLog", chkShowToastLog.Checked.As(String))
-	ShowToastLog = chkShowToastLog.Checked
+	Starter.ShowToastLog = chkShowToastLog.Checked
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowToastLog'," & Starter.ShowToastLog & ")")
 	
 	panLog.Visible = False
 	panSetting.Visible = True
@@ -1755,11 +1651,9 @@ Private Sub lblVersion_Click
 	panLog.Visible = True
 '	panSetting.Visible = False
 	
-	Dim Setting As KeyValueStore
-	Setting.Initialize(File.DirInternal, ConfigFileName)
-	chkShowToastLog.Checked = ShowToastLog
+	chkShowToastLog.Checked = Starter.ShowToastLog
 	
-	For Each item In LogList
+	For Each item In Starter.LogList
 		clvLog.AddTextItem(item, item)
 	Next
 	
@@ -1767,9 +1661,9 @@ End Sub
 
 Private Sub lblVersion_LongClick
 	ToastMessageShow("Log List Reset Success.", False)
-	LogList.Clear
+	Starter.LogList.Clear
 	clvLog.Clear
-	File.WriteList(File.DirInternalCache, "MyLog.log", LogList)
+	File.WriteList(File.DirInternalCache, "MyLog.log", Starter.LogList)
 	
 	btnLogClose_Click
 End Sub
@@ -1780,4 +1674,206 @@ End Sub
 
 Private Sub lblAbout_LongClick
 	lblVersion_LongClick
+End Sub
+
+'Public Sub setAlwaysOnTop(frm As Object, Value As Boolean)
+'	Dim frmJO As JavaObject = frm
+'	Dim stage As JavaObject = frmJO.GetField("stage")
+'	stage.RunMethod("setAlwaysOnTop", Array(Value))
+'End Sub
+
+
+Public Sub SetupInstalledApps_OLD
+	
+'	MyLog("Func: SetupInstalledApps_OLD")
+'
+''	Dim args(1) As Object
+''	Dim Obj1, Obj2, Obj3 As Reflector
+''	Dim size, i, flags As Int
+''	Dim Types(1), name, packName As String
+''	
+''	Obj1.Target = Obj1.GetContext
+''	Obj1.Target = Obj1.RunMethod("getPackageManager") ' PackageManager
+''	Obj2.Target = Obj1.RunMethod2("getInstalledPackages", 0, "java.lang.int") ' List<PackageInfo>
+''	size = Obj2.RunMethod("size")
+'	
+'	'##
+'	'## Create a List (Starter.AppsList) as Installed Softwares
+'	'##	and Sorting that to add ListBox control.
+'	'##
+'	
+'	If Not (Starter.AppsList.IsInitialized) Then Starter.AppsList.Initialize
+'	
+'	Starter.AppsList.Clear
+'	
+'	Dim sortindex As Int
+'	
+'	Dim i As Int
+'	Dim pm As PackageManager
+'	Dim packages As List
+'	packages = pm.GetInstalledPackages
+'	
+'	Dim setting As KeyValueStore
+'	setting.Initialize(File.DirInternal, ConfigFileName)
+'	Dim AppSize As Int = setting.GetDefault("AppSize", -1).As(Int)
+'	Dim Str As StringBuilder
+'	Str.Initialize
+'	
+'	If AppSize = packages.Size Then
+'		
+'		Dim apps As String = setting.GetDefault("Apps", "").As(String)
+'		Dim strApps() As String = Regex.Split("\|", apps)
+'		
+'		Dim i As Int
+'		For i = 0 To strApps.Length - 1
+'			
+'			Dim currentapp As App
+'			currentapp.PackageName = strApps(i)
+'			currentapp.Name = GetAppNamebyPackage(currentapp.PackageName)
+'			sortindex = sortindex + 1
+'			currentapp.index = sortindex
+'				
+'			Try
+'				currentapp.Icon = Starter.GetPackageIcon(currentapp.PackageName)
+'			Catch
+'				Log("SetupInstalledApps Second - Icon => " & LastException)
+'			End Try
+'				
+'			If (Is_HomeApp(currentapp.PackageName)) Then
+'				currentapp.IsHomeApp = True
+'				clvHome.Add(CreateListItemHome(currentapp.Name, currentapp.PackageName, clvHome.AsView.Width, HomeRowHeigh), currentapp.PackageName)
+'			End If
+'				
+'			Starter.AppsList.Add(currentapp)
+'			
+'		Next
+'		
+'	Else
+'	
+'		For i = 0 To packages.Size - 1
+'			Dim p As String = packages.Get(i)
+'			
+'			'//-- This will test whether the app is a 'regular' app that
+'			'//-- can be launched and if so you can then show it in your app drawer.
+'			'//-- If the app has been uninstalled, or if it isn't for normal use,
+'			'//-- then it will return false.
+'			If pm.GetApplicationIntent(p).IsInitialized Then
+'				Dim currentapp As App
+'				currentapp.Name = pm.GetApplicationLabel(p)
+'				currentapp.PackageName = p
+'				sortindex = sortindex + 1
+'				currentapp.index = sortindex
+'				
+'				Str.Append(p & "|")
+'				
+'				Try
+'					currentapp.Icon = Starter.GetPackageIcon(p)
+'				Catch
+'					Log("SetupInstalledApps - Icon => " & LastException)
+'				End Try
+'				
+'				If (Is_HomeApp(currentapp.PackageName)) Then
+'					currentapp.IsHomeApp = True
+'					
+'					'//-- Here We Can add Home apps to HomeListView
+'					'//-- but to solve sort home list as saved
+'					'//-- We add Home List Apps after Sort them.
+'					'//-- Performance and Loading Time are same.
+'					'				Dim r As Reflector
+'					'				r.Target = currentapp
+'					'				clvHome.Add(CreateListItemHome(currentapp.Name, currentapp.PackageName, clvHome.AsView.Width, HomeRowHeigh), currentapp.PackageName)
+'				End If
+'				
+'				Starter.AppsList.Add(currentapp)
+'			End If
+'		Next
+'		
+'		
+'		'//-- 			[Installed Apps]
+'		'//-- #####################################
+'		'//-- Alternative Mehtod for Get Installed Apps List
+'		'//-- ,by Calling Java Functions --//
+'		'
+'		'	For i = 0 To size - 1
+'		'		Obj3.Target = Obj2.RunMethod2("get", i, "java.lang.int") ' PackageInfo
+'		'		packName = Obj3.GetField("packageName")
+'		'
+'		'		Obj3.Target = Obj3.GetField("applicationInfo") ' ApplicationInfo
+'		'		flags = Obj3.GetField("flags")
+'		'
+'		''		If Bit.And(flags, 1) = 0 Then '//-- Only Show Installed apps by User
+'		'		If Bit.And(flags, 0) = 0 Then '//-- Show All Apps, Include System Apps
+'		'			args(0) = Obj3.Target
+'		'			Types(0) = "android.content.pm.ApplicationInfo"
+'		'			name = Obj1.RunMethod4("getApplicationLabel", args, Types)
+'		'
+'		''			Try
+'		''				Dim icon As BitmapDrawable
+'		''				icon = Obj1.RunMethod4("getApplicationIcon", args, Types)
+'		''			Catch
+'		''				Log("Icon SetupInstalledApps - " & LastException)
+'		''			End Try
+'		'
+'		'			Dim currentapp As App
+'		'			currentapp.Name = name
+'		'			currentapp.PackageName = packName
+'		'			sortindex = sortindex + 1
+'		'			currentapp.index = sortindex
+'		''			currentapp.Icon = icon
+'		'
+'		'			If (Is_HomeApp(currentapp.PackageName)) Then currentapp.IsHomeApp = True
+'		'
+'		'			AppsList.Add(currentapp)
+'		'
+'		'		End If
+'		'	Next
+'
+'		'//-- End of Alternative Method for Get Installed Apps
+'		'//-- #####################################
+'		'//-- 			[Installed Apps]	   --//
+'		
+'		
+'		'-- Add Apps to Home ListView
+'		clvHome.Clear
+'		Dim i As Int
+'		For i = 0 To Starter.HomeApps.Size - 1
+'			For Each app In Starter.AppsList
+'				Dim ap As App = app
+'				If Starter.HomeApps.Get(i) = ap.PackageName Then
+'					clvHome.Add(CreateListItemHome(ap.Name, ap.PackageName, clvHome.AsView.Width, HomeRowHeigh), ap.PackageName)
+'					Exit
+'				End If
+'			Next
+'		Next
+'		
+'		Starter.AppsList.SortTypeCaseInsensitive("Name", True)
+'		
+'		setting.Put("AppSize", Starter.AppsList.Size)
+'		setting.Put("Apps", Str.ToString)
+'		
+'		txtAppsSearch_TextChanged("")
+'		
+'		'	For i = 0 To HomeApps.Length - 1
+'		'		For Each app In AppsList
+'		'			Dim r As Reflector
+'		'			r.Target = app
+'		'			If (r.GetField("PackageName").As(String) = HomeApps(i).As(String)) Then
+'		'				Dim ap As App = app
+'		'				clvHome.Add(CreateListItemHome(ap.Name, clvHome.AsView.Width, HomeRowHeigh), ap.PackageName)
+'		'			End If
+'		'		Next
+'		''		Dim l As Int
+'		''		For l = 0 To AppsList.Size - 1
+'		''			Dim tt As String
+'		''			Dim r As Reflector
+'		''			r.Target = AppsList.Get(l)
+'		''			tt = r.GetField("PackageName")
+'		''			If (tt = HomeApps(i)) Then
+'		''				Dim app As App = AppsList.Get(l)
+'		''				clvHome.AddTextItem(app.Name, app.PackageName)
+'		''			End If
+'		''		Next
+'		''	Next
+'	End If
+	
 End Sub

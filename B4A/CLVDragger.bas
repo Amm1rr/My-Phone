@@ -124,7 +124,7 @@ Private Sub lbl_Touch(ViewTag As Object, Action As Int, X As Float, Y As Float, 
 		Dim delta As Int = ListY - ListStartY
 		pnl.Top = Top + delta
 	Else 
-		Log("action " & Action)
+		LogColor("Event: lbl_Touch => action=" & Action, Colors.Red)
 	End If
 	Return True
 End Sub
