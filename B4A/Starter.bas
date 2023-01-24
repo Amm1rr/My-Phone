@@ -178,7 +178,7 @@ Private Sub SetupAppsList
 '	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
 
 	'// All Apps as Database
-	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps")
+	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name")
 	
 	'// All Apps as System
 	Dim pm As PackageManager
@@ -192,7 +192,7 @@ Private Sub SetupAppsList
 		
 		ResApps.Close
 		
-		ResApps = sql.ExecQuery("SELECT * FROM Apps")
+		ResApps = sql.ExecQuery("SELECT * FROM Apps ORDER BY Name")
 		
 		Dim i As Int = 0
 		Do While ResApps.NextRow
