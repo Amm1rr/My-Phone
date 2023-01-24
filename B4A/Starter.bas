@@ -105,7 +105,7 @@ Private Sub MyLog (Text As String)
 End Sub
 
 Private Sub SetupSettings
-	MyLog("Service: => SetupSettings")
+	MyLog("Service : => SetupSettings")
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -174,6 +174,7 @@ Private Sub SetupAppsList
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
 	
+	AppsList.Clear
 '	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
 
 	'// All Apps as Database
@@ -193,17 +194,18 @@ Private Sub SetupAppsList
 		
 		ResApps = sql.ExecQuery("SELECT * FROM Apps")
 		
-		Dim sortindex As Int
+		Dim i As Int = 0
 		Do While ResApps.NextRow
 			
 			Dim currentapp As App
 				currentapp.PackageName = ResApps.GetString("pkgName")
 				currentapp.Name = ResApps.GetString("Name")
-				sortindex = sortindex + 1
-				currentapp.index = sortindex
+				currentapp.IsHomeApp = False
+				i = i + 1
+				currentapp.index = i
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+				currentapp.IsHomeApp = False
 				
-'			AppsList.Add(ResApps.GetString("pkgName"))
 			AppsList.Add(currentapp)
 			
 		Loop
@@ -219,11 +221,10 @@ Private Sub SetupAppsList
 			Dim currentHomeapp As App
 				currentHomeapp.PackageName = ResHome.GetString("pkgName")
 				currentHomeapp.Name = ResHome.GetString("Name")
-				sortindex = i + 1
-				currentHomeapp.index = sortindex
+				currentHomeapp.index = i + 1
 				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
+				currentHomeapp.IsHomeApp = True
 				
-'			HomeApps.Add(ResHome.GetString("pkgName"))
 			HomeApps.Add(currentHomeapp)
 		Next
 		ResHome.Close
@@ -241,8 +242,7 @@ Private Sub SetupAppsList
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
 					currentapp.PackageName = p
-					sortindex = sortindex + 1
-					currentapp.index = sortindex
+					currentapp.index = i + 1
 					currentapp.Icon = GetPackageIcon(p)
 					currentapp.IsHomeApp = False
 				
@@ -259,9 +259,8 @@ Private Sub SetupAppsList
 			Dim currentHomeapp As App
 				currentHomeapp.PackageName = ResHome.GetString("pkgName")
 				currentHomeapp.Name = ResHome.GetString("Name")
-				sortindex = i + 1
-				currentHomeapp.index = sortindex
-'				currentapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
+				currentHomeapp.index = i + 1
+				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
 				currentHomeapp.IsHomeApp = True
 				
 			HomeApps.Add(currentHomeapp)

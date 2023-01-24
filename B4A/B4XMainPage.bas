@@ -792,7 +792,14 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 			LogColor(query, Colors.Blue)
 		End If
 		
-		Starter.HomeApps.Add(pkgName)
+		Dim ap As App
+			ap.Name = Name
+			ap.PackageName = pkgName
+			ap.Icon = Starter.GetPackageIcon(pkgName)
+			ap.index = clvHome.Size + 1
+			ap.IsHomeApp = True
+			
+		Starter.HomeApps.Add(ap)
 	End If
 	
 	
@@ -1248,10 +1255,10 @@ Public Sub ResetHomeList
 			ap.Name = ResHome.GetString("Name")
 			ap.index = i + 1
 			ap.Icon = Starter.GetPackageIcon(pkg)
+			ap.IsHomeApp = True
 		
 		clvHome.Add(CreateListItemHome(ap.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
 		Starter.HomeApps.Add(ap)
-'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
 	Next
 	ResHome.Close
 	clvHome.sv.Enabled = True
@@ -1310,8 +1317,8 @@ Public Sub SaveHomeList
 			ap.Name = name
 			ap.index = i + 1
 			ap.Icon = Starter.GetPackageIcon(pkg)
+			ap.IsHomeApp = True
 		
-'		Starter.HomeApps.Add(ResHome.GetString("pkgName"))
 		Starter.HomeApps.Add(ap)
 	Next
 	
