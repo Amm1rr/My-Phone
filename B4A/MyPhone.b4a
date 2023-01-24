@@ -49,7 +49,7 @@ Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 26
+	#VersionCode: 27
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
