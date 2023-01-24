@@ -1,9 +1,13 @@
 
 # Version: Build 26 Alpha : 24/01/2023
 * Fix load duplicate apps
-* Fix bug Add To Home from Service
+* Fix bug AddToHome from Service
+* Fix Sort Apps bug
+* Fix RecentlyApps bar and Improve Apperance
+* Fix Default value when no app selected in settings (Phone, Camera, Clock)
+* Change sing package name to com.my.phone
 
-# Version: Build 26 Alpha : 23/01/2023
+# Version: Build 25 Alpha : 23/01/2023
 * Solve Set As Default issue.
 * Fix Home List Apperance, Icon
 

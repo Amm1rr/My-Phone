@@ -154,6 +154,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	lblVersionHome.Text = "Build " & Application.VersionCode & " " & Application.VersionName
 	
+	tagColors = Colors.DarkGray
+	tagApps.LabelProperties.TextColor = Colors.LightGray
+	
 	If (FirstStart) Then
 	
 		Setup
@@ -510,7 +513,7 @@ Public Sub AddToRecently(Text As String, Value As String)
 		tagApps.LabelProperties.TextColor = Colors.Yellow
 	Else
 		tagColors = Colors.DarkGray
-		tagApps.LabelProperties.TextColor = Colors.White
+		tagApps.LabelProperties.TextColor = Colors.LightGray
 	End If
 	
 	If (FindRecentlyItem(Value)) Then Return
@@ -787,7 +790,7 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 	If (FindHomeItem(pkgName) = False) Then
 		clvHome.Add(CreateListItemHome(Name, pkgName, Widt, HomeRowHeigh), pkgName)
 		If (Save) Then
-			Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & Name & "','" & pkgName & "')"
+			Dim query As String = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & clvHome.Size & ",'" & Name & "','" & pkgName & "')"
 			Starter.sql.ExecNonQuery(query)
 			LogColor(query, Colors.Blue)
 		End If
@@ -970,7 +973,7 @@ Public Sub Setup
 	'-- Add Apps to Home ListView
 	clvHome.Clear
 	For Each app In Starter.HomeApps
-		LogColor(app, Colors.Green)
+'		LogColor(app, Colors.Green)
 		Dim ap As App = app
 		AddToHomeList(ap.Name, ap.PackageName, clvHome.sv.Width, False)
 	Next
@@ -1030,18 +1033,23 @@ public Sub RemoveHomeItem(pkgName As String)
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
-	MyLog("Func: FindHomeItem => " & pkgName)
 	
 	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then
 		LogColor("WARNING! FindHomeItem => " & pkgName, Colors.Red)
-		MyLog("Func: FindHomeItem => WARNING! => pkgName => " & pkgName)
+		MyLog("Func: FindHomeItem => False - WARNING! => " & pkgName)
 		Return False
 	End If
 	
-	For i = 0 To Starter.HomeApps.Size - 1
-'		If (clvHome.GetValue(i) = pkgName) Then Return True
-		If (Starter.HomeApps.Get(i) = pkgName) Then Return True
+'	For i = 0 To Starter.HomeApps.Size - 1
+	For i = 0 To clvHome.Size - 1
+	If (clvHome.GetValue(i) = pkgName) Then
+'		If (Starter.HomeApps.Get(i) = pkgName) Then
+			MyLog("Func: FindHomeItem => " & pkgName & " - True")
+			Return True
+	End If
 	Next
+	
+	MyLog("Func: FindHomeItem => " & pkgName & " - False")
 	Return False
 End Sub
 
@@ -1194,37 +1202,39 @@ Private Sub btnSetting_Click
 				lstPackageNames.Add(pkgName)
 				i = i + 1
 		Next
+		
+		If (lst.Size > -1) Then
+			lst.Add("[Select App]")
+			lstPackageNames.Add("UNKNOWN")
+			cmbCameraSetting.SetItems(lst)
+			cmbPhoneSetting.SetItems(lst)
+			cmbClockSetting.SetItems(lst)
 			
-			If (lst.Size > -1) Then
-				cmbPhoneSetting.SetItems(lst)
-				cmbCameraSetting.SetItems(lst)
-				cmbClockSetting.SetItems(lst)
-				
-				If (CameraIndex > -1) Then
-					cmbCameraSetting.SelectedIndex = CameraIndex
-					cmbCameraSetting.Tag = lstPackageNames.Get(CameraIndex).As(String)
-				Else
-					cmbCameraSetting.cmbBox.Add("[Select Camera App]")
-					cmbCameraSetting.SelectedIndex = cmbCameraSetting.Size - 1
-				End If
-				
-				If (PhoneIndex > -1) Then
-					cmbPhoneSetting.SelectedIndex = PhoneIndex
-					cmbPhoneSetting.Tag = lstPackageNames.Get(PhoneIndex).As(String)
-				Else
-					cmbPhoneSetting.cmbBox.Add("[Select Phone App]")
-					cmbPhoneSetting.SelectedIndex = cmbPhoneSetting.Size - 1
-				End If
-				
-				If (ClockIndex > -1) Then
-					cmbClockSetting.SelectedIndex = ClockIndex
-					cmbClockSetting.Tag = lstPackageNames.Get(ClockIndex).As(String)
-				Else
-					cmbClockSetting.cmbBox.Add("[Select Clock App]")
-					cmbClockSetting.SelectedIndex = cmbClockSetting.Size - 1
-				End If
-			
+			If (CameraIndex > 0) Then
+				cmbCameraSetting.SelectedIndex = CameraIndex
+				cmbCameraSetting.Tag = lstPackageNames.Get(CameraIndex).As(String)
+			Else
+				cmbCameraSetting.SelectedIndex = cmbCameraSetting.Size - 1
+				cmbCameraSetting.Tag = "UNKNOWN"
 			End If
+			
+			If (PhoneIndex > 0) Then
+				cmbPhoneSetting.SelectedIndex = PhoneIndex
+				cmbPhoneSetting.Tag = lstPackageNames.Get(PhoneIndex).As(String)
+			Else
+				cmbPhoneSetting.SelectedIndex = cmbPhoneSetting.Size - 1
+				cmbPhoneSetting.Tag = "UNKNOWN"
+			End If
+			
+			If (ClockIndex > 0) Then
+				cmbClockSetting.SelectedIndex = ClockIndex
+				cmbClockSetting.Tag = lstPackageNames.Get(ClockIndex).As(String)
+			Else
+				cmbClockSetting.SelectedIndex = cmbClockSetting.Size - 1
+				cmbClockSetting.Tag = "UNKNOWN"
+			End If
+		
+		End If
 			
 	End If
 		
@@ -1278,9 +1288,18 @@ Public Sub SaveSettings
 	
 	Starter.Pref.ShowKeyboard = chkShowKeyboard.Checked
 	
-	Starter.Pref.ClockApp = cmbClockSetting.Tag.As(String)
-	Starter.Pref.CameraApp = cmbCameraSetting.Tag.As(String)
+	Dim strdefaultapp As String = cmbClockSetting.Tag.As(String)
+	If (strdefaultapp = "UNKNOWN") Then strdefaultapp = ""
+	Starter.Pref.ClockApp = strdefaultapp
+	
+	strdefaultapp = cmbCameraSetting.Tag.As(String)
+	If (cmbCameraSetting.Tag.As(String) = "UNKNOWN") Then strdefaultapp = ""
+	Starter.Pref.CameraApp = strdefaultapp
+	
+	strdefaultapp = cmbPhoneSetting.Tag.As(String)
 	Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
+	Starter.Pref.PhoneApp = strdefaultapp
+	
 	Starter.Pref.ShowIcon = chkShowIcons.Checked
 	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
 	Starter.Pref.AutoRunApp = chkAutoRun.Checked
@@ -1308,7 +1327,7 @@ Public Sub SaveHomeList
 	For i = 0 To clvHome.Size - 1
 		Dim pkg As String = clvHome.GetValue(i)
 		Dim name As String = GetAppNamebyPackage(pkg)
-		Dim query As String = "INSERT OR REPLACE INTO Home(Name, pkgName) VALUES('" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
+		Dim query As String = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
 		Starter.sql.ExecNonQuery(query)
 '		LogColor(query, Colors.Red)
 		

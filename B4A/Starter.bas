@@ -110,7 +110,7 @@ Private Sub SetupSettings
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
 	
-	Pref.MyPackage = Application.PackageName '"my.phone"
+	Pref.MyPackage = Application.PackageName '"com.my.phone"
 	
 	For i = 0 To CurSettingSql.RowCount - 1
 		CurSettingSql.Position = i
@@ -273,7 +273,7 @@ End Sub
 Public Sub CreateDB
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
-		LogColor("Database Replaced!", Colors.Red)
+		LogColor(">>>>> - Database Replaced! - <<<<<", Colors.Red)
 	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
