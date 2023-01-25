@@ -58,6 +58,7 @@ Sub Class_Globals
 	Private XPos As Float
 	
 	Public Manager As AdminManager
+	Private BackfrombtnClose As Boolean
 	Private movecount As Int
 	Private LastClick As Long
 	Private gestHome As Gestures
@@ -925,7 +926,7 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	Next
 	
 	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
-		If (Starter.Pref.AutoRunApp) Then
+		If (Starter.Pref.AutoRunApp = True) And (BackfrombtnClose = False) Then
 			Dim pkg As String = clvApps.GetValue(0).As(String)
 			RunApp(pkg)
 			AddToRecently(GetAppNamebyPackage(pkg), pkg)
@@ -1245,7 +1246,9 @@ Private Sub btnClose_Click
 	SaveSettings
 	SaveHomeList
 	ResetHomeList
+	BackfrombtnClose = True
 	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+	BackfrombtnClose = False
 End Sub
 
 Public Sub ResetHomeList

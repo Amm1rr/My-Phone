@@ -227,6 +227,7 @@ Private Sub SetupAppsList
 				currentHomeapp.IsHomeApp = True
 				
 			HomeApps.Add(currentHomeapp)
+			
 		Next
 		ResHome.Close
 '		HomeApps.SortTypeCaseInsensitive("index", True)
