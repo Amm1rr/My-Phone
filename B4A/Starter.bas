@@ -210,10 +210,11 @@ Private Sub SetupAppsList
 			
 		Loop
 		ResApps.Close
+		AppsList.SortTypeCaseInsensitive("Name", True)
 		
 		'// Home Apps
 		
-		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home")
+		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
 		
 		For i = 0 To ResHome.RowCount - 1
 			ResHome.Position = i
@@ -228,6 +229,7 @@ Private Sub SetupAppsList
 			HomeApps.Add(currentHomeapp)
 		Next
 		ResHome.Close
+'		HomeApps.SortTypeCaseInsensitive("index", True)
 		
 	Else
 		
@@ -249,9 +251,10 @@ Private Sub SetupAppsList
 				AppsList.Add(currentapp)
 			End If
 		Next
+		AppsList.SortTypeCaseInsensitive("Name", True)
 		
 		
-		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home")
+		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
 		
 		For i = 0 To ResHome.RowCount - 1
 			ResHome.Position = i
@@ -266,6 +269,7 @@ Private Sub SetupAppsList
 			HomeApps.Add(currentHomeapp)
 		Next
 		ResHome.Close
+'		HomeApps.SortTypeCaseInsensitive("index", True)
 	End If
 	
 End Sub

@@ -1,4 +1,7 @@
 
+# Version: Build 28 Alpha : 25/01/2023
+* Sort Apps List
+
 # Version: Build 27 Alpha : 24/01/2023
 * Fix Sort Apps bug
 * Fix RecentlyApps bar and Improve Apperance

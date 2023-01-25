@@ -805,7 +805,6 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 		Starter.HomeApps.Add(ap)
 	End If
 	
-	
 End Sub
 
 Private Sub AppMenu_ItemClick (Postion As Int, Value As Object)
@@ -1251,7 +1250,7 @@ End Sub
 
 Public Sub ResetHomeList
 	MyLog("Func: ResetHomeList")
-	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home")
+	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
 	Starter.HomeApps.Clear
 	clvHome.sv.Enabled = False
 	clvHome.Clear
@@ -1271,6 +1270,7 @@ Public Sub ResetHomeList
 		Starter.HomeApps.Add(ap)
 	Next
 	ResHome.Close
+'	Starter.HomeApps.SortTypeCaseInsensitive("index", True)
 	clvHome.sv.Enabled = True
 End Sub
 
@@ -1340,6 +1340,7 @@ Public Sub SaveHomeList
 		
 		Starter.HomeApps.Add(ap)
 	Next
+'	Starter.HomeApps.SortTypeCaseInsensitive("ID", True)
 	
 End Sub
 
