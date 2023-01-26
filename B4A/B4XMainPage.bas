@@ -35,7 +35,6 @@ Sub Class_Globals
 	Private imgPhone As B4XImageView
 	Private imgCamera As B4XImageView
 	Private btnSetting As Button
-	Private btnDelete As Button
 	Private cmbPhoneSetting As B4XComboBox
 	Private cmbCameraSetting As B4XComboBox
 	Private cmbClockSetting As B4XComboBox
@@ -46,7 +45,6 @@ Sub Class_Globals
 	
 	Private lstPackageNames As List
 	Private RecentlyList As List
-	Private ConfigFileName As String = "MyPhone.conf"
 	Public AppRowHeigh As Int = 50dip
 	Public AppRowHeighMenu As Int =  50dip
 	Public HomeRowHeigh As Int = 50dip
@@ -57,9 +55,6 @@ Sub Class_Globals
 	
 	Public StartTimeClick As Boolean = True
 	Private dragAllow As Boolean = False
-	
-	Private YPos As Float
-	Private XPos As Float
 	
 	Public Manager As AdminManager
 	Public LastRunApp As String
@@ -172,8 +167,6 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 				imgCamera.Load(File.DirAssets, "Camera.png")
 		
 		gestHome.SetOnTouchListener(panHome, "gestHome_gesture")
-'		gestHomeList.SetOnTouchListener(clvHome.AsView, "gestHomeList_gesture")
-'		gestSetting.SetOnTouchListener(panSetting, "gestSetting_gesture")
 		
 		'//-- After Screen On, set as top on other apps
 '		Dim jo As JavaObject = Root
@@ -237,27 +230,6 @@ Private Sub Run_Info(PackageName As String)
 	StartActivity(i)
 End Sub
 
-Private Sub gestSetting_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
-	MyLog("Event: gestSetting_gesture")
-	If (DblClick) Then
-		'// Double Tap
-		If (DateTime.Now - LastClick) < 250 Then
-			DoubleTap
-			CloseSetting
-		End If
-	End If
-	
-	Return True
-End Sub
-
-Private Sub gestHomeList_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
-	MyLog("Event: gestHomeList_gesture")
-	DisableDragAndDrop
-	XPos = x
-	YPos = y
-	Return True
-End Sub
-
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
 '	MyLog("Event: gestHome_gesture")
 	DisableDragAndDrop
@@ -286,7 +258,7 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 ''				Log("Double Click => " & (DateTime.Now - LastClick))
 '				DoubleTap
 '			End If
-			If DblClick Then DoubleTap
+			If (DblClick) Then DoubleTap
 			
 		Case gestHome.ACTION_UP
 			'// Double Tap Time Variable
@@ -637,7 +609,7 @@ Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 	MyLog("Event clvApps_ItemLongClick - ShowHideKeyboard(False)")
 	ShowHideKeyboard(False)
 	ConfigCurrentAppApp(Position, Value.As(String))
-	CreateAppMenu(Position, Value)
+	CreateAppMenu(Value)
 End Sub
 
 Private Sub clvHome_ItemClick (Position As Int, Value As Object)
@@ -651,6 +623,7 @@ Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 '		End If
 	End If
 	DisableDragAndDrop
+	
 End Sub
 
 Private Sub ConfigCurrentAppApp(Position As String, Value As String)
@@ -672,14 +645,14 @@ Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
 	MyLog("Event: clvHome_ItemLongClick")
 	If (dragAllow = False) Then
 		ConfigCurrentHomeApp(Position, Value.As(String))
-		CreateHomeMenu(Position, Value)		
+		CreateHomeMenu
 	Else
 		dragger.RemoveDragButtons
 		dragAllow = False
 	End If
 End Sub
 
-Private Sub CreateHomeMenu(Position As Int, Value As Object)
+Private Sub CreateHomeMenu
 	MyLog("Func: CreateHomeMenu")
 	
 	panHRowMenuHome.RemoveAllViews
@@ -721,7 +694,7 @@ Private Sub CreateHomeMenu(Position As Int, Value As Object)
 
 End Sub
 
-Private Sub CreateAppMenu(Position As Int, Value As Object)
+Private Sub CreateAppMenu(Value As Object)
 	MyLog("Func: CreateAppMenu => " & Value.As(String))
 	DisableDragAndDrop
 	
@@ -1490,7 +1463,7 @@ Private Sub panSettings_Click
 	If DblClick Then CloseSetting
 End Sub
 
-Private Sub DblClick() As Boolean
+Public Sub DblClick() As Boolean
 	If (DateTime.Now - LastClick) < 250 Then Return True
 	'// Double Tap Time Variable
 	LastClick = DateTime.Now
@@ -1515,15 +1488,15 @@ End Sub
 
 Private Sub DoubleTap
 	Try
-		Log("DoubleTap")
+		MyLog("DoubleTap")
 		If Manager.Enabled Then
-'			Manager.LockScreen
+			Manager.LockScreen
 		Else
-			Manager.Enable("Please enable in order to get access to the secured server.")
+			Manager.Enable("Please enable administrator access to active 'Lock Screen' by Double Tap.")
 			If Manager.Enabled Then Manager.LockScreen
 		End If
 	Catch
-		Log(LastException)
+		MyLog(LastException)
 	End Try
 End Sub
 
@@ -1630,7 +1603,7 @@ Public Sub SetDefaultLauncher
 		in.Initialize("android.settings.HOME_SETTINGS", "")
 		StartActivity(in)
 	Else
-		ToastMessageShow(Application.LabelName & " already set sefault launcher. have Fun ;)", False)
+		ToastMessageShow(Application.LabelName & " already set default launcher. have Fun ;)", False)
 	End If
 	
 	
@@ -1739,7 +1712,7 @@ Private Sub lblVersion_Click
 End Sub
 
 Private Sub lblVersion_LongClick
-	ToastMessageShow("Log List Reset Success.", False)
+	ToastMessageShow("Log list reset successfull.", False)
 	Starter.LogList.Clear
 	clvLog.Clear
 	File.WriteList(File.DirInternalCache, "MyLog.log", Starter.LogList)
@@ -1755,11 +1728,11 @@ Private Sub lblAbout_LongClick
 	lblVersion_LongClick
 End Sub
 
-'Public Sub setAlwaysOnTop(frm As Object, Value As Boolean)
-'	Dim frmJO As JavaObject = frm
-'	Dim stage As JavaObject = frmJO.GetField("stage")
-'	stage.RunMethod("setAlwaysOnTop", Array(Value))
-'End Sub
+Public Sub setAlwaysOnTop(frm As Object, Value As Boolean)
+	Dim frmJO As JavaObject = frm
+	Dim stage As JavaObject = frmJO.GetField("stage")
+	stage.RunMethod("setAlwaysOnTop", Array(Value))
+End Sub
 
 
 Public Sub SetupInstalledApps_OLD

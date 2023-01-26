@@ -3,7 +3,7 @@
 * Fix Sort Apps List
 * Fix don't allow run an app two time one after another one.
 + Added Apps Menu
-+ Added New feature, Hidden App (50% Done)
++ Added Lock Screen by Double Tap
 
 # Version: Build 27 Alpha : 24/01/2023
 * Fix Sort Apps bug
