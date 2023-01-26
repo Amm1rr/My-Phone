@@ -1,6 +1,9 @@
 
-# Version: Build 28 Alpha : 25/01/2023
-* Sort Apps List
+# Version: Build 28 Alpha : 26/01/2023
+* Fix Sort Apps List
+* Fix don't allow run an app two time one after another one.
++ Added Apps Menu
++ Added New feature, Hidden App (50% Done)
 
 # Version: Build 27 Alpha : 24/01/2023
 * Fix Sort Apps bug

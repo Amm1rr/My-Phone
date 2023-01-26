@@ -1,16 +1,18 @@
 ﻿Build1=Default,com.my.phone,Freeware
 File1=AppRow.bal
-File10=Settings.bal
-File2=Apps.bal
-File3=Camera.png
-File4=Home.bal
-File5=HomeRow.bal
-File6=HomeRowMenu.bal
-File7=MainPage.bal
-File8=MyPhone.db
-File9=Phone.png
+File10=Phone.png
+File11=Settings.bal
+File2=AppRowMenu.bal
+File3=Apps.bal
+File4=Camera.png
+File5=Home.bal
+File6=HomeRow.bal
+File7=HomeRowMenu.bal
+File8=MainPage.bal
+File9=MyPhone.db
 FileGroup1=Default Group
 FileGroup10=Default Group
+FileGroup11=Default Group
 FileGroup2=Default Group
 FileGroup3=Default Group
 FileGroup4=Default Group
@@ -42,7 +44,7 @@ Module3=GlobalFunc
 Module4=RequestDrawOverPermission
 Module5=Starter
 Module6=Wallpaper
-NumberOfFiles=10
+NumberOfFiles=11
 NumberOfLibraries=15
 NumberOfModules=6
 Version=12.2
@@ -102,7 +104,7 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 '			Return True
 	End Select
 '	Return True
-	
+
 	Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
 End Sub
 

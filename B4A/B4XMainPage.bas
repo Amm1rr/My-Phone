@@ -17,10 +17,13 @@ Sub Class_Globals
 	Private panHome As B4XView
 	Private panSetting As B4XView
 	Private panApps As B4XView
+	Private panAppMenuApp As B4XView
 	Private panHRowMenuHome As B4XView
 	Private Tabstrip1 As TabStrip
 	Private clvHome As CustomListView
 	Private clvApps As CustomListView
+	Private clvAppRowMenu As CustomListView
+	Public clvHRowMenu As CustomListView
 	Private lblClock As Label
 	Private lblDate As Label
 	Private lblAppTitle As Label
@@ -45,6 +48,7 @@ Sub Class_Globals
 	Private RecentlyList As List
 	Private ConfigFileName As String = "MyPhone.conf"
 	Public AppRowHeigh As Int = 50dip
+	Public AppRowHeighMenu As Int =  50dip
 	Public HomeRowHeigh As Int = 50dip
 	Public HomeRowHeighMenu As Int = 110dip 'HomeRowHeigh * 3
 	Public AutoRunOnFind As Boolean
@@ -58,16 +62,13 @@ Sub Class_Globals
 	Private XPos As Float
 	
 	Public Manager As AdminManager
-	Private BackfrombtnClose As Boolean
+	Public LastRunApp As String
 	Private movecount As Int
 	Private LastClick As Long
 	Private gestHome As Gestures
 	Private dragger As CLVDragger
 	Private IMElib As IME
 	Private dd As DDD
-	
-	Public clvHRowMenu As CustomListView
-	Public AppMenu As ListView
 	
 	Private CurrentAppApp As App
 	Private CurrentHomeApp As App
@@ -84,7 +85,7 @@ Sub Class_Globals
 	Private lblSetAsDefault As Label
 End Sub
 
-Private Sub MyLog (Text As String)
+Public Sub MyLog (Text As String)
 	If (Starter.LogMode) Then
 '		Dim txtWriter As TextWriter
 '		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
@@ -420,7 +421,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 		Catch
 			MyLog("Event: TabStrip1_pageSelected => Error Caught => " & LastException.Message)
 			ToastMessageShow(LastException.Message, True)
-			Log("Error Caught: " & LastException)
+			Log("Error Caught: TabStrip1_PageSelected => " & LastException)
 		End Try
 	End If
 End Sub
@@ -429,7 +430,7 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	MyLog("Event clvApps_ItemClick & => " & Value)
 	ConfigCurrentAppApp(Position, Value)
 	
-	If (AppMenu.IsInitialized And AppMenu.Visible) Then
+	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
 		DisableDragAndDrop
 	Else
 		RunApp(Value.As(String))
@@ -464,7 +465,7 @@ Private Sub SaveRecentlyList
 End Sub
 
 Private Sub LoadRecentlyList
-	MyLog("Func: LoadRecentlyList")
+	MyLog("########## Func: LoadRecentlyList")
 	
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
 	
@@ -642,8 +643,6 @@ End Sub
 Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 '	MyLog("Event: clvHome_ItemClick")
 	If (dragAllow = False) Then
-'		If (HomeMenu.IsInitialized = True) Then
-'			If (HomeMenu.Visible = False) Then
 				ConfigCurrentHomeApp(Position, Value.As(String))
 '				CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
 				clvHome.AsView.BringToFront
@@ -665,8 +664,8 @@ Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
 '	MyLog("Func: ConfigCurrentAppApp")
 	CurrentHomeApp.index = Position
 	CurrentHomeApp.PackageName = Value.As(String)
-'	Dim pnl As B4XView = clvHome.GetPanel(Position)
-'	CurrentHomeApp.Name = pnl.GetView(0).Text
+'	CurrentHomeApp.Name = panHome.GetView(0).Text
+'	CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
 End Sub
 
 Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
@@ -682,7 +681,6 @@ End Sub
 
 Private Sub CreateHomeMenu(Position As Int, Value As Object)
 	MyLog("Func: CreateHomeMenu")
-	ConfigCurrentHomeApp(Position, Value.As(String))
 	
 	panHRowMenuHome.RemoveAllViews
 	panHRowMenuHome.RequestFocus
@@ -726,37 +724,84 @@ End Sub
 Private Sub CreateAppMenu(Position As Int, Value As Object)
 	MyLog("Func: CreateAppMenu => " & Value.As(String))
 	DisableDragAndDrop
-	ConfigCurrentAppApp(Position, Value.As(String))
-	If (AppMenu.IsInitialized) Then
-		AppMenu.Visible = True
+	
+	panAppMenuApp.RemoveAllViews
+	panAppMenuApp.LoadLayout("AppRowMenu")
+	panAppMenuApp.RequestFocus
+	panAppMenuApp.Enabled = True
+	panAppMenuApp.BringToFront
+	panAppMenuApp.Visible = True
+	
+	clvAppRowMenu.Clear
+'	clvAppRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
+'	clvAppRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
+	clvAppRowMenu.AddTextItem("Info", "Info")
+	clvAppRowMenu.AddTextItem(CurrentAppApp.Name, CurrentAppApp.PackageName)
+	MyLog("###### Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
+	If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
+		clvAppRowMenu.AddTextItem("Remove from Home", "RemoveFromHome")
 	Else
-		AppMenu.Initialize("AppMenu")
-		AppMenu.SetColorAnimated(300, Colors.Gray, Colors.DarkGray)
-		AppMenu.AddSingleLine("Info")
-		AppMenu.AddSingleLine(CurrentAppApp.Name)
-'		MyLog("Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
-		If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
-			AppMenu.AddSingleLine("Remove from Home")
-		Else
-			AppMenu.AddSingleLine("Add to Home")
-		End If
-		AppMenu.AddSingleLine("Uninstall")
-		AppMenu.AddSingleLine("Hide")
-		AppMenu.AddSingleLine("Rename")
-		
-		Dim lft As Int
-		Dim tp As Int
-		Dim wdh As Int
-		Dim hig As Int
-		
-		wdh = 50%x
-		hig = (AppMenu.Size * AppRowHeigh) + AppRowHeigh / 4
-		
-		lft = (panApps.Width / 2) - (wdh / 2)
-		tp = (panApps.Height / 2) - (hig / 2)
-		
-		Root.AddView(AppMenu, lft, tp, wdh, hig)
+		clvAppRowMenu.AddTextItem("Add to Home", "AddToHome")
 	End If
+	clvAppRowMenu.AddTextItem("Uninstall", "Uninstall")
+	clvAppRowMenu.AddTextItem("Hide", "Hide")
+	clvAppRowMenu.AddTextItem("Rename", "Rename")
+	
+	Dim lft As Int
+	Dim tp As Int
+	Dim wdh As Int
+	Dim hig As Int
+	
+	wdh = 50%x
+	AppRowHeighMenu = 105dip
+	
+	lft = panApps.Width - panAppMenuApp.Width
+	hig = (clvAppRowMenu.Size * AppRowHeighMenu) '- AppRowHeight / 4
+	
+	panAppMenuApp.Left = lft '(panApps.Width - clvAppRowMenu.sv.Width) + 8dip
+'	panAppMenuApp.Width = panAppMenuApp.Width
+	
+	tp = (panApps.Height / 2) - (panApps.Width / 2)
+	panAppMenuApp.Top = tp + 50dip
+	panAppMenuApp.Height = hig
+	clvAppRowMenu.sv.Height = hig
+	clvAppRowMenu.sv.Width = wdh
+	clvAppRowMenu.sv.Left = 10dip
+	
+	
+	'//-- OLD
+'	If (AppMenu.IsInitialized) Then
+'		AppMenu.Visible = True
+'	Else
+'		AppMenu.Initialize("AppMenu")
+'		AppMenu.Color = Colors.DarkGray
+'		AppMenu.Width = 100%x / 2
+'		AppMenu.SetColorAnimated(300, Colors.Gray, Colors.DarkGray)
+'		AppMenu.AddSingleLine("Info")
+'		AppMenu.AddSingleLine(CurrentAppApp.Name)
+''		MyLog("Func: CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
+'		If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
+'			AppMenu.AddSingleLine("Remove from Home")
+'		Else
+'			AppMenu.AddSingleLine("Add to Home")
+'		End If
+'		AppMenu.AddSingleLine("Uninstall")
+'		AppMenu.AddSingleLine("Hide")
+'		AppMenu.AddSingleLine("Rename")
+'		
+'		Dim lft As Int
+'		Dim tp As Int
+'		Dim wdh As Int
+'		Dim hig As Int
+'		
+'		wdh = 50%x
+'		hig = (AppMenu.Size * AppRowHeigh) + AppRowHeigh / 4
+'		
+'		lft = (panApps.Width / 2) - (wdh / 2)
+'		tp = (panApps.Height / 2) - (hig / 2)
+'		
+'		Root.AddView(AppMenu, lft, tp, wdh, hig)
+'	End If
 End Sub
 
 Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
@@ -802,39 +847,22 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 			ap.Icon = Starter.GetPackageIcon(pkgName)
 			ap.index = clvHome.Size + 1
 			ap.IsHomeApp = True
+'			ap.IsHidden = False
 			
 		Starter.HomeApps.Add(ap)
 	End If
 	
 End Sub
 
-Private Sub AppMenu_ItemClick (Postion As Int, Value As Object)
-	MyLog("Event: AppMenu_ItemClick")
-	Dim pkgName As String  = CurrentAppApp.PackageName
-							 CurrentAppApp.index = -1
-	AppMenu.Visible = False
-'	Sleep(0)
-	Select Value
-		Case "Info"
-			Run_Info(pkgName)
-			
-		Case "Add to Home"
-			AddToHomeList(CurrentAppApp.Name, pkgName, clvApps.sv.Width, True)
-		
-		Case "Remove from Home"
-			RemoveHomeItem(pkgName)
-			
-		Case pkgName
-			RunApp(pkgName)
-			
-		Case "Uninstall"
-			UninstallApp(pkgName)
-			
-		Case "Hide"
-			
-		Case "Rename"
-			
-	End Select
+Public Sub HideApp(pkgName As String)
+	MyLog("Func: HideApp: " & pkgName)
+	RemoveAppItem_JustFromAppList(pkgName)
+	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "',0,1)"
+	Starter.sql.ExecNonQuery(query)
+	Starter.SetupAppsList(False)
+	RemoveAsRecently(pkgName)
+	RemoveHomeItem(pkgName)
+'	ResetHomeList
 End Sub
 
 Public Sub UninstallApp(pkgName As String)
@@ -926,10 +954,13 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	Next
 	
 	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
-		If (Starter.Pref.AutoRunApp = True) And (BackfrombtnClose = False) Then
+		If (Starter.Pref.AutoRunApp = True) Then
 			Dim pkg As String = clvApps.GetValue(0).As(String)
-			RunApp(pkg)
-			AddToRecently(GetAppNamebyPackage(pkg), pkg)
+			If (LastRunApp <> pkg) Then
+				RunApp(pkg)
+				LastRunApp = pkg
+				AddToRecently(GetAppNamebyPackage(pkg), pkg)
+			End If
 		End If
 	End If
 	
@@ -968,7 +999,7 @@ End Sub
 
 Public Sub Setup
 	
-	MyLog("Func: Setup")
+	MyLog("########## Func: Setup")
 	
 	'-- Add Apps to Home ListView
 	clvHome.Clear
@@ -1032,6 +1063,26 @@ public Sub RemoveHomeItem(pkgName As String)
 '	LogColor(query, Colors.Green)
 End Sub
 
+public Sub RemoveAppItem_JustFromAppList(pkgName As String)
+	MyLog("Func: RemoveAppItem => " & pkgName)
+	
+	For i = 0 To clvApps.Size - 1
+		If (i < clvApps.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
+			Dim appvalue As String = clvApps.GetValue(i).As(String).ToLowerCase
+			If appvalue = pkgName Then
+				clvApps.RemoveAt(i)
+'				Starter.clvApps.RemoveAt(i)
+'				ToastMessageShow(pkgName & " Deleted. " & i, False)
+'				Exit
+			End If
+		End If
+	Next
+	Dim query As String = "DELETE FROM Apps WHERE pkgName='" & pkgName & "'"
+	Starter.sql.ExecNonQuery(query)
+	
+'	LogColor(query, Colors.Green)
+End Sub
+
 Public Sub FindHomeItem(pkgName As String) As Boolean
 	
 	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then
@@ -1087,19 +1138,14 @@ End Sub
 Private Sub DisableDragAndDrop
 	Try
 		
-		'//-- Hide Home List Popup Menu
+		'//-- Hide App and Home List Popup Menu
 		panHRowMenuHome.Visible = False
-		
-		'//-- Hide App List Popup Menu
-		If (AppMenu.IsInitialized) Then
-			AppMenu.Visible = False
-			AppMenu = Null
-		End If
+		panAppMenuApp.Visible = False
 		
 		'//-- Save and Disabled Drag and Drop Home List App
 		If (dragAllow) Then
 			dragger.RemoveDragButtons
-			MyLog("Func: DisableDragAndDrop => ShowHideKey(False)")
+			MyLog("Func: DisableDragAndDrop => HideKeys")
 			ShowHideKeyboard(False)
 			SaveHomeList
 		End If
@@ -1108,7 +1154,7 @@ Private Sub DisableDragAndDrop
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
-		Log("Error Caught: " & LastException)
+		Log("Error Caught: DisableDragAndDrop => " & LastException)
 	End Try
 End Sub
 
@@ -1246,9 +1292,7 @@ Private Sub btnClose_Click
 	SaveSettings
 	SaveHomeList
 	ResetHomeList
-	BackfrombtnClose = True
 	txtAppsSearch_TextChanged(txtAppsSearch.Text)
-	BackfrombtnClose = False
 End Sub
 
 Public Sub ResetHomeList
@@ -1268,6 +1312,7 @@ Public Sub ResetHomeList
 			ap.index = i + 1
 			ap.Icon = Starter.GetPackageIcon(pkg)
 			ap.IsHomeApp = True
+'			ap.IsHidden = False
 		
 		clvHome.Add(CreateListItemHome(ap.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
 		Starter.HomeApps.Add(ap)
@@ -1340,6 +1385,7 @@ Public Sub SaveHomeList
 			ap.index = i + 1
 			ap.Icon = Starter.GetPackageIcon(pkg)
 			ap.IsHomeApp = True
+'			ap.IsHidden = False
 		
 		Starter.HomeApps.Add(ap)
 	Next
@@ -1530,6 +1576,7 @@ Private Sub clvHome_ScrollChanged (Offset As Int)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
+	panAppMenuApp.Visible = False
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
 End Sub
@@ -1912,4 +1959,48 @@ End Sub
 
 Private Sub lblSetAsDefault_Click
 	SetDefaultLauncher
+End Sub
+
+
+Private Sub txtAppsSearch_EnterPressed
+	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+End Sub
+
+Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
+	MyLog("Event: clvAppRowMenu_ItemClick & => " & Index & " : " & Value)
+	Dim pkgName As String = CurrentAppApp.PackageName
+	Dim Name As String = CurrentAppApp.Name
+	
+	DisableDragAndDrop
+	dragAllow = False
+	
+	Select Value
+		
+		Case "Info"
+			Run_Info(pkgName)
+			
+		Case "AddToHome"
+			AddToHomeList(Name, pkgName, clvApps.sv.Width, True)
+		
+		Case "RemoveFromHome"
+			RemoveHomeItem(pkgName)
+			
+		Case "Uninstall"
+			UninstallApp(pkgName)
+			
+		Case "Hide"
+			HideApp(pkgName)
+			
+		Case "Rename"
+			ToastMessageShow("Rename => " & Name, False)
+			
+		Case pkgName	'Run App
+			RunApp(Value.As(String))
+			clvApps.AsView.BringToFront
+'			tagApps.LabelProperties.TextColor = Colors.Magenta
+			AddToRecently(Name, pkgName)
+'			SaveRecentlyList
+			
+	End Select
+	
 End Sub
