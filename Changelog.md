@@ -1,6 +1,7 @@
 
 # Version: Build 29 Alpha : 27/01/2023
-
+* Improve codes to more stability
+* Fix issue at Install and Uninstall Apps
 
 # Version: Build 28 Alpha : 26/01/2023
 * Fix Sort Apps List

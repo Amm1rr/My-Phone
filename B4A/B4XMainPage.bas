@@ -409,7 +409,7 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 		RunApp(Value.As(String))
 		clvApps.AsView.BringToFront
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
-		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName)
+		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
 '		SaveRecentlyList
 	End If
 End Sub
@@ -458,7 +458,10 @@ Private Sub LoadRecentlyList
 End Sub
 
 Private Sub FindRecentlyItem(pkgName As String) As Boolean
-	MyLog("Func: FindRecentlyItem & => " & pkgName)
+	MyLog("Func: FindRecentlyItem => " & pkgName)
+	
+	pkgName = GetPackage(pkgName)
+	
 	Dim i As Int = 0
 	For i = 0 To tagApps.CLV.Size - 1
 		If (tagApps.CLV.GetValue(i) = pkgName) Then Return True
@@ -466,8 +469,26 @@ Private Sub FindRecentlyItem(pkgName As String) As Boolean
 	Return False
 End Sub
 
-Public Sub AddToRecently(Text As String, Value As String)
-	MyLog("Func: AddToRecently & => " & Value)
+Public Sub GetPackage(pkg As String) As String
+	Dim pkgName As String
+	
+	If (pkg.Length > 0) Then
+		If (pkg.As(String).SubString2(0, 8) = "package:") Then
+			pkgName = pkg.As(String).SubString(8)
+		Else
+			pkgName = pkg
+		End If
+	Else
+		pkgName = pkg
+	End If
+	
+	Return pkgName
+End Sub
+
+Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
+	MyLog("Func: AddToRecently => " & Text & " - " & Value)
+	
+	Value = GetPackage(Value)
 	
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
 	
@@ -479,26 +500,33 @@ Public Sub AddToRecently(Text As String, Value As String)
 '	End If
 	
 	'//-- Check if This Function Called from Service
-	'//-- If Text is "" , that is mean it's called from Service
+	'//-- If IsNewInstalledApp = True , that is mean it's called from Service
 	'//-- 
-	If (Text.Length > 0) And (Text = "") Then
-		Value = Value.SubString(8)
-		Text = GetAppNamebyPackage(Value)
+	If (IsNewInstalledApp) Then
+		MyLog("New App")
 		tagColors = Colors.DarkGray
+'		tagApps.CLV.DefaultTextColor = Colors.Yellow
 		tagApps.LabelProperties.TextColor = Colors.Yellow
 	Else
+		MyLog("Normal App")
 		tagColors = Colors.DarkGray
+'		tagApps.CLV.DefaultTextColor = Colors.LightGray
 		tagApps.LabelProperties.TextColor = Colors.LightGray
 	End If
 	
 	If (FindRecentlyItem(Value)) Then Return
 	If Not (Is_NormalApp(Value)) Then Return
 	
+	
 	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
 '		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
 '		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
 		
-		tagApps.AddTag(Text, tagColors, Value)
+		If Text = "" Then
+			tagApps.AddTag(GetAppNamebyPackage(Value), tagColors, Value)
+		Else
+			tagApps.AddTag(Text, tagColors, Value)
+		End If
 		RecentlyList.Add(Value)
 		
 		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
@@ -519,36 +547,36 @@ Public Sub AddToRecently(Text As String, Value As String)
 '		Next
 		
 	Else If (RecentlyList.Size >= 5) Then
-'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
-'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-
-		tagApps.mBase.Enabled = False
-		tagApps.CLV.Clear
-		
-		tagApps.AddTag(Text, tagColors, Value)
-		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
-		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
-		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
-		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
-		
-		Dim i0 As Object = RecentlyList.Get(0)
-		Dim i1 As Object = RecentlyList.Get(1)
-		Dim i2 As Object = RecentlyList.Get(2)
-		Dim i3 As Object = RecentlyList.Get(3)
-		
-		RecentlyList.Clear
-		RecentlyList.Add(Value)
-		RecentlyList.Add(i0)
-		RecentlyList.Add(i1)
-		RecentlyList.Add(i2)
-		RecentlyList.Add(i3)
-		
-		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-		LogColor(q, Colors.Yellow)
 		Try
+	'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
+	'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
+
+			tagApps.mBase.Enabled = False
+			tagApps.CLV.Clear
+			
+			tagApps.AddTag(Text, tagColors, Value)
+			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
+			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
+			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
+			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
+			
+			Dim i0 As Object = RecentlyList.Get(0)
+			Dim i1 As Object = RecentlyList.Get(1)
+			Dim i2 As Object = RecentlyList.Get(2)
+			Dim i3 As Object = RecentlyList.Get(3)
+			
+			RecentlyList.Clear
+			RecentlyList.Add(Value)
+			RecentlyList.Add(i0)
+			RecentlyList.Add(i1)
+			RecentlyList.Add(i2)
+			RecentlyList.Add(i3)
+			
+			Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
 			Starter.sql.ExecNonQuery(q)
+			
 		Catch
-			Log(LastException)
+			MyLog(LastException)
 		End Try
 		
 		tagApps.mBase.Enabled = True
@@ -575,15 +603,11 @@ End Sub
 
 Public Sub RemoveAsRecently (Value As Object)
 '							(Index As Int)
-	
-	
-	If Value.As(String).SubString(8) = "package:" Then
-		Value = Value.As(String).SubString(8)
-	End If
-	
-	MyLog("Func: RemoveAsRecently => " & Value.As(String))
+
+	Value = GetPackage(Value.As(String))
 	
 	Dim i As Int
+'	For i = 0 To tagApps.CLV.Size - 1
 	For i = 0 To RecentlyList.Size - 1
 		If RecentlyList.Get(i) = Value Then
 			tagApps.CLV.RemoveAt(i)
@@ -830,6 +854,7 @@ End Sub
 
 Public Sub HideApp(pkgName As String)
 	MyLog("Func: HideApp: " & pkgName)
+	pkgName = GetPackage(pkgName)
 	RemoveAppItem_JustFromAppList(pkgName)
 	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "',0,1)"
 	Starter.sql.ExecNonQuery(query)
@@ -842,8 +867,9 @@ End Sub
 Public Sub UninstallApp(pkgName As String)
 	MyLog("Func: UninstallApp")
 	
+	pkgName = GetPackage(pkgName)
+	
 	Dim im As Intent
-'	If (pkgName.SubString(8) <> "package:") Then pkgName = "package:" & pkgName
 	im.Initialize("android.intent.action.DELETE", "package:" & pkgName)
 	
 	StartActivity(im)
@@ -865,18 +891,20 @@ Private Sub CreateListItemApp(Text As String, _
 	dd.GetViewByName(p, "lblAppTitle").Tag = Tag.Trim
 '	lblAppTitle.Text = Text
 
-	If Starter.Pref.ShowIcon Then
-		imgIconApp.Visible = True
-		lblAppTitle.Left = 35dip
-	Else
-		imgIconApp.Visible = False
-		lblAppTitle.Left = 5dip
-	End If
-	
 	Try
-		imgIconApp.Bitmap = icon
+		If Not(imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
+		
+		If Starter.Pref.ShowIcon Then
+			imgIconApp.Visible = True
+			lblAppTitle.Left = 35dip
+		Else
+			imgIconApp.Visible = False
+			lblAppTitle.Left = 5dip
+		End If
+		
+			imgIconApp.Bitmap = icon
 	Catch
-		Log("CreateListItemApp-Icon=> " & LastException)
+		MyLog("CreateListItemApp-Icon=> " & LastException)
 	End Try
 	
 	Return p
@@ -933,7 +961,7 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 			If (LastRunApp <> pkg) Then
 				RunApp(pkg)
 				LastRunApp = pkg
-				AddToRecently(GetAppNamebyPackage(pkg), pkg)
+				AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
 			End If
 		End If
 	End If
@@ -1006,8 +1034,10 @@ End Sub
 public Sub RemoveHomeItem(pkgName As String)
 	MyLog("Func: RemoveHomeItem => " & pkgName)
 	
+	pkgName = GetPackage(pkgName)
+	
 	For i = 0 To clvHome.Size - 1
-		If (i < clvHome.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
+		If (i < clvHome.Size) Then ' I just used this if condition for fix array size issue. I don't know why error happen without this IF
 			Dim homevalue As String = clvHome.GetValue(i).As(String).ToLowerCase
 			If homevalue = pkgName Then
 				clvHome.RemoveAt(i)
@@ -1039,6 +1069,8 @@ End Sub
 public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 	MyLog("Func: RemoveAppItem => " & pkgName)
 	
+	pkgName = GetPackage(pkgName)
+	
 	For i = 0 To clvApps.Size - 1
 		If (i < clvApps.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
 			Dim appvalue As String = clvApps.GetValue(i).As(String).ToLowerCase
@@ -1058,7 +1090,9 @@ End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
 	
-	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then
+	pkgName = GetPackage(pkgName)
+	
+	If (pkgName = Null) Or (pkgName = "") Then
 		LogColor("WARNING! FindHomeItem => " & pkgName, Colors.Red)
 		MyLog("Func: FindHomeItem => False - WARNING! => " & pkgName)
 		Return False
@@ -1067,7 +1101,7 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 '	For i = 0 To Starter.HomeApps.Size - 1
 	For i = 0 To clvHome.Size - 1
 	If (clvHome.GetValue(i) = pkgName) Then
-'		If (Starter.HomeApps.Get(i) = pkgName) Then
+'	If (Starter.HomeApps.Get(i) = pkgName) Then
 			MyLog("Func: FindHomeItem => " & pkgName & " - True")
 			Return True
 	End If
@@ -1079,9 +1113,8 @@ End Sub
 
 Public Sub GetAppNamebyPackage(pkgName As String) As String
 '	MyLog("Func: GetAppNamebyPackage => " & pkgName)
-	If (pkgName.Length > 8) Then
-		If pkgName.SubString(8) = "package:" Then pkgName = pkgName.SubString(8)
-	End If
+	
+	pkgName = GetPackage(pkgName)
 	
 	'// First Method, Search in AppList, a List Variable
 	For Each app In Starter.AppsList
@@ -1133,6 +1166,9 @@ End Sub
 
 Private Sub RunApp(pkgName As String)
 	MyLog("Func: RunApp => " & pkgName)
+	
+	pkgName = GetPackage(pkgName)
+	
 	Try
 		Dim Intent1 As Intent
 		Dim pm As PackageManager
@@ -1165,8 +1201,6 @@ Sub AnimateView(View As B4XView, Duration As Int, Left As Int, Top As Int, Width
 	Loop
 	View.SetLayoutAnimated(0, Left, Top, Width, Height)
 End Sub
-
-
 
 Private Sub btnSetting_Click
 	MyLog("Event: btnSetting_Click => ShowHideKey(False)")
@@ -1224,7 +1258,7 @@ Private Sub btnSetting_Click
 		
 		If (lst.Size > -1) Then
 			lst.Add("[Select App]")
-			lstPackageNames.Add("UNKNOWN")
+			lstPackageNames.Add("[UNKNOWN]")
 			cmbCameraSetting.SetItems(lst)
 			cmbPhoneSetting.SetItems(lst)
 			cmbClockSetting.SetItems(lst)
@@ -1234,7 +1268,7 @@ Private Sub btnSetting_Click
 				cmbCameraSetting.Tag = lstPackageNames.Get(CameraIndex).As(String)
 			Else
 				cmbCameraSetting.SelectedIndex = cmbCameraSetting.Size - 1
-				cmbCameraSetting.Tag = "UNKNOWN"
+				cmbCameraSetting.Tag = "[UNKNOWN]"
 			End If
 			
 			If (PhoneIndex > 0) Then
@@ -1242,7 +1276,7 @@ Private Sub btnSetting_Click
 				cmbPhoneSetting.Tag = lstPackageNames.Get(PhoneIndex).As(String)
 			Else
 				cmbPhoneSetting.SelectedIndex = cmbPhoneSetting.Size - 1
-				cmbPhoneSetting.Tag = "UNKNOWN"
+				cmbPhoneSetting.Tag = "[UNKNOWN]"
 			End If
 			
 			If (ClockIndex > 0) Then
@@ -1250,7 +1284,7 @@ Private Sub btnSetting_Click
 				cmbClockSetting.Tag = lstPackageNames.Get(ClockIndex).As(String)
 			Else
 				cmbClockSetting.SelectedIndex = cmbClockSetting.Size - 1
-				cmbClockSetting.Tag = "UNKNOWN"
+				cmbClockSetting.Tag = "[UNKNOWN]"
 			End If
 		
 		End If
@@ -1310,11 +1344,11 @@ Public Sub SaveSettings
 	Starter.Pref.ShowKeyboard = chkShowKeyboard.Checked
 	
 	Dim strdefaultapp As String = cmbClockSetting.Tag.As(String)
-	If (strdefaultapp = "UNKNOWN") Then strdefaultapp = ""
+	If (strdefaultapp = "[UNKNOWN]") Then strdefaultapp = ""
 	Starter.Pref.ClockApp = strdefaultapp
 	
 	strdefaultapp = cmbCameraSetting.Tag.As(String)
-	If (cmbCameraSetting.Tag.As(String) = "UNKNOWN") Then strdefaultapp = ""
+	If (cmbCameraSetting.Tag.As(String) = "[UNKNOWN]") Then strdefaultapp = ""
 	Starter.Pref.CameraApp = strdefaultapp
 	
 	strdefaultapp = cmbPhoneSetting.Tag.As(String)
@@ -1971,7 +2005,7 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 			RunApp(Value.As(String))
 			clvApps.AsView.BringToFront
 '			tagApps.LabelProperties.TextColor = Colors.Magenta
-			AddToRecently(Name, pkgName)
+			AddToRecently(Name, pkgName, False)
 '			SaveRecentlyList
 			
 	End Select

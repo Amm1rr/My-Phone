@@ -78,18 +78,26 @@ End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 	MyLog("Event: PE_PackageRemoved => " & Package)
-	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
+	
+	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
+	
+	B4XPages.MainPage.RemoveAppItem_JustFromAppList(Package)
 	B4XPages.MainPage.RemoveAsRecently(Package)
 	B4XPages.MainPage.RemoveHomeItem(Package)
 	B4XPages.MainPage.SaveHomeList
+	ToastMessageShow(name & " Removed!", True)
 End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	MyLog("Event: PE_PackageAdded => " & Package)
-	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Installed!", True)
+	
 	SetupAppsList(True)
-	B4XPages.MainPage.AddToRecently("", Package)
+	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
+	
+	B4XPages.MainPage.AddToRecently(name, Package, True)
+	B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
+	ToastMessageShow(name & " Installed!", True)
 End Sub
 
 Private Sub MyLog (Text As String)
