@@ -152,9 +152,6 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	lblVersionHome.Text = "Build " & Application.VersionCode & " " & Application.VersionName
 	
-	tagColors = Colors.DarkGray
-	tagApps.LabelProperties.TextColor = Colors.LightGray
-	
 	If (FirstStart) Then
 	
 		Setup
@@ -381,7 +378,7 @@ Private Sub FixWallTrans
 End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
-'	MyLog("Event: TabStrip1_pageSelected")
+	MyLog("Event: TabStrip1_pageSelected")
 	DisableDragAndDrop
 	CloseSetting
 	If (Position = 1) Then
@@ -450,9 +447,9 @@ Private Sub LoadRecentlyList
 	For i = 0 To ResRecentApps.RowCount - 1
 		ResRecentApps.Position = i
 		Dim value As String = ResRecentApps.GetString("pkgName")
-'		AddToRecently(GetAppNamebyPackage(value), value)
-		tagApps.AddTag(ResRecentApps.GetString("Name"), tagColors, value)
-		RecentlyList.Add(value)
+		AddToRecently(ResRecentApps.GetString("Name"), value, False)
+'		tagApps.AddTag(ResRecentApps.GetString("Name"), tagColors, value)
+'		RecentlyList.Add(value)
 	Next
 	
 End Sub
@@ -503,24 +500,18 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	'//-- If IsNewInstalledApp = True , that is mean it's called from Service
 	'//-- 
 	If (IsNewInstalledApp) Then
-		MyLog("New App")
 		tagColors = Colors.DarkGray
 '		tagApps.CLV.DefaultTextColor = Colors.Yellow
 		tagApps.LabelProperties.TextColor = Colors.Yellow
 	Else
-		MyLog("Normal App")
 		tagColors = Colors.DarkGray
-'		tagApps.CLV.DefaultTextColor = Colors.LightGray
 		tagApps.LabelProperties.TextColor = Colors.LightGray
 	End If
 	
 	If (FindRecentlyItem(Value)) Then Return
 	If Not (Is_NormalApp(Value)) Then Return
 	
-	
 	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
-'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
-'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
 		
 		If Text = "" Then
 			tagApps.AddTag(GetAppNamebyPackage(Value), tagColors, Value)
@@ -590,6 +581,10 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 		Starter.sql.ExecNonQuery(q)
 		
 	End If
+	
+	'//----- Reset RecentlyBar Color to Default
+	tagColors = Colors.DarkGray
+	tagApps.LabelProperties.TextColor = Colors.LightGray
 	
 '	SaveRecentlyList
 	

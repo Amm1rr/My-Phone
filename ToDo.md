@@ -10,3 +10,4 @@ Todo List:
 * Improve change color tagApps
 + Add support search in Apps, Contacts & Settings.
 + Add Sidebar
++ Add ScrollView to Setting page.
