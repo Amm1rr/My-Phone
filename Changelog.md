@@ -1,4 +1,7 @@
 
+# Version: Build 29 Alpha : 27/01/2023
+
+
 # Version: Build 28 Alpha : 26/01/2023
 * Fix Sort Apps List
 * Fix don't allow run an app two time one after another one.

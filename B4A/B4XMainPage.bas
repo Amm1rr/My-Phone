@@ -78,6 +78,7 @@ Sub Class_Globals
 	Private chkShowToastLog As CheckBox
 	Private chkShowIconsHome As CheckBox
 	Private lblSetAsDefault As Label
+	Private btnHiddenAppsDelete As Button
 End Sub
 
 Public Sub MyLog (Text As String)
@@ -352,7 +353,7 @@ Public Sub GoHome(ClearSearch As Boolean)
 		ShowHideKeyboard(False)
 	Catch
 		ToastMessageShow(LastException.Message, True)
-		Log("Error Caught: " & LastException)
+		MyLog("Error Caught: GoHome => " & LastException)
 	End Try
 End Sub
 
@@ -953,7 +954,6 @@ Public Sub Is_NormalApp(pkgName As String) As Boolean
 	Dim packages As List
 	packages = pm.GetInstalledPackages
 	
-	
 	For i = 0 To packages.Size - 1
 		Dim p As String = packages.Get(i)
 		
@@ -989,13 +989,13 @@ Public Sub Setup
 End Sub
 
 Public Sub Is_HomeApp(pkgName As String) As Boolean
-'	Log(HomeApps)
+'	MyLog(HomeApps)
 	Dim i As Int
 	
 	For i = 0 To Starter.HomeApps.Size - 1
 		If (Starter.HomeApps.Get(i) = pkgName) Then Return True
 	Next
-'	For Each ap In HomeApps
+'	For Each ap In Starter.HomeApps
 '		If (pkgName = ap) Then Return True
 '	Next
 	
@@ -1127,7 +1127,7 @@ Private Sub DisableDragAndDrop
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
-		Log("Error Caught: DisableDragAndDrop => " & LastException)
+		MyLog("Error Caught: DisableDragAndDrop => " & LastException)
 	End Try
 End Sub
 
@@ -1139,8 +1139,8 @@ Private Sub RunApp(pkgName As String)
 		Intent1 = pm.GetApplicationIntent (pkgName)
 		If Intent1.IsInitialized Then StartActivity (Intent1)
 	Catch
-		ToastMessageShow(LastException.Message, True)
-		Log("Error Caught: " & LastException)
+		ToastMessageShow(LastException.Message, False)
+		MyLog("####### RunApp: => Error Caught: " & LastException)
 	End Try
 End Sub
 
@@ -1975,5 +1975,13 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 '			SaveRecentlyList
 			
 	End Select
+	
+End Sub
+
+Private Sub btnHiddenAppsDelete_Click
+	
+End Sub
+
+Private Sub btnHiddenAppsClose_Click
 	
 End Sub

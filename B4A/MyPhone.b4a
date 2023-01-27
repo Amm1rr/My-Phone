@@ -1,18 +1,20 @@
 ﻿Build1=Default,com.my.phone,Freeware
 File1=AppRow.bal
-File10=Phone.png
-File11=Settings.bal
+File10=MyPhone.db
+File11=Phone.png
+File12=Settings.bal
 File2=AppRowMenu.bal
 File3=Apps.bal
 File4=Camera.png
-File5=Home.bal
-File6=HomeRow.bal
-File7=HomeRowMenu.bal
-File8=MainPage.bal
-File9=MyPhone.db
+File5=HiddenApps.bal
+File6=Home.bal
+File7=HomeRow.bal
+File8=HomeRowMenu.bal
+File9=MainPage.bal
 FileGroup1=Default Group
 FileGroup10=Default Group
 FileGroup11=Default Group
+FileGroup12=Default Group
 FileGroup2=Default Group
 FileGroup3=Default Group
 FileGroup4=Default Group
@@ -44,14 +46,14 @@ Module3=GlobalFunc
 Module4=RequestDrawOverPermission
 Module5=Starter
 Module6=Wallpaper
-NumberOfFiles=11
+NumberOfFiles=12
 NumberOfLibraries=15
 NumberOfModules=6
 Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 28
+	#VersionCode: 29
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
@@ -94,6 +96,8 @@ Sub Activity_ActionBarHomeClick
 End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
+	MyLog("Event Main Activity_KeyPress & => " & KeyCode)
+	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
 			If (B4XPages.MainPage.txtAppsSearch.Text <> "") Then B4XPages.MainPage.txtAppsSearch.Text = ""
@@ -123,6 +127,19 @@ End Sub
 
 Sub Create_Menu (Menu As Object)
 	B4XPages.Delegate.Create_Menu(Menu)
+End Sub
+
+Public Sub MyLog (Text As String)
+	If (Starter.LogMode) Then
+'		Dim txtWriter As TextWriter
+'		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
+'			txtWriter.WriteList(LogList)
+'			txtWriter.Close
+'		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
+		Starter.LogList.Add(Text)
+		Log(Text)
+		If (Starter.ShowToastLog) Then ToastMessageShow(Text, False)
+	End If
 End Sub
 
 #if Java
