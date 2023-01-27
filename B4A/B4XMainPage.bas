@@ -79,6 +79,9 @@ Sub Class_Globals
 	Private chkShowIconsHome As CheckBox
 	Private lblSetAsDefault As Label
 	Private btnHiddenAppsDelete As Button
+	Private panHideManager As B4XView
+	Private clvHiddenApp As CustomListView
+	Private CLVSelection As CLVSelections
 End Sub
 
 Public Sub MyLog (Text As String)
@@ -2008,9 +2011,96 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub btnHiddenAppsDelete_Click
-	
+	Try
+		MyLog("Event: btnHiddenAppsDelete_Click")
+		If clvHiddenApp.Size = 0 Then Return
+		If CLVSelection.SelectedItems.AsList.Size = 0 Then Return
+		
+		Dim selected As Object = CLVSelection.SelectedItems.AsList.Get(0)
+		Dim value As 	String = clvHiddenApp.GetValue(selected)
+		LogColor(value, Colors.Red)
+		clvHiddenApp.RemoveAt(selected.As(Int))
+		Starter.sql.ExecNonQuery("UPDATE Apps SET IsHidden=0 WHERE pkgName='" & value & "'")
+'		CLVSelection.ItemClicked(-1)
+	Catch
+		LogColor("Error Caught: btnHiddenAppsDelete_Click => " & LastException, Colors.Red)
+	End Try
 End Sub
 
 Private Sub btnHiddenAppsClose_Click
+	CloseHiddenManager
+End Sub
+
+Private Sub btnHiddenApps_Click
+	MyLog("Event: btnHiddenApps_Click")
+	panHideManager.RemoveAllViews
+	panHideManager.LoadLayout("HiddenApps")
+	panHideManager.Enabled = True
+	panHideManager.Visible = True
+	panHideManager.BringToFront
+	panHideManager.RequestFocus
 	
+	panHideManager.Top = chkShowKeyboard.Top
+'	panHideManager.Left = 10dip
+'	panHideManager.Width = panSetting.Width - 20dip
+	panHideManager.Height = panSetting.Height
+	
+	LoadHiddenManager
+	
+End Sub
+
+Private Sub panHiddenApps_Click
+	If DblClick Then CloseHiddenManager
+End Sub
+
+Private Sub panHiddenApps_LongClick
+	CloseHiddenManager
+End Sub
+
+Private Sub CloseHiddenManager
+	panHideManager.RemoveAllViews
+	panHideManager.Visible = False
+	
+	Starter.SetupAppsList(False)
+End Sub
+
+
+Private Sub clvHiddenApp_ItemClick (Index As Int, Value As Object)
+	CLVSelection.ItemClicked(Index)
+End Sub
+
+Private Sub LoadHiddenManager
+	
+	If Not (CLVSelection.IsInitialized) Then CLVSelection.Initialize(clvHiddenApp)
+	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_PERMANENT
+	
+	Dim ResHidden As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=1 ORDER BY Name ASC")
+	clvHiddenApp.sv.Enabled = False
+	clvHiddenApp.Clear
+	For i = 0 To ResHidden.RowCount - 1
+		ResHidden.Position = i
+		
+		Dim pkg As String = ResHidden.GetString("pkgName")
+		
+		Dim ap As App
+		ap.PackageName = pkg
+		ap.Name = ResHidden.GetString("Name")
+		ap.index = i + 1
+		ap.Icon = Starter.GetPackageIcon(pkg)
+		ap.IsHomeApp = True
+		ap.IsHidden = True
+		
+		clvHiddenApp.AddTextItem(ap.Name, ap.PackageName)
+	Next
+	ResHidden.Close
+	clvHome.sv.Enabled = True
+End Sub
+
+Private Sub btnHiddenApps_LongClick
+	Starter.SetupAppsList(True)
+	ResetHomeList
+	LoadRecentlyList
+	txtAppsSearch.Text = txtAppsSearch.Text
+	CloseSetting
+	ToastMessageShow("Apps Rebuild Successfull!", False)
 End Sub
