@@ -1,4 +1,7 @@
 
+# Version: Build 30 Alpha : 29/01/2023
+* Improv Home Menu
+
 # Version: Build 29 Alpha : 27/01/2023
 * Improve codes to more stability
 * Fix issue at Install and Uninstall Apps

@@ -1,6 +1,8 @@
 
 Todo List:
 -----
+* افزودن یک گجت بامزه روی دسکتاپ تا بشه باهاش وَر رفت
+* Improve App List and Home List Menu
 * Improve Function RemoveHomeItem
 * Improve Function GetAppNamebyPackage
 * Improve Function FindHomeItem

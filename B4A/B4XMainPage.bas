@@ -47,8 +47,8 @@ Sub Class_Globals
 	Private RecentlyList As List
 	Public AppRowHeigh As Int = 50dip
 	Public AppRowHeighMenu As Int =  50dip
-	Public HomeRowHeigh As Int = 50dip
-	Public HomeRowHeighMenu As Int = 110dip 'HomeRowHeigh * 3
+	Public HomeRowHeigh As Int = 60dip
+	Public HomeRowHeighMenu As Int = HomeRowHeigh * 2
 	Public AutoRunOnFind As Boolean
 	Public FirstStart As Boolean = True
 	Private tagColors As Int = Colors.DarkGray
@@ -72,7 +72,7 @@ Sub Class_Globals
 	Public tagApps As ASScrollingTags
 	Private chkAutoRun As CheckBox
 	Private lblVersionHome As Label
-	Private panLog As Panel
+	Private panLog As B4XView
 	Private clvLog As CustomListView
 	Private btnLogClose As Button
 	Private chkShowToastLog As CheckBox
@@ -82,6 +82,10 @@ Sub Class_Globals
 	Private panHideManager As B4XView
 	Private clvHiddenApp As CustomListView
 	Private CLVSelection As CLVSelections
+	Private lblHomRowMenuRowAppTitle As Label
+	Private panHomeRowMenuRowHome As B4XView
+	Private panHomRowMenuRow As B4XView
+	Private imgHomRowMenuRowIconHome As B4XView
 End Sub
 
 Public Sub MyLog (Text As String)
@@ -122,7 +126,7 @@ Public Sub Initialize
 	clocktimer.Initialize("clocktimer", 1000)
 	clocktimer.Enabled = True
 	
-	If Not (panLog.IsInitialized) Then panLog.Initialize("panLog")
+'	If Not (panLog.IsInitialized) Then panLog.Initialize("panLog")
 	
 End Sub
 
@@ -154,6 +158,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	Tabstrip1.LoadLayout("Apps", "Apps")
 	
 	lblVersionHome.Text = "Build " & Application.VersionCode & " " & Application.VersionName
+	
+	CLVSelection.Initialize(clvHome)
+	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_TEMP
 	
 	If (FirstStart) Then
 	
@@ -688,32 +695,11 @@ Private Sub CreateHomeMenu
 	clvHRowMenu.Clear
 '	clvHRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
 '	clvHRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
-	clvHRowMenu.AddTextItem("Info", "Info")
-	clvHRowMenu.AddTextItem("Delete", "Delete")
-	clvHRowMenu.AddTextItem("Sort", "Sort")
-	
-	Dim lft As Int
-	Dim tp As Int
-	Dim wdh As Int
-	Dim hig As Int
-	
-	wdh = 50%x
-	HomeRowHeighMenu = 110dip
-	
-	lft = (panHome.Width / 2) + (wdh  / 2)
-	hig = (clvHRowMenu.Size * HomeRowHeighMenu) '- HomeRowHeigh / 4
-	
-	panHRowMenuHome.Left = lft '(panHome.Width - clvHRowMenu.sv.Width) + 8dip
-	panHRowMenuHome.Width = 50%x / 2
-	
-	tp = (panHome.Height / 2) - (hig / 2)
-		panHRowMenuHome.Top = tp + 50dip
-		panHRowMenuHome.Height = hig
-	clvHRowMenu.sv.Height = hig
-	clvHRowMenu.sv.Width = wdh
-	clvHRowMenu.sv.Left = 10dip
-'	Log("X: " & XPos)
-'	Log("Y: " & YPos)
+	Dim he As Int = 130
+	Dim we As Int = 80
+	clvHRowMenu.Add(CreateListItemHomeMenu("Info", "Info", we, he), "Info")
+	clvHRowMenu.Add(CreateListItemHomeMenu("Delete", "Delete", we, he), "Delete")
+	clvHRowMenu.Add(CreateListItemHomeMenu("Sort", "Sort", we, he), "Sort")
 
 End Sub
 
@@ -907,6 +893,40 @@ Private Sub CreateListItemApp(Text As String, _
 	
 	Return p
 	
+End Sub
+
+Private Sub CreateListItemHomeMenu(Text As String, _
+							   Value As String, _
+							   Width As Int, _
+							   Height As Int) As Panel
+	Dim p As B4XView = xui.CreatePanel("")
+	
+	p.SetLayoutAnimated(0, 0, 0, Width, Height)
+	p.LoadLayout("HomeRowMenuRow")
+
+'	Dim p As Panel = panHomeRowMenuRowHome
+'	panHomeRowMenuRowHome.SetLayoutAnimated(0,0,0, Width, Height)
+'	panHomeRowMenuRowHome.LoadLayout("HomeRowMenu")
+	
+	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
+	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Text = Text
+	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Tag = Value
+	
+'	If Starter.Pref.ShowIconHomeApp Then
+'		imgHomRowMenuRowIconHome.Visible = True
+'		lblHomRowMenuRowAppTitle.Left = 35dip
+'	Else
+		imgHomRowMenuRowIconHome.Visible = False
+		lblHomRowMenuRowAppTitle.Left = 5dip
+'	End If
+	
+'	Try
+'		imgHomRowMenuRowIconHome.Bitmap = Starter.GetPackageIcon(Value)
+'	Catch
+'		Log("CreateListItemHome-Icon=> " & LastException)
+'	End Try
+	
+	Return p
 End Sub
 
 Private Sub CreateListItemHome(Text As String, _
@@ -2070,8 +2090,7 @@ Private Sub clvHiddenApp_ItemClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub LoadHiddenManager
-	
-	If Not (CLVSelection.IsInitialized) Then CLVSelection.Initialize(clvHiddenApp)
+	CLVSelection.Initialize(clvHiddenApp)
 	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_PERMANENT
 	
 	Dim ResHidden As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=1 ORDER BY Name ASC")
