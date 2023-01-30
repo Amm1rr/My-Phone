@@ -1154,7 +1154,7 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 	End If
 	Next
 	
-	MyLog("FindHomeItem => " & pkgName & " - False")
+'	MyLog("FindHomeItem => " & pkgName & " - False")
 	Return False
 End Sub
 
@@ -2068,14 +2068,16 @@ Private Sub btnHiddenAppsDelete_Click
 		If clvHiddenApp.Size = 0 Then Return
 		If CLVSelection.SelectedItems.AsList.Size = 0 Then Return
 		
+'		Dim index As Int = clvHiddenApp.GetItemFromView(Sender)
+'		Dim value As String = clvHiddenApp.GetValue(index)
+		
 		Dim selected As Object = CLVSelection.SelectedItems.AsList.Get(0)
 		Dim value As 	String = clvHiddenApp.GetValue(selected)
-		LogColor(value, Colors.Red)
 		clvHiddenApp.RemoveAt(selected.As(Int))
 		Starter.sql.ExecNonQuery("UPDATE Apps SET IsHidden=0 WHERE pkgName='" & value & "'")
 '		CLVSelection.ItemClicked(-1)
 	Catch
-		LogColor("Error Caught: btnHiddenAppsDelete_Click => " & LastException, Colors.Red)
+		MyLog("Error Caught: btnHiddenAppsDelete_Click => " & LastException)
 	End Try
 End Sub
 

@@ -2,6 +2,7 @@
 # Version: Build 31 Alpha : 30/01/2023
 * Improve Apps Menu
 * Improve Logs Report
+* Update txtSearch Library to v1.16
 
 # Version: Build 30 Alpha : 29/01/2023
 * Improve Home Menu
