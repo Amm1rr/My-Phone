@@ -58,7 +58,7 @@ Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 30
+	#VersionCode: 31
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
@@ -101,7 +101,7 @@ Sub Activity_ActionBarHomeClick
 End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
-	MyLog("Event Main Activity_KeyPress & => " & KeyCode)
+	MyLog("****** Event: Main:Activity_KeyPress & => " & KeyCode)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
@@ -119,32 +119,27 @@ End Sub
 
 Sub Activity_Resume
 '	B4XPages.MainPage.GoHome(False)
+	MyLog("Main: Activity_Resume")
 	B4XPages.Delegate.Activity_Resume
 End Sub
 
 Sub Activity_Pause (UserClosed As Boolean)
+	MyLog("Main: Activity_Pause")
 	B4XPages.Delegate.Activity_Pause
 End Sub
 
 Sub Activity_PermissionResult (Permission As String, Result As Boolean)
+	MyLog("Main: PermissionResult => " & Permission & ":" & Result)
 	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
 End Sub
 
 Sub Create_Menu (Menu As Object)
+	MyLog("Main: Create_Menu")
 	B4XPages.Delegate.Create_Menu(Menu)
 End Sub
 
-Public Sub MyLog (Text As String)
-	If (Starter.LogMode) Then
-'		Dim txtWriter As TextWriter
-'		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
-'			txtWriter.WriteList(LogList)
-'			txtWriter.Close
-'		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
-		Starter.LogList.Add(Text)
-		Log(Text)
-		If (Starter.ShowToastLog) Then ToastMessageShow(Text, False)
-	End If
+Private Sub MyLog (Text As String)
+	Starter.MyLog(Text)
 End Sub
 
 #if Java

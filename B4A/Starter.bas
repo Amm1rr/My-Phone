@@ -77,7 +77,7 @@ Sub Service_Destroy
 End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
-	MyLog("Event: PE_PackageRemoved => " & Package)
+	MyLog("*** Event: PE_PackageRemoved => " & Package)
 	
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
@@ -90,7 +90,7 @@ Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
-	MyLog("Event: PE_PackageAdded => " & Package)
+	MyLog("*** Event: PE_PackageAdded => " & Package)
 	
 	SetupAppsList(True)
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
@@ -100,17 +100,16 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	ToastMessageShow(name & " Installed!", True)
 End Sub
 
-Private Sub MyLog (Text As String)
-	If (LogMode) Then
-'		Dim txtWriter As TextWriter
+Public Sub MyLog (Text As String)
+	If Not (LogMode) Then Return
+'	Dim txtWriter As TextWriter
 '		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
-'			txtWriter.WriteList(LogList)
-'			txtWriter.Close
-'		File.WriteString(File.DirInternalCache, "MyLog.log", Text)
-		LogList.Add(Text)
-		Log(Text)
-		If (ShowToastLog) Then ToastMessageShow(Text, False)
-	End If
+'		txtWriter.WriteList(LogList)
+'		txtWriter.Close
+'	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
+	LogList.Add(Text)
+	Log(Text)
+	If (ShowToastLog) Then ToastMessageShow(Text, False)
 End Sub
 
 Private Sub SetupSettings
@@ -179,7 +178,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("Func: SetupAppsList : " & ForceReload)
+	MyLog("SetupAppsList : " & ForceReload)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -310,7 +309,7 @@ End Sub
 Public Sub CreateDB
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
-		LogColor(">>>>> - Database Replaced! - <<<<<", Colors.Red)
+		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
 	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)

@@ -1,6 +1,10 @@
 
+# Version: Build 31 Alpha : 30/01/2023
+* Improve Apps Menu
+* Improve Logs Report
+
 # Version: Build 30 Alpha : 29/01/2023
-* Improv Home Menu
+* Improve Home Menu
 
 # Version: Build 29 Alpha : 27/01/2023
 * Improve codes to more stability
