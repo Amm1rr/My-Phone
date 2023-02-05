@@ -1,5 +1,5 @@
 
-# Version: Build 32 Alpha : 02/02/2023
+# Version: Build 32 Alpha : 05/02/2023
 * Improve and fix bug HomeList delete
 * Improve codes and fix buggy Icon Manager
 
