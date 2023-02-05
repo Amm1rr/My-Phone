@@ -1,4 +1,8 @@
 
+# Version: Build 32 Alpha : 02/02/2023
+* Improve and fix bug HomeList delete
+* Improve codes and fix buggy Icon Manager
+
 # Version: Build 31 Alpha : 30/01/2023
 * Improve Apps Menu
 * Improve Logs Report

@@ -55,7 +55,6 @@ Sub Service_Create
 	
 	SetupSettings
 	SetupAppsList(False)
-	
 
 End Sub
 
@@ -116,7 +115,7 @@ Public Sub MyLog (Text As String)
 End Sub
 
 Private Sub SetupSettings
-	MyLog("Service : => SetupSettings")
+	MyLog("Service :=> SetupSettings")
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -181,7 +180,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("SetupAppsList : " & ForceReload)
+	MyLog("Service :=> SetupAppsList : " & ForceReload)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -189,6 +188,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	AppsList.Clear
 	HomeApps.Clear
 '	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
+
 
 	'// All Apps in Database
 	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name ASC")
@@ -199,8 +199,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	Dim packages As List
 	packages = pm.GetInstalledPackages
 	
-	
 	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
+		
 		sql.ExecNonQuery("DELETE FROM AllApps")
 '		sql.ExecNonQuery("DELETE FROM Apps")
 		For i = 0 To packages.Size - 1
@@ -318,7 +318,7 @@ Public Sub CreateDB
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
 End Sub
 
-public Sub GetPackageIcon(pkgName As String) As Bitmap
+Public Sub GetPackageIcon(pkgName As String) As Bitmap
 	Try
 '		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
 		
@@ -330,8 +330,12 @@ public Sub GetPackageIcon(pkgName As String) As Bitmap
 			Return GetBmpFromDrawable(Data, 48dip)
 		End If
 	Catch
-		Log(LastException)
-		Return Null
+		If (LastException.Message = "java.lang.Exception:  android.content.pm.PackageManager$NameNotFoundException: yes") Then
+			Return Null
+		Else
+			MyLog("#Service:Starter => GetPackageIcon: " & pkgName & " - " & LastException.Message)
+			Return Null
+		End If
 	End Try
 End Sub
 

@@ -12,82 +12,87 @@ Version=9.85
 'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=Project.zip
 
 Sub Class_Globals
-	Private Root As B4XView
-	Private xui As XUI
-	Private panHome As B4XView
-	Private panSetting As B4XView
-	Private panApps As B4XView
-	Private panAppMenuApp As B4XView
-	Private panHRowMenuHome As B4XView
-	Private Tabstrip1 As TabStrip
-	Private clvHome As CustomListView
-	Private clvApps As CustomListView
-	Private clvAppRowMenu As CustomListView
-	Public clvHRowMenu As CustomListView
-	Private lblClock As Label
-	Private lblDate As Label
-	Private lblAppTitle As Label
-	Private lblHomeAppTitle As Label
-	Private lblAbout As Label
-	Private lblVersion As Label
-	Private chkShowIcons As CheckBox
-	Private chkShowKeyboard As CheckBox
-	Private imgPhone As B4XImageView
-	Private imgCamera As B4XImageView
-	Private btnSetting As Button
-	Private cmbPhoneSetting As B4XComboBox
-	Private cmbCameraSetting As B4XComboBox
-	Private cmbClockSetting As B4XComboBox
-	Private imgIconApp As ImageView
-	Private imgIconHome As ImageView
-	Private clocktimer As Timer
-	Public txtAppsSearch As AS_TextFieldAdvanced
+	Private Root 						As B4XView
+	Private xui 						As XUI
+	Public panHome 						As B4XView
+	Private panSetting 					As B4XView
+	Private panApps 					As B4XView
+	Private panAppMenuApp 				As B4XView
+	Private panHRowMenuHome 			As B4XView
+	Private Tabstrip1 					As TabStrip
+	Private clvHome 					As CustomListView
+	Private clvApps 					As CustomListView
+	Private clvAppRowMenu 				As CustomListView
+	Public clvHRowMenu 					As CustomListView
+	Private lblClock 					As Label
+	Private lblDate 					As Label
+	Private lblAppTitle 				As Label
+	Private lblHomeAppTitle 			As Label
+	Private lblAbout 					As Label
+	Private lblVersion 					As Label
+	Private chkShowIcons 				As CheckBox
+	Private chkShowKeyboard 			As CheckBox
+	Private imgPhone 					As B4XImageView
+	Private imgCamera 					As B4XImageView
+	Private btnSetting 					As Button
+	Private cmbPhoneSetting 			As B4XComboBox
+	Private cmbCameraSetting 			As B4XComboBox
+	Private cmbClockSetting 			As B4XComboBox
+	Private imgIconApp As 				ImageView
+	Private imgIconHome As 				ImageView
+	Private clocktimer 					As Timer
+	Public txtAppsSearch 				As AS_TextFieldAdvanced
 	
-	Private lstPackageNames As List
-	Private RecentlyList As List
-	Public AppRowHeigh As Int = 50dip
-	Public AppRowHeighMenu As Int =  50dip
-	Public HomeRowHeigh As Int = 60dip
-	Public HomeRowHeighMenu As Int = HomeRowHeigh * 2
-	Public AutoRunOnFind As Boolean
-	Public FirstStart As Boolean = True
-	Private tagColors As Int = Colors.DarkGray
+	Private lstPackageNames 			As List
+	Private RecentlyList 				As List
+	Public AppRowHeigh 					As Int = 50dip
+	Public AppRowHeighMenu 				As Int =  50dip
+	Public HomeRowHeigh 				As Int = 60dip
+	Public HomeRowHeighMenu 			As Int = HomeRowHeigh * 2
+	Public AutoRunOnFind 				As Boolean
+	Public FirstStart 					As Boolean = True
+	Private tagColors 					As Int = Colors.DarkGray
 	
-	Public StartTimeClick As Boolean = True
-	Private dragAllow As Boolean = False
+	Public StartTimeClick 				As Boolean = True
+	Private dragAllow 					As Boolean = False
+	Private dragAllowEdge 				As Boolean = False
 	
-	Public Manager As AdminManager
-	Public LastRunApp As String
-	Private movecount As Int
-	Private LastClick As Long
-	Private gestHome As Gestures
-	Private dragger As CLVDragger
-	Private IMElib As IME
-	Private dd As DDD
+	Public 	Manager 					As AdminManager
+	Public 	LastRunApp 					As String
+	Private movecount 					As Int
+	Private LastClick 					As Long
+	Private gestHome 					As Gestures
+	Private dragger 					As CLVDragger
+	Private draggerEdge 				As CLVDragger
+	Private IMElib 						As IME
+	Private dd 							As DDD
+	Private OP 							As OverlayPermission
 	
 	Private CurrentAppApp As App
 	Private CurrentHomeApp As App
 	
-	Private lblInfo As Label
-	Public tagApps As ASScrollingTags
-	Private chkAutoRun As CheckBox
-	Private lblVersionHome As Label
-	Private panLog As B4XView
-	Private clvLog As CustomListView
-	Private btnLogClose As Button
-	Private chkShowToastLog As CheckBox
-	Private chkShowIconsHome As CheckBox
-	Private lblSetAsDefault As Label
-	Private btnHiddenAppsDelete As Button
-	Private panHideManager As B4XView
-	Private clvHiddenApp As CustomListView
-	Private CLVSelection As CLVSelections
-	Private lblHomRowMenuRowAppTitle As Label
-	Private panHomeRowMenuRowHome As B4XView
-	Private panHomRowMenuRow As B4XView
-	Private imgHomRowMenuRowIconHome As B4XView
-	Private lblAppRowMenuRowAppTitle As Label
-	Private imgAppRowMenuRowIconHome As B4XView
+	Private lblInfo 					As Label
+	Public 	tagApps 					As ASScrollingTags
+	Private chkAutoRun 					As CheckBox
+	Private lblVersionHome 				As Label
+	Private panLog 						As B4XView
+	Private clvLog 						As CustomListView
+	Private btnLogClose 				As Button
+	Private chkShowToastLog 			As CheckBox
+	Private chkShowIconsHome 			As CheckBox
+	Private lblSetAsDefault 			As Label
+	Private btnHiddenAppsDelete 		As Button
+	Private panHideManager 				As B4XView
+	Private clvHiddenApp 				As CustomListView
+	Private CLVSelection 				As CLVSelections
+	Private lblHomRowMenuRowAppTitle 	As Label
+	Private panHomeRowMenuRowHome 		As B4XView
+	Private panHomRowMenuRow 			As B4XView
+	Private imgHomRowMenuRowIconHome 	As B4XView
+	Private lblAppRowMenuRowAppTitle 	As Label
+	Private imgAppRowMenuRowIconHome 	As B4XView
+	Private clvEdge 					As CustomListView
+	Public 	panEdge 					As Panel
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -95,7 +100,7 @@ Private Sub MyLog (Text As String)
 End Sub
 
 Public Sub Initialize
-	B4XPages.GetManager.LogEvents = True
+'	B4XPages.GetManager.LogEvents = True
 
 	MyLog("###### Initialize")
 	
@@ -144,8 +149,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	Root = Root1
 	Root.LoadLayout("MainPage")
-	
-	FixWallTrans
+	B4XPages.SetTitle(Me,"My Phone")
 	
 	Tabstrip1.LoadLayout("Home", "Home")
 	Tabstrip1.LoadLayout("Apps", "Apps")
@@ -157,6 +161,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	If (FirstStart) Then
 	
+		FixWallTrans
+		
 		Setup
 		
 		LoadRecentlyList
@@ -177,34 +183,35 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		'//--
 		
 		dragger.Initialize(clvHome)
+		dragger.SetDefaults(35dip, xui.Color_Black, xui.Color_Yellow)
 		
 		Try
+			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
 			If Starter.Pref.ShowIcon Then
-				If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
 				imgIconApp.Visible = True
 				lblAppTitle.Left = 35dip
 			Else
-				If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
 				imgIconApp.Visible = False
 				lblAppTitle.Left = 5dip
 			End If
 			
+			If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 			If Starter.Pref.ShowIconHomeApp Then
-				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 				imgIconHome.Visible = True
 				lblAppTitle.Left = 35dip
 			Else
-				If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 				imgIconHome.Visible = False
 				lblAppTitle.Left = 5dip
 			End If
 			
 		Catch
 			MyLog("+++***+++*** B4XPage_Created: " & LastException)
-			Log(LastException)
 		End Try
 		
 		StartTimeClick = False
+		
+'		EdgeLoad
+'		Open_Edgebar
 		
 		StartService(Starter)
 		
@@ -213,6 +220,106 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
+End Sub
+
+Public Sub Open_Edgebar()
+	If OP.RequestPermission("OP") Then
+		'A permission to draw overlays over applications is required
+		Wait For OP_DrawPermission(Allowed As Boolean)
+	End If
+	
+	'Opens the overlay window
+	If OP.IsAllowed Then
+		ToastMessageShow("You can move the window with your finger.", True)
+		CallSubDelayed(SvcEdgebar, "ShowWindow")
+		StartService(SvcEdgebar)
+	End If
+	
+	'#####################
+	'#
+	'# 	Second Method
+	'#
+	'#  Still need to work
+	'#
+	'#####################
+	
+'	Dim pEdge As Panel = panEdge
+'		pEdge.Initialize("panEdge")
+'		pEdge.LoadLayout("EdgePanel")
+'		pEdge.Width = panHome.Width
+'		pEdge.Height = panHome.Height
+'		pEdge.Top = 0
+'		pEdge.Left = 0
+'		pEdge.Color = Colors.Transparent
+'		pEdge.Visible = True
+'	
+''	panHome.AddView(pEdge, pEdge.Left, pEdge.Top, pEdge.Width, pEdge.Height)
+'	AddPanelToOverlay(pEdge, panHome.Width, panHome.Height)
+	
+End Sub
+
+Public Sub Open_NetMeterOverlay()
+	If OP.RequestPermission("OP") Then
+		'A permission to draw overlays over applications is required
+		Wait For OP_DrawPermission(Allowed As Boolean)
+	End If
+	
+	'Opens the overlay window
+	If OP.IsAllowed Then
+		ToastMessageShow("You can move the window with your finger.", True)
+		CallSubDelayed(SvcNetMeter, "ShowWindow")
+		StartService(SvcNetMeter)
+	End If	
+	
+End Sub
+
+'--/ Edge Drawer
+Private Sub EdgeLoad
+	
+	MyLog("Func: EdgeLoad")
+	
+	If Not (draggerEdge.IsInitialized) Then
+		draggerEdge.Initialize(clvEdge)
+		draggerEdge.SetDefaults(25dip, xui.Color_Black, xui.Color_Yellow)
+	End If
+	
+	Dim ResEdgeApp As ResultSet
+		ResEdgeApp = Starter.sql.ExecQuery("SELECT * FROM EdgeBar ORDER By 'Index' ASC")
+	
+	For i = 0 To ResEdgeApp.RowCount - 1
+		ResEdgeApp.Position = i
+		Dim value As String = ResEdgeApp.GetString("pkgName")
+		clvEdge.AddTextItem(ResEdgeApp.GetString("Name"), value)
+	Next
+	
+	If (ResEdgeApp.RowCount <= 0) Then
+		clvEdge.AddTextItem("[Select App]", "[SelectApp]")
+	End If
+	
+	
+End Sub
+
+Public Sub FixWallTrans
+'	MyLog("FixWallTrans")
+	'------{ ### Set Navigation Bar Transparent
+	Dim jo As JavaObject
+	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
+	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+	Root.Height = Root.Height + 24dip
+	'}-----
+	
+	'{----- ### Fix Wallpaper
+	Dim r As Reflector
+	r.Target = r.RunStaticMethod("android.app.WallpaperManager", "getInstance", Array As Object(r.GetContext), Array As String("android.content.Context"))
+	
+	r.RunMethod4("suggestDesiredDimensions", Array As Object(Root.Width * 2, Root.height), Array As String("java.lang.int", "java.lang.int"))
+	Dim pagesx As Float
+	
+	Dim pagesy As Float
+	pagesx = 1.00 / 5
+	pagesy = 1.00
+	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
+	'}-----
 End Sub
 
 Private Sub Run_Info(PackageName As String)
@@ -231,9 +338,19 @@ Private Sub Run_Info(PackageName As String)
 	StartActivity(i)
 End Sub
 
+Private Sub DisableEdgeEdit
+	If (dragAllowEdge) Then
+		draggerEdge.RemoveDragButtons
+		dragAllowEdge = False
+	End If
+End Sub
+
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
 '	MyLog("*** Event: gestHome_gesture")
+	
 	DisableDragAndDrop
+	DisableEdgeEdit
+	
 	If action = gestHome.ACTION_MOVE Then
 		movecount = movecount + 1
 		' noise on the touch screen electroincs can cause lots of apparent move events
@@ -357,33 +474,14 @@ Public Sub GoHome(ClearSearch As Boolean)
 	End Try
 End Sub
 
-Private Sub FixWallTrans
-'	MyLog("FixWallTrans")
-	'------{ ### Set Navigation Bar Transparent
-	Dim jo As JavaObject
-	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
-	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
-	Root.Height = Root.Height + 24dip
-	'}-----
-	
-	'{----- ### Fix Wallpaper
-	Dim r As Reflector
-	r.Target = r.RunStaticMethod("android.app.WallpaperManager", "getInstance", Array As Object(r.GetContext), Array As String("android.content.Context"))
-	
-	r.RunMethod4("suggestDesiredDimensions", Array As Object(Root.Width * 2, Root.height), Array As String("java.lang.int", "java.lang.int"))
-	Dim pagesx As Float
-	
-	Dim pagesy As Float
-	pagesx = 1.00 / 5
-	pagesy = 1.00
-	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
-	'}-----
-End Sub
-
 Private Sub TabStrip1_PageSelected (Position As Int)
+	
 '	MyLog("*** Event: TabStrip1_pageSelected => " & Position)
+
 	DisableDragAndDrop
 	CloseSetting
+	DisableEdgeEdit
+	
 	If (Position = 1) Then
 '		MyLog("*** Event: TabStrip1_pageSelected => ShowHideKey(True)")
 		If Starter.Pref.ShowKeyboard Then ShowHideKeyboard(True)
@@ -400,7 +498,9 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 End Sub
 
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
+	
 	MyLog("Event clvApps_ItemClick & => P:" & Position & " - V:" & Value)
+	
 	ConfigCurrentAppApp(Position, Value)
 	
 	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
@@ -415,6 +515,7 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 End Sub
 
 Private Sub SaveRecentlyList
+	
 	MyLog("SaveRecentlyList")
 	
 	Dim Str As StringBuilder
@@ -438,6 +539,7 @@ Private Sub SaveRecentlyList
 End Sub
 
 Private Sub LoadRecentlyList
+	
 	MyLog("###### LoadRecentlyList")
 	
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
@@ -472,17 +574,22 @@ End Sub
 Public Sub GetPackage(pkg As String) As String
 	Dim pkgName As String
 	
-	If (pkg.Length > 0) Then
-		If (pkg.As(String).SubString2(0, 8) = "package:") Then
-			pkgName = pkg.As(String).SubString(8)
+	Try
+		If (pkg.Length >= 8) Then
+			If (pkg.As(String).SubString2(0, 8) = "package:") Then
+				pkgName = pkg.As(String).SubString(8)
+			Else
+				pkgName = pkg
+			End If
 		Else
 			pkgName = pkg
 		End If
-	Else
-		pkgName = pkg
-	End If
+	Catch
+		Return pkg
+	End Try
 	
 	Return pkgName
+	
 End Sub
 
 Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
@@ -634,7 +741,7 @@ Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 End Sub
 
 Private Sub clvHome_ItemClick (Position As Int, Value As Object)
-'	MyLog("*** Event: clvHome_ItemClick")
+'	MyLog("*** Event: clvHome_ItemClick => Position: " & Position & " - Value: " & Value)
 	If (dragAllow = False) Then
 				ConfigCurrentHomeApp(Position, Value.As(String))
 '				CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
@@ -648,14 +755,14 @@ Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 End Sub
 
 Private Sub ConfigCurrentAppApp(Position As String, Value As String)
-	MyLog("ConfigCurrentAppApp: " & Position & ":" & Value)
+	MyLog("ConfigCurrentAppApp: Position: " & Position & " - Value: " & Value)
 	CurrentAppApp.index = Position
 	CurrentAppApp.PackageName = Value.As(String)
 	CurrentAppApp.Name = clvApps.GetPanel(Position).GetView(0).Text
 End Sub
 
 Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
-	MyLog("ConfigCurrentHomeApp: " & Position & ":" & Value)
+	MyLog("ConfigCurrentHomeApp: => Position: " & Position & " - Value: " & Value)
 	CurrentHomeApp.index = Position
 	CurrentHomeApp.PackageName = Value.As(String)
 '	CurrentHomeApp.Name = panHome.GetView(0).Text
@@ -663,7 +770,7 @@ Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
 End Sub
 
 Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
-'	MyLog("*** Event: clvHome_ItemLongClick")
+'	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
 	If (dragAllow = False) Then
 		ConfigCurrentHomeApp(Position, Value.As(String))
 		CreateHomeMenu
@@ -714,7 +821,6 @@ Private Sub CreateAppMenu(Value As Object)
 	clvAppRowMenu.Add(CreateListItemAppMenu(CurrentAppApp.Name, CurrentAppApp.PackageName, we, he), CurrentAppApp.PackageName)
 	If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
 		clvAppRowMenu.Add(CreateListItemAppMenu("Remove from Home", "RemoveFromHome", we, he), "RemoveFromHome")
-		
 	Else
 		clvAppRowMenu.Add(CreateListItemAppMenu("Add to Home", "AddToHome", we, he), "AddToHome")
 	End If
@@ -795,7 +901,6 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 			ToastMessageShow("Delete " & CurrentHomeApp.PackageName, False)
 		Case "Sort"
 			dragAllow = True
-			dragger.SetDefaults(50dip, xui.Color_Black, xui.Color_White)
 			dragger.AddDragButtons
 	End Select
 	
@@ -803,23 +908,23 @@ End Sub
 
 Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As Boolean)
 	
-	MyLog("AddToHomeList => " & pkgName & " -  name => " & Name)
+	MyLog("AddToHomeList => pkgName: " & pkgName & " -  Name: " & Name)
 	
-	If (pkgName = Null) Or (pkgName = "") Or (pkgName.ToLowerCase = "null") Then Return
-	If (Name = Null) Or (Name = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
+	If (pkgName = Null) Or (pkgName.Trim = "") Or (pkgName.ToLowerCase = "null") Then Return
+	If (Name = Null) Or (Name.Trim = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
 	
 	If (FindHomeItem(pkgName) = False) Then
 		clvHome.Add(CreateListItemHome(Name, pkgName, Widt, HomeRowHeigh), pkgName)
 		If (Save) Then
 			Dim query As String = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & clvHome.Size & ",'" & Name & "','" & pkgName & "')"
 			Starter.sql.ExecNonQuery(query)
-			LogColor(query, Colors.Blue)
 		End If
 		
+		Dim ico As Bitmap = Starter.GetPackageIcon(pkgName)
 		Dim ap As App
 			ap.Name = Name
 			ap.PackageName = pkgName
-			ap.Icon = Starter.GetPackageIcon(pkgName)
+			If (ico.IsInitialized) Then ap.Icon = ico
 			ap.index = clvHome.Size + 1
 			ap.IsHomeApp = True
 '			ap.IsHidden = False
@@ -854,35 +959,38 @@ Public Sub UninstallApp(pkgName As String)
 End Sub
 
 Private Sub CreateListItemApp(Text As String, _
-							  Tag As String, _
+							  Value As String, _
 							  Width As Int, _
-							  Height As Int, _
-							  icon As Bitmap) As Panel
+							  Height As Int) As Panel
 	
 '	MyLog("CreateListItemAppMenu => " & Text & ":" & Tag & ":" & Width.As(String) & ":" & Height.As(String))
 	Dim p As B4XView = xui.CreatePanel("")
-	p.SetLayoutAnimated(0, 0, 0, Width, Height)
-	p.LoadLayout("AppRow")
+		p.SetLayoutAnimated(0, 0, 0, Width, Height)
+		p.LoadLayout("AppRow")
 	
 	'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
 	dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
-	dd.GetViewByName(p, "lblAppTitle").Tag = Tag.Trim
+	dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
 '	lblAppTitle.Text = Text
 
 	Try
-		If Not(imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
 		
 		If Starter.Pref.ShowIcon Then
-			imgIconApp.Visible = True
-			lblAppTitle.Left = 35dip
+			Dim ico As Bitmap = Starter.GetPackageIcon(Value)
+			If (ico.IsInitialized) Then
+				imgIconApp.Bitmap = ico
+				imgIconApp.Visible = True
+				lblAppTitle.Left = 35dip
+			Else
+				lblAppTitle.Left = 5dip
+				imgIconApp.Visible = False
+			End If
 		Else
-			imgIconApp.Visible = False
 			lblAppTitle.Left = 5dip
+			imgIconApp.Visible = False
 		End If
-		
-			imgIconApp.Bitmap = icon
 	Catch
-		MyLog("++***+++*** CreateListItemApp-Icon=> " & LastException)
+		Return p
 	End Try
 	
 	Return p
@@ -973,20 +1081,22 @@ Private Sub CreateListItemHome(Text As String, _
 	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
 	
 	If Starter.Pref.ShowIconHomeApp Then
-		imgIconHome.Visible = True
-		lblHomeAppTitle.Left = 35dip
+		Dim ico As Bitmap = Starter.GetPackageIcon(Value)
+		If (ico.IsInitialized) Then
+			imgIconHome.Visible = True
+			lblHomeAppTitle.Left = 35dip
+			imgIconHome.Bitmap = ico
+		Else
+			imgIconHome.Visible = False
+			lblAppTitle.Left = 5dip
+		End If
 	Else
 		imgIconHome.Visible = False
 		lblHomeAppTitle.Left = 5dip
 	End If
 	
-	Try
-		imgIconHome.Bitmap = Starter.GetPackageIcon(Value)
-	Catch
-		Log("CreateListItemHome-Icon=> " & LastException)
-	End Try
-	
 	Return p
+	
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Text As String)
@@ -997,7 +1107,7 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 		Dim Ap As App
 		Ap = Starter.AppsList.Get(i)
 		If Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
-			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh, Ap.Icon), Ap.PackageName.As(String))
+			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh), Ap.PackageName.As(String))
 			AppCount = AppCount + 1
 		End If
 	Next
@@ -1017,11 +1127,12 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	
 End Sub
 
-Public Sub GetOverlayPermission
+Public Sub GetOverlayPermission() As ResumableSub
 	Dim c As RequestDrawOverPermission 'this is the name of the class
 	c.Initialize
 	Wait For (c.GetPermission) Complete (Success As Boolean)
 	MyLog("Permission: " & Success)
+	Return Success
 End Sub
 
 Public Sub Is_NormalApp(pkgName As String) As Boolean
@@ -1090,7 +1201,7 @@ public Sub RemoveHomeItem(pkgName As String)
 			Dim homevalue As String = clvHome.GetValue(i).As(String).ToLowerCase
 			If homevalue = pkgName Then
 				clvHome.RemoveAt(i)
-'				Starter.HomeApps.RemoveAt(i)
+				Starter.HomeApps.RemoveAt(i)
 '				ToastMessageShow(pkgName & " Deleted. " & i, False)
 '				Exit
 			End If
@@ -1099,20 +1210,19 @@ public Sub RemoveHomeItem(pkgName As String)
 	Dim query As String = "DELETE FROM Home WHERE pkgName='" & pkgName & "'"
 	Starter.sql.ExecNonQuery(query)
 	
-	'//-- It's an extra function, just need one of this FOR (above or below)
-	'//
-	For i = 0 To Starter.HomeApps.Size - 1
-		Dim homevalue As String = Starter.HomeApps.Get(i)
-		If homevalue = pkgName Then
-			Starter.HomeApps.RemoveAt(i)
-			ToastMessageShow(pkgName & " Deleted. " & i, False)
-'			Exit
-		End If
-	Next
+'	'//-- It's an extra function, just need one of this FOR (above or below)
+'	'//
+'	For i = 0 To Starter.HomeApps.Size - 1
+'		Dim homevalue As String = Starter.HomeApps.Get(i)
+'		If homevalue = pkgName Then
+'			Starter.HomeApps.RemoveAt(i)
+'			ToastMessageShow(pkgName & " Deleted. " & i, False)
+''			Exit
+'		End If
+'	Next
 	
 	ResetHomeList
 	
-'	LogColor(query, Colors.Green)
 End Sub
 
 public Sub RemoveAppItem_JustFromAppList(pkgName As String)
@@ -1214,16 +1324,16 @@ End Sub
 Private Sub RunApp(pkgName As String)
 	MyLog("RunApp => " & pkgName)
 	
-	pkgName = GetPackage(pkgName)
-	
 	Try
-		Dim Intent1 As Intent
+		pkgName = GetPackage(pkgName)
+		
 		Dim pm As PackageManager
-		Intent1 = pm.GetApplicationIntent (pkgName)
-		If Intent1.IsInitialized Then StartActivity (Intent1)
+		Dim Intent1 As Intent
+			Intent1 = pm.GetApplicationIntent (pkgName)
+		If  Intent1.IsInitialized Then StartActivity (Intent1)
 	Catch
-		ToastMessageShow(LastException.Message, False)
-		MyLog("++++++ RunApp: => Error Caught: " & LastException)
+		ToastMessageShow(pkgName & " : " &LastException.Message, False)
+		MyLog("++++++ Error Caught : RunApp => " & pkgName & " - " & LastException)
 	End Try
 End Sub
 
@@ -1514,6 +1624,34 @@ Private Sub panCamera_Click
 	RunApp(Starter.Pref.CameraApp)
 End Sub
 
+Public Sub getClassName() As Object
+	Dim jo As JavaObject
+	Dim cls As String =  Application.PackageName & ".main"
+	'cls = cls.SubString("class ".Length)
+	jo.InitializeStatic(cls)
+	Return jo.GetField("processBA")
+End Sub
+
+Private Sub AddPanelToOverlay(pan As Panel, width As Int, height As Int)
+	
+	Dim vSystem 	As Int = 2006 	'2010 - Show On Everythin, It's used for System Errors. Nav Keyboards are also behind and dosn't work
+	Dim vtype 		As Int = -1   	'-1 , TYPE_KEYGUARD_DIALOG = 2009, TYPE_PHON = 2002 (Deprecated), TYPE_APPLICATION_OVERLAY = 2038
+	Dim pixelFormat As Int = -3
+	
+	Dim mlp As JavaObject
+		mlp.InitializeNewInstance("android.view.WindowManager$LayoutParams", Array(vtype, height, vSystem, width, pixelFormat))
+'		mlp.SetField("gravity", Bit.Or(Gravity.CENTER_HORIZONTAL, Gravity.LEFT))
+		
+	Dim windowManager As JavaObject = GetContext.RunMethod("getSystemService", Array("window"))
+		windowManager.RunMethod("addView", Array(pan, mlp))
+End Sub
+
+Private Sub GetContext As JavaObject
+    Dim jo As JavaObject
+    	jo.InitializeContext
+    Return jo
+End Sub
+
 Private Sub btnDelete_Click
 	
 	'//-- Get Button On HomeRow
@@ -1577,7 +1715,7 @@ Private Sub DoubleTap
 			If Manager.Enabled Then Manager.LockScreen
 		End If
 	Catch
-		MyLog(LastException)
+		MyLog("*+*+*+ DoubleTap : " & LastException)
 	End Try
 End Sub
 
@@ -2024,7 +2162,7 @@ Private Sub txtAppsSearch_EnterPressed
 End Sub
 
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
-	MyLog("*** Event: App:& => " & Index & " : " & Value)
+	MyLog("*** Event: AppsClick: => Index: " & Index & " - Value: " & Value)
 	Dim pkgName As String = CurrentAppApp.PackageName
 	Dim Name As String = CurrentAppApp.Name
 	
@@ -2156,4 +2294,24 @@ Private Sub btnHiddenApps_LongClick
 	txtAppsSearch.Text = txtAppsSearch.Text
 	CloseSetting
 	ToastMessageShow("Apps Rebuild Successfull!", False)
+End Sub
+
+Private Sub clvEdge_ItemClick (Index As Int, Value As Object)
+
+	If (Value.As(String) = "[SelectApp]") Then
+		ToastMessageShow("Select..." & Value.As(String), False)
+	Else
+		RunApp(Value.As(String))
+	End If
+
+End Sub
+
+Private Sub clvEdge_ItemLongClick (Index As Int, Value As Object)
+	If (dragAllowEdge = False) Then
+		dragAllowEdge = True
+		draggerEdge.AddDragButtons
+	Else
+		draggerEdge.RemoveDragButtons
+		dragAllowEdge = False
+	End If
 End Sub

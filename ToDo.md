@@ -1,7 +1,10 @@
 
 Todo List:
 -----
+* افزودن Multi Thread
+* استفاده از کتابخانه FastIO در بسته ProBundle
 * افزودن یک گجت بامزه روی دسکتاپ تا بشه باهاش وَر رفت
+* Use "AS ViewPager" instead TabStrip
 * Improve App List and Home List Menu
 * Improve Function RemoveHomeItem
 * Improve Function GetAppNamebyPackage
