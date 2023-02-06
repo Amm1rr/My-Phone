@@ -114,6 +114,15 @@ Public Sub MyLog (Text As String)
 	If (ShowToastLog) Then ToastMessageShow(Text, False)
 End Sub
 
+Public Sub CreateDB
+	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
+		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
+		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
+	End If
+	
+	sql.Initialize(File.DirInternal, "MyPhone.db", False)
+End Sub
+
 Private Sub SetupSettings
 	MyLog("Service :=> SetupSettings")
 	Dim tmpResult As String
@@ -184,9 +193,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
+	If Not (NormalAppsList.IsInitialized) Then NormalAppsList.Initialize
 	
 	AppsList.Clear
 	HomeApps.Clear
+	NormalAppsList.Clear
 '	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
 
 
@@ -197,9 +208,13 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	'// All Apps in OS
 	Dim pm As PackageManager
 	Dim packages As List
-	packages = pm.GetInstalledPackages
+		packages = pm.GetInstalledPackages
 	
 	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
+		
+		'# First Time Run after Installation
+		'#
+		'#------------------------------------
 		
 		sql.ExecNonQuery("DELETE FROM AllApps")
 '		sql.ExecNonQuery("DELETE FROM Apps")
@@ -219,9 +234,13 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.IsHomeApp = False
 					currentapp.IsHidden = False
 					
-				AppsList.Add(currentapp)
-				sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
-				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
+				NormalAppsList.Add(p)
+				sql.BeginTransaction
+'					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
+'					sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
+					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0);" & _ 
+									 "INSERT Or REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
+				sql.EndTransaction
 			Else
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
@@ -233,6 +252,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				
 				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
 			End If
+			AppsList.Add(currentapp)
 			
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
@@ -241,10 +261,10 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'//----- Load Home
 		'
 		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
-			
+		
 		For i = 0 To ResHome.RowCount - 1
 			ResHome.Position = i
-				
+			
 			Dim currentHomeapp As App
 				currentHomeapp.PackageName = ResHome.GetString("pkgName")
 				currentHomeapp.Name = ResHome.GetString("Name")
@@ -278,6 +298,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
 				
+			NormalAppsList.Add(currentapp.PackageName)
 			AppsList.Add(currentapp)
 			
 		Loop
@@ -307,15 +328,6 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
-End Sub
-
-Public Sub CreateDB
-	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
-		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
-		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
-	End If
-	
-	sql.Initialize(File.DirInternal, "MyPhone.db", False)
 End Sub
 
 Public Sub GetPackageIcon(pkgName As String) As Bitmap

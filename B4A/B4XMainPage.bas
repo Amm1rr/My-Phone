@@ -505,7 +505,7 @@ End Sub
 
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	
-	MyLog("Event clvApps_ItemClick & => P:" & Position & " - V:" & Value)
+	MyLog("Event clvApps_ItemClick => Position:" & Position & " - Value:" & Value)
 	
 	ConfigCurrentAppApp(Position, Value)
 	
@@ -1142,25 +1142,36 @@ Public Sub GetOverlayPermission() As ResumableSub
 End Sub
 
 Public Sub Is_NormalApp(pkgName As String) As Boolean
-'	MyLog("Is_NormalApp => " & pkgName)
+	MyLog("Is_NormalApp => " & pkgName)
 	
-	Dim pm As PackageManager
-	Dim packages As List
-	packages = pm.GetInstalledPackages
-	
-	For i = 0 To packages.Size - 1
-		Dim p As String = packages.Get(i)
-		
-		'//-- This will test whether the app is a 'regular' app that
-		'//-- can be launched and if so you can then show it in your app drawer.
-		'//-- If the app has been uninstalled, or if it isn't for normal use,
-		'//-- then it will return false.
-		If (p = pkgName) Then
-			If pm.GetApplicationIntent(p).IsInitialized Then Return True
-		End If
+	For i = 0 To Starter.NormalAppsList.Size - 1
+		If (Starter.NormalAppsList.Get(i) = pkgName) Then Return True
 	Next
-	
+'	For Each ap In Starter.NormalAppsList
+'		If (pkgName = ap) Then Return True
+'	Next
+
 	Return False
+	
+	'# Second Method with Get from OS
+	'#
+'	Dim pm As PackageManager
+'	Dim packages As List
+'	packages = pm.GetInstalledPackages
+'	
+'	For i = 0 To packages.Size - 1
+'		Dim p As String = packages.Get(i)
+'		
+'		'//-- This will test whether the app is a 'regular' app that
+'		'//-- can be launched and if so you can then show it in your app drawer.
+'		'//-- If the app has been uninstalled, or if it isn't for normal use,
+'		'//-- then it will return false.
+'		If (p = pkgName) Then
+'			If pm.GetApplicationIntent(p).IsInitialized Then Return True
+'		End If
+'	Next
+'	
+'	Return False
 	
 End Sub
 
@@ -1511,17 +1522,23 @@ Public Sub SaveSettings
 	
 	Starter.Pref.ShowKeyboard = chkShowKeyboard.Checked
 	
-	Dim strdefaultapp As String = cmbClockSetting.Tag.As(String)
-	If (strdefaultapp = "[UNKNOWN]") Then strdefaultapp = ""
-	Starter.Pref.ClockApp = strdefaultapp
+	If (cmbClockSetting.Tag.As(String) = "[UNKNOWN]") Then
+		Starter.Pref.ClockApp = ""
+	Else
+		Starter.Pref.ClockApp = cmbClockSetting.Tag.As(String)
+	End If
 	
-	strdefaultapp = cmbCameraSetting.Tag.As(String)
-	If (cmbCameraSetting.Tag.As(String) = "[UNKNOWN]") Then strdefaultapp = ""
-	Starter.Pref.CameraApp = strdefaultapp
+	If (cmbCameraSetting.Tag.As(String) = "[UNKNOWN]") Then
+		Starter.Pref.CameraApp = ""
+	Else
+		Starter.Pref.CameraApp = cmbCameraSetting.Tag.As(String)
+	End If
 	
-	strdefaultapp = cmbPhoneSetting.Tag.As(String)
-	Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
-	Starter.Pref.PhoneApp = strdefaultapp
+	If (cmbPhoneSetting.Tag.As(String) = "[UNKNOWN]") Then
+		Starter.Pref.PhoneApp = ""
+	Else
+		Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
+	End If
 	
 	Starter.Pref.ShowIcon = chkShowIcons.Checked
 	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
@@ -1530,13 +1547,20 @@ Public Sub SaveSettings
 '	LogColor(Starter.Pref, Colors.Red)
 	
 	Starter.sql.BeginTransaction
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
+'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "');" & _
+							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
 '	Starter.sql.TransactionSuccessful
 	Starter.sql.EndTransaction
 	
@@ -1775,7 +1799,7 @@ Private Sub RunSettings(Setting As String)', _
 
 End Sub
 
-Public Sub isColorDark(color As Int) As Boolean
+Private Sub isColorDark(color As Int) As Boolean
     
 	Dim darkness As Int = 1 - (0.299 * GetARGB(color)(1) + 0.587 * GetARGB(color)(2) + 0.114 * GetARGB(color)(3))/255
     
@@ -1787,7 +1811,7 @@ Public Sub isColorDark(color As Int) As Boolean
     
 End Sub
 
-Sub GetARGB(Color As Int) As Int()
+Private Sub GetARGB(Color As Int) As Int()
 	Dim res(4) As Int
 		res(0) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff000000), 24)
 		res(1) = Bit.UnsignedShiftRight(Bit.And(Color, 0xff0000), 16)
@@ -1854,20 +1878,16 @@ End Sub
 
 Public Sub SetDefaultLauncher
 	
-	MyLog("SetDefaultLauncher => " & Starter.Pref.MyPackage)
+	MyLog("SetDefaultLauncher")
 	
-	Dim deflauncher As String = GetDefaultLauncher
-	
-	
-	If (deflauncher <> Starter.Pref.MyPackage) Then
+	If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then
 		Dim in As Intent
 		in.Initialize("android.settings.HOME_SETTINGS", "")
 		StartActivity(in)
 	Else
 '		ToastMessageShow(Application.LabelName & " already set as default launcher. have Fun ;)", False)
-		ToastMessageShow_Custom(Application.LabelName & " already set as default launcher. have Fun ;)", False, Colors.DarkGray - 75)
+		ToastMessageShow_Custom(Application.LabelName & " already set as default launcher." & CRLF & " have Fun ;)", False, Colors.DarkGray - 75)
 	End If
-	
 	
 End Sub
 
@@ -1886,7 +1906,7 @@ Public Sub GetDefaultLauncher As String
 End Sub
 
 ' Check for Private network address
-Sub IsPrivateIpAddress(ipStr As String) As Boolean
+Private Sub IsPrivateIpAddress(ipStr As String) As Boolean
 
 	Dim m As Matcher = Regex.Matcher("^(\d+)\.(\d+)\.(\d+)\.(\d+)$", ipStr)
 	If m.Find = False Then
@@ -1908,7 +1928,7 @@ Sub IsPrivateIpAddress(ipStr As String) As Boolean
 			Return False
 	End Select
 End Sub
-Sub inRange(num As Int, n1 As Int, n2 As Int) As Boolean
+Private Sub inRange(num As Int, n1 As Int, n2 As Int) As Boolean
 	Return num >= n1 And num <= n2
 End Sub
 

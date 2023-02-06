@@ -2,6 +2,7 @@
 # Version: Build 33 Alpha : 06/02/2023
 * Improve Double Click Event
 * Improve Close Setting Button Produccer
+* Improve Engine Codes
 
 # Version: Build 32 Alpha : 05/02/2023
 * Improve and fix bug HomeList delete
