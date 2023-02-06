@@ -1383,18 +1383,20 @@ Private Sub btnSetting_Click
 	
 	chkShowKeyboard.Checked = Starter.Pref.ShowKeyboard
 	chkShowIcons.Checked = Starter.Pref.ShowIcon
+	chkShowIcons.Tag = chkShowIcons.Checked
 	chkShowIconsHome.Checked = Starter.Pref.ShowIconHomeApp
+	chkShowIconsHome.Tag = chkShowIconsHome.Checked
 	chkAutoRun.Checked = Starter.Pref.AutoRunApp
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
 '	If (cmbPhone.IsInitialized <> False) Then
 	If Starter.AppsList.IsInitialized Then
-			Dim i As Int = 0
-			Dim lst As List
-			Dim CameraIndex, PhoneIndex, ClockIndex As Int = -1
-			lst.Initialize
-			lstPackageNames.Initialize
+		Dim i As Int = 0
+		Dim lst As List
+		Dim CameraIndex, PhoneIndex, ClockIndex As Int = -1
+		lst.Initialize
+		lstPackageNames.Initialize
 			
 		For Each app In Starter.AppsList
 				Dim r As Reflector
@@ -1461,8 +1463,11 @@ End Sub
 Private Sub btnClose_Click
 	SaveSettings
 	SaveHomeList
-	ResetHomeList
-	txtAppsSearch_TextChanged(txtAppsSearch.Text)
+	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
+		ResetHomeList
+	
+	If (chkShowIcons.Tag <> chkShowIcons.Checked) Then _
+		txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
 
 Public Sub ResetHomeList
@@ -1524,13 +1529,16 @@ Public Sub SaveSettings
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+	Starter.sql.BeginTransaction
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+'	Starter.sql.TransactionSuccessful
+	Starter.sql.EndTransaction
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
 	
