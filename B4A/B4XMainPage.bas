@@ -96,6 +96,8 @@ Sub Class_Globals
 	
 	Private x_dblClick 					As Int
 	Private y_dblClick 					As Int
+	Private lblCameraSetting As Label
+	Private lblClockSetting As Label
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -1109,9 +1111,9 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	Dim i As Int
 	Dim AppCount As Int
 	clvApps.Clear
-	For i = 0 To Starter.AppsList.Size - 1
+	For i = 0 To Starter.NormalAppsList.Size - 1
 		Dim Ap As App
-		Ap = Starter.AppsList.Get(i)
+		Ap = Starter.NormalAppsList.Get(i)
 		If Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
 			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh), Ap.PackageName.As(String))
 			AppCount = AppCount + 1
@@ -1145,10 +1147,16 @@ Public Sub Is_NormalApp(pkgName As String) As Boolean
 	MyLog("Is_NormalApp => " & pkgName)
 	
 	For i = 0 To Starter.NormalAppsList.Size - 1
-		If (Starter.NormalAppsList.Get(i) = pkgName) Then Return True
+		Dim ap As App = Starter.NormalAppsList.Get(i)
+		If (ap.PackageName = pkgName) Then
+'			LogColor(ap & " - " & pkgName, Colors.Red)
+			Return True
+		End If
 	Next
 '	For Each ap In Starter.NormalAppsList
-'		If (pkgName = ap) Then Return True
+'		If (pkgName = ap) Then
+'			Return True
+'		End If
 '	Next
 
 	Return False
@@ -1188,6 +1196,7 @@ Public Sub Setup
 	Next
 	
 	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
+	Starter.NormalAppsList.SortTypeCaseInsensitive("Name", True)
 	
 	txtAppsSearch_TextChanged("")
 	
@@ -1291,7 +1300,7 @@ Public Sub GetAppNamebyPackage(pkgName As String) As String
 	pkgName = GetPackage(pkgName)
 	
 	'// First Method, Search in AppList, a List Variable
-	For Each app In Starter.AppsList
+	For Each app In Starter.NormalAppsList
 		Dim ap As App = app
 		If (ap.PackageName = pkgName) Then Return ap.Name
 	Next
@@ -1402,18 +1411,18 @@ Private Sub btnSetting_Click
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
 '	If (cmbPhone.IsInitialized <> False) Then
-	If Starter.AppsList.IsInitialized Then
+	If Starter.NormalAppsList.IsInitialized Then
 		Dim i As Int = 0
 		Dim lst As List
 		Dim CameraIndex, PhoneIndex, ClockIndex As Int = -1
 		lst.Initialize
 		lstPackageNames.Initialize
 			
-		For Each app In Starter.AppsList
+		For Each pkg In Starter.NormalAppsList
 				Dim r As Reflector
+					r.Target = pkg
 				Dim str As String
-				r.Target = app
-				str = r.GetField("Name").As(String)
+					str = r.GetField("Name").As(String)
 				
 				Dim pkgName As String
 					pkgName = r.GetField("PackageName").As(String)
@@ -1597,7 +1606,15 @@ End Sub
 
 Private Sub lblClock_Click
 	DisableDragAndDrop
-	Run_Clock
+	If (Starter.Pref.ClockApp = "") Then
+		ToastMessageShow_Custom("First select Clock App from Setting page", False, Colors.Blue - 100)
+		Tabstrip1.ScrollTo(1, True)
+		Sleep(200)
+		btnSetting_Click
+		lblClockSetting.Color = Colors.RGB(123, 121, 18)
+	Else
+		RunApp(Starter.Pref.ClockApp)
+	End If
 End Sub
 
 Private Sub btnPhone_Click
@@ -1610,15 +1627,6 @@ Public Sub Run_PhoneDialer
 	Dim Intent1 As Intent
 	Intent1.Initialize(Intent1.ACTION_VIEW, "tel:")
 	StartActivity (Intent1)
-End Sub
-
-Public Sub Run_Clock
-	Try
-		RunApp(Starter.Pref.ClockApp)
-	Catch
-		ToastMessageShow(LastException.Message, True)
-		Log("Error Caught: " & LastException)
-	End Try
 End Sub
 
 Public Sub Run_Calendar
@@ -1659,7 +1667,15 @@ End Sub
 
 Private Sub panCamera_Click
 	DisableDragAndDrop
-	RunApp(Starter.Pref.CameraApp)
+	If (Starter.Pref.CameraApp = "") Then
+		ToastMessageShow_Custom("First select Camera App from Setting page", False, Colors.Blue - 100)
+		Tabstrip1.ScrollTo(1, True)
+		Sleep(200)
+		btnSetting_Click
+		lblCameraSetting.Color = Colors.RGB(123, 121, 18)
+	Else
+		RunApp(Starter.Pref.CameraApp)
+	End If
 End Sub
 
 Public Sub getClassName() As Object
@@ -1731,7 +1747,7 @@ Public Sub DblClick(x As Float, y As Float) As Boolean
 		
 		Dim ix As Int = x
 		Dim iy As Int = y
-		Dim Tolerance As Int = 40
+		Dim Tolerance As Int = 80
 		
 		Dim res_x As Int = x_dblClick - ix
 			If (res_x < 0) Then res_x = res_x * -1

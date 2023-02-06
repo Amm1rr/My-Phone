@@ -16,15 +16,15 @@ Sub Process_Globals
 	Dim PhoneEvent As PhoneEvents
 	Dim PhID As PhoneId
 	
-	Public sql As SQL
-	Public AppsList As List			'-- All Installed Apps
-	Public NormalAppsList As List	'-- Normal Apps to show
-	Public HomeApps As List		'-- Home Screen Apps
-	Public ShowToastLog As Boolean = True
-	Public LogMode As Boolean = True
-	Public LogList As List
+	Public sql 						As SQL
+	Public AppsList 				As List			'-- All Installed Apps
+	Public NormalAppsList 			As List			'-- Normal Apps to show
+	Public HomeApps 				As List			'-- Home Screen Apps
+	Public ShowToastLog 			As Boolean = True
+	Public LogMode 					As Boolean = True
+	Public LogList 					As List
 	
-	Public Pref As Settings
+	Public Pref 					As Settings
 	
 	Type App(Name As String, _
 			PackageName As String, _
@@ -234,7 +234,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.IsHomeApp = False
 					currentapp.IsHidden = False
 					
-				NormalAppsList.Add(p)
+				NormalAppsList.Add(currentapp)
 				sql.BeginTransaction
 '					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
 '					sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
@@ -256,6 +256,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 			
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
+		NormalAppsList.SortTypeCaseInsensitive("Name", True)
+		
 		
 		
 		'//----- Load Home
@@ -298,12 +300,13 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
 				
-			NormalAppsList.Add(currentapp.PackageName)
+			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
 			
 		Loop
 		ResApps.Close
 		AppsList.SortTypeCaseInsensitive("Name", True)
+		NormalAppsList.SortTypeCaseInsensitive("Name", True)
 		
 		'//----- Home Apps
 		'
