@@ -1691,7 +1691,7 @@ Private Sub btnDelete_Click
 End Sub
 
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
-	MyLog("*** Event: panSettings_Touch => Action: " & Action)
+'	MyLog("*** Event: panSettings_Touch => Action: " & Action)
 	ShowHideKeyboard(False)
 	Select Action
 		Case 0 ' Down
