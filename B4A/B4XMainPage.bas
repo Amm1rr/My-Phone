@@ -80,7 +80,7 @@ Sub Class_Globals
 	Private btnLogClose 				As Button
 	Private chkShowToastLog 			As CheckBox
 	Private chkShowIconsHome 			As CheckBox
-	Private lblSetAsDefault 			As Label
+	Private btnSetAsDefault 			As Button
 	Private btnHiddenAppsDelete 		As Button
 	Private panHideManager 				As B4XView
 	Private clvHiddenApp 				As CustomListView
@@ -419,13 +419,13 @@ End Sub
 'Private Sub Activity_Resume
 '	MyLog("*** Event: Activity_Resume")
 '	SetDefaultLauncher
-'	lblSetAsDefaultLauncher.Visible = True
+'	btnSetAsDefaultLauncher.Visible = True
 'End Sub
 '
 'Private Sub Activity_Pause(UserClosed As Boolean)
 '	MyLog("*** Event: Activity_Pause")
 '	B4XPages.MainPage.SetDefaultLauncher
-'	B4XPages.MainPage.lblSetAsDefaultLauncher.Visible = True
+'	B4XPages.MainPage.btnSetAsDefaultLauncher.Visible = True
 '	GoHome(False)
 'End Sub
 
@@ -1480,7 +1480,7 @@ Private Sub btnSetting_Click
 	
 End Sub
 
-Private Sub btnClose_Click
+Private Sub btnSave_Click
 	SaveSettings
 	SaveHomeList
 	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
@@ -1888,10 +1888,6 @@ Private Sub chkAutoRun_CheckedChange(Checked As Boolean)
 	
 End Sub
 
-Private Sub lblSetAsDefaultLauncher_Click
-	SetDefaultLauncher
-End Sub
-
 Public Sub SetDefaultLauncher
 	
 	MyLog("SetDefaultLauncher")
@@ -1901,8 +1897,7 @@ Public Sub SetDefaultLauncher
 		in.Initialize("android.settings.HOME_SETTINGS", "")
 		StartActivity(in)
 	Else
-'		ToastMessageShow(Application.LabelName & " already set as default launcher. have Fun ;)", False)
-		ToastMessageShow_Custom(Application.LabelName & " already set as default launcher." & CRLF & " have Fun ;)", False, Colors.DarkGray - 75)
+		ToastMessageShow_Custom(Application.LabelName & " already set as default launcher." & CRLF & "have Fun ;)", False, Colors.DarkGray - 75)
 	End If
 	
 End Sub
@@ -2229,11 +2224,6 @@ Public Sub SetupInstalledApps_OLD
 	
 End Sub
 
-Private Sub lblSetAsDefault_Click
-	SetDefaultLauncher
-End Sub
-
-
 Private Sub txtAppsSearch_EnterPressed
 	txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
@@ -2358,12 +2348,12 @@ Private Sub LoadHiddenManager
 		Dim pkg As String = ResHidden.GetString("pkgName")
 		
 		Dim ap As App
-		ap.PackageName = pkg
-		ap.Name = ResHidden.GetString("Name")
-		ap.index = i + 1
-		ap.Icon = Starter.GetPackageIcon(pkg)
-		ap.IsHomeApp = True
-		ap.IsHidden = True
+			ap.PackageName = pkg
+			ap.Name = ResHidden.GetString("Name")
+			ap.index = i + 1
+			ap.Icon = Starter.GetPackageIcon(pkg)
+			ap.IsHomeApp = True
+			ap.IsHidden = True
 		
 		clvHiddenApp.AddTextItem(ap.Name, ap.PackageName)
 	Next
@@ -2398,4 +2388,13 @@ Private Sub clvEdge_ItemLongClick (Index As Int, Value As Object)
 		draggerEdge.RemoveDragButtons
 		dragAllowEdge = False
 	End If
+End Sub
+
+Private Sub btnSetAsDefault_Click
+	SetDefaultLauncher
+End Sub
+
+
+Private Sub btnClose_Click
+	CloseSetting
 End Sub
