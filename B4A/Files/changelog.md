@@ -1,4 +1,7 @@
 
+# Version: Build 33 Alpha : 06/02/2023
+* Improve Double Click Event
+
 # Version: Build 32 Alpha : 05/02/2023
 * Improve and fix bug HomeList delete
 * Improve codes and fix buggy Icon Manager

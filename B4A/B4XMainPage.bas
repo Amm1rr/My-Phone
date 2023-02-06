@@ -93,6 +93,9 @@ Sub Class_Globals
 	Private imgAppRowMenuRowIconHome 	As B4XView
 	Private clvEdge 					As CustomListView
 	Public 	panEdge 					As Panel
+	
+	Private x_dblClick 					As Int
+	Private y_dblClick 					As Int
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -376,7 +379,7 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 ''				Log("Double Click => " & (DateTime.Now - LastClick))
 '				DoubleTap
 '			End If
-			If (DblClick) Then DoubleTap
+			If (DblClick(x, y)) Then DoubleTap
 			
 		Case gestHome.ACTION_UP
 			'// Double Tap Time Variable
@@ -392,8 +395,8 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 			a = "Move "
 	End Select
 	Dim ix, iy, count As Int
-	ix = x
-	iy = y
+		ix = x
+		iy = y
 	count = gestHome.GetPointerCount
 	Dim msg As String = v.Tag & " id" & ptrID & " " & a & " x" & ix & " y" & iy & " cnt" & count' event parameters
 	Dim id As Int
@@ -425,7 +428,8 @@ End Sub
 'End Sub
 
 Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
-	MyLog("*** Event: Activity_KeyPress & => " & KeyCode)
+	MyLog("*** Event B4XMainPage: Activity_KeyPress & => " & KeyCode)
+	LogColor("*** Event B4XMainPage: Activity_KeyPress & => " & KeyCode, Colors.Red)
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
 			GoHome(False)
@@ -444,10 +448,10 @@ End Sub
 ' 
 Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As Float, color As Int) As B4XBitmap
 	Dim xui As XUI
-	Dim p As Panel = xui.CreatePanel("")
-	p.SetLayoutAnimated(0, 0, 0, 32dip, 32dip)
+	Dim p 	As Panel = xui.CreatePanel("")
+		p.SetLayoutAnimated(0, 0, 0, 32dip, 32dip)
 	Dim cvs1 As B4XCanvas
-	cvs1.Initialize(p)
+		cvs1.Initialize(p)
 	Dim t As Typeface
 	If IsMaterialIcons Then t = Typeface.MATERIALICONS Else t = Typeface.FONTAWESOME
 	Dim fnt As B4XFont = xui.CreateFont(t, FontSize)
@@ -460,14 +464,16 @@ Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As
 End Sub
 
 Public Sub GoHome(ClearSearch As Boolean)
-	MyLog("GoHome & => ClearSearch" & ClearSearch.As(String))
+	MyLog("GoHome: ClearSearch => " & ClearSearch)
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		DisableDragAndDrop
 '		If (HomeMenu.IsInitialized) Then HomeMenu.Visible = False
 '		If (AppMenu.IsInitialized) Then AppMenu.Visible = False
 '		If ClearSearch Then txtAppsSearch.Text = ""
+
 		ShowHideKeyboard(False)
+		
 	Catch
 		ToastMessageShow(LastException.Message, True)
 		MyLog("++++++++++++ Error Caught: GoHome => " & LastException)
@@ -1676,16 +1682,43 @@ Private Sub btnDelete_Click
 	
 End Sub
 
-Private Sub panSettings_Click
-	MyLog("*** Event: panSettings_Click => ShowHideKey(False)")
+Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
+	MyLog("*** Event: panSettings_Touch => Action: " & Action)
 	ShowHideKeyboard(False)
-	If DblClick Then CloseSetting
+	Select Action
+		Case 0 ' Down
+			If (DblClick(x, y)) Then CloseSetting
+		Case 1 ' Up
+			LastClick = DateTime.Now '// Double Tap Time Variable
+	End Select
 End Sub
 
-Public Sub DblClick() As Boolean
-	If (DateTime.Now - LastClick) < 250 Then Return True
+Public Sub DblClick(x As Float, y As Float) As Boolean
+	
+	If (DateTime.Now - LastClick) < 250 Then
+		
+		Dim ix As Int = x
+		Dim iy As Int = y
+		Dim Tolerance As Int = 40
+		
+		Dim res_x As Int = x_dblClick - ix
+			If (res_x < 0) Then res_x = res_x * -1
+		
+		Dim res_y As Int = y_dblClick - iy
+			If (res_y < 0) Then res_y = res_y * -1
+			
+'		LogColor("x: " & (x_dblClick - ix), Colors.Red)
+'		LogColor("y: " & (y_dblClick - iy), Colors.Red)
+'		Log("-----")
+		
+		If (Tolerance >= res_x) And (Tolerance >= res_y) Then
+			Return True
+		End If
+	End If
 	'// Double Tap Time Variable
 	LastClick = DateTime.Now
+	x_dblClick = x
+	y_dblClick = y
 	Return False
 End Sub
 
@@ -2241,8 +2274,15 @@ Private Sub btnHiddenApps_Click
 	
 End Sub
 
-Private Sub panHiddenApps_Click
-	If DblClick Then CloseHiddenManager
+Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
+	MyLog("*** Event: panSettings_Touch => Action: " & Action)
+	ShowHideKeyboard(False)
+	Select Action
+		Case 0 ' Down
+			If (DblClick(x, y)) Then CloseHiddenManager
+		Case 1 ' Up
+			LastClick = DateTime.Now '// Double Tap Time Variable
+	End Select
 End Sub
 
 Private Sub panHiddenApps_LongClick

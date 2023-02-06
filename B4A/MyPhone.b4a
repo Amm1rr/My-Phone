@@ -1,19 +1,22 @@
 ﻿Build1=Default,com.my.phone,Freeware
 File1=AppRow.bal
-File10=HomeRowMenu.bal
-File11=HomeRowMenuRow.bal
-File12=MainPage.bal
-File13=MyPhone.db
-File14=Phone.png
-File15=Settings.bal
+File10=HomeRow.bal
+File11=HomeRowMenu.bal
+File12=HomeRowMenuRow.bal
+File13=MainPage.bal
+File14=MyPhone.db
+File15=Phone.png
+File16=README.md
+File17=Settings.bal
+File18=ToDo.md
 File2=AppRowMenu.bal
 File3=AppRowMenuRow.bal
 File4=Apps.bal
 File5=Camera.png
-File6=EdgePanel.bal
-File7=HiddenApps.bal
-File8=Home.bal
-File9=HomeRow.bal
+File6=Changelog.md
+File7=EdgePanel.bal
+File8=HiddenApps.bal
+File9=Home.bal
 FileGroup1=Default Group
 FileGroup10=Default Group
 FileGroup11=Default Group
@@ -21,11 +24,14 @@ FileGroup12=Default Group
 FileGroup13=Default Group
 FileGroup14=Default Group
 FileGroup15=Default Group
+FileGroup16=Develop Time
+FileGroup17=Default Group
+FileGroup18=Develop Time
 FileGroup2=Default Group
 FileGroup3=Default Group
 FileGroup4=Default Group
 FileGroup5=Default Group
-FileGroup6=Default Group
+FileGroup6=Develop Time
 FileGroup7=Default Group
 FileGroup8=Default Group
 FileGroup9=Default Group
@@ -56,14 +62,14 @@ Module6=Starter
 Module7=SvcEdgebar
 Module8=SvcNetMeter
 Module9=Wallpaper
-NumberOfFiles=15
+NumberOfFiles=18
 NumberOfLibraries=16
 NumberOfModules=9
 Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 32
+	#VersionCode: 33
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
@@ -113,29 +119,34 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 		Case KeyCodes.KEYCODE_BACK
 			If (B4XPages.MainPage.txtAppsSearch.Text <> "") Then B4XPages.MainPage.txtAppsSearch.Text = ""
 			B4XPages.MainPage.GoHome(True)
-'			Return True
+			Return True
 		Case KeyCodes.KEYCODE_HOME
 			B4XPages.MainPage.GoHome(True)
-'			Return True
+			Return True
 	End Select
-'	Return True
+	Return False
 
-	Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
+'	If KeyCode = KeyCodes.KEYCODE_BACK Then
+'		Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
+'	End If
+'	B4XPages.GetManager.RaiseEvent(B4XPages.GetManager.GetTopPage, "B4XPage_KeyPress", Array(KeyCode))
+'	Return False
+
 End Sub
 
 Sub Activity_Resume
 	
 	MyLog("Main: Activity_Resume")
 	
-'	B4XPages.MainPage.GoHome(False)
+	B4XPages.MainPage.GoHome(False)
 	B4XPages.Delegate.Activity_Resume
 End Sub
 
 Sub Activity_Pause (UserClosed As Boolean)
 	
-	MyLog("Main: Activity_Pause")
-	
+	MyLog("Main: Activity_Pause => UserClosed: " & UserClosed)
 	B4XPages.Delegate.Activity_Pause
+	
 End Sub
 
 Sub Activity_PermissionResult (Permission As String, Result As Boolean)
@@ -165,4 +176,13 @@ public boolean _onCreateOptionsMenu(android.view.Menu menu) {
 
 Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
 	
+End Sub
+
+Public Sub Show_HomeScreen
+	'// Show Home Screen
+	Dim i As Intent
+		i.Initialize(i.ACTION_MAIN, "")
+		i.AddCategory("android.intent.category.HOME")
+		i.Flags = 0x10000000
+	StartActivity(i)
 End Sub
