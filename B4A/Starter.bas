@@ -23,7 +23,6 @@ Sub Process_Globals
 	Public ShowToastLog 			As Boolean = True
 	Public LogMode 					As Boolean = True
 	Public LogList 					As List
-	
 	Public Pref 					As Settings
 	
 	Type App(Name As String, _
@@ -285,7 +284,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'//----- Config Apps List
 		'
 		ResApps.Close
-		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")
+		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")		
 		
 		Dim intCount As Int = 0
 		Do While ResApps.NextRow
@@ -299,7 +298,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
-				
+			
 			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
 			

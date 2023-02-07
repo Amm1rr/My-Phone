@@ -21,7 +21,7 @@ Sub Class_Globals
 	Private panHRowMenuHome 			As B4XView
 	Private Tabstrip1 					As TabStrip
 	Private clvHome 					As CustomListView
-	Private clvApps 					As CustomListView
+	Public clvApps 						As CustomListView
 	Private clvAppRowMenu 				As CustomListView
 	Public clvHRowMenu 					As CustomListView
 	Private lblClock 					As Label
@@ -46,7 +46,7 @@ Sub Class_Globals
 	Private lstPackageNames 			As List
 	Private RecentlyList 				As List
 	Public AppRowHeigh 					As Int = 50dip
-	Public AppRowHeighMenu 				As Int =  50dip
+	Public AppRowHeighMenu 				As Int = 50dip
 	Public HomeRowHeigh 				As Int = 60dip
 	Public HomeRowHeighMenu 			As Int = HomeRowHeigh * 2
 	Public AutoRunOnFind 				As Boolean
@@ -71,8 +71,8 @@ Sub Class_Globals
 	Private CurrentAppApp As App
 	Private CurrentHomeApp As App
 	
-	Private lblInfo 					As Label
 	Public 	tagApps 					As ASScrollingTags
+	Private lblInfo 					As Label
 	Private chkAutoRun 					As CheckBox
 	Private lblVersionHome 				As Label
 	Private panLog 						As B4XView
@@ -96,8 +96,9 @@ Sub Class_Globals
 	
 	Private x_dblClick 					As Int
 	Private y_dblClick 					As Int
-	Private lblCameraSetting As Label
-	Private lblClockSetting As Label
+	Private lblCameraSetting 			As Label
+	Private lblClockSetting 			As Label
+	Private Table As IndexedTable
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -643,9 +644,8 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 		Try
 			Starter.sql.ExecNonQuery(q)
 		Catch
-			Log(LastException)
+			MyLog("Error Cought: AddToRecently => " & LastException)
 		End Try
-		
 		
 '		Dim lstReverse As List = ReverseList(RecentlyList)
 '		RecentlyList = lstReverse
@@ -661,15 +661,9 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 
 			tagApps.mBase.Enabled = False
 			
-			If (IsNewInstalledApp) Then
-				tagColors = Colors.DarkGray
-				tagApps.LabelProperties.TextColor = Colors.Yellow
-			Else
-				tagColors = Colors.DarkGray
-				tagApps.LabelProperties.TextColor = Colors.LightGray
-			End If
-			
+			tagApps.CLV.Clear
 			tagApps.AddTag(Text, tagColors, Value)
+			tagApps.LabelProperties.TextColor = Colors.LightGray
 			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
 			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
 			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
@@ -1119,10 +1113,11 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	clvApps.Clear
 	For i = 0 To Starter.NormalAppsList.Size - 1
 		Dim Ap As App
-		Ap = Starter.NormalAppsList.Get(i)
-		If Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
+			Ap = Starter.NormalAppsList.Get(i)
+		If 	Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
 			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh), Ap.PackageName.As(String))
 			AppCount = AppCount + 1
+'			Table.tv.AddTextItem(Ap.Name, Ap.Name)
 		End If
 	Next
 	

@@ -1,6 +1,7 @@
 
 # Version: Build 34 Alpha : 07/02/2023
 * Improve Functionality after run an app
+* Fix RecentlyApps Bug
 
 # Version: Build 33 Alpha : 06/02/2023
 * Improve Double Click Event
