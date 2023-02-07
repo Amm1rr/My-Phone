@@ -40,7 +40,7 @@ Public Sub DesignerCreateView(base As Panel, lbl As Label, props As Map)
 		Dim lbl As Label
 		lbl.Initialize("lbl")
 		lbl.Text = Chr(Asc("A") +i)
-		lbl.TextColor = Colors.Blue
+		lbl.TextColor = Colors.LightGray
 		lbl.Gravity = Gravity.CENTER
 		pnlIndex.AddView(lbl, 0, 2dip + i * lblHeight, pnlIndexWidth, 20dip)
 	Next
@@ -51,6 +51,10 @@ End Sub
 Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	Dim item As Int = Y / pnlIndex.Height * pnlIndex.NumberOfViews
 	item = Min(item, pnlIndex.NumberOfViews - 1)
+	If (item < 0) Then
+		hoverLabel.Visible = False
+		Return
+	End If
 	Dim lbl As Label = pnlIndex.GetView(item)
 	If Action = pnlIndex.ACTION_UP Then
 		hoverLabel.Visible = False
