@@ -67,7 +67,7 @@ Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 33
+	#VersionCode: 34
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
@@ -84,7 +84,8 @@ Version=12.2
 
 Sub Process_Globals
 	Public ActionBarHomeClicked As Boolean
-	Public OP As OverlayPermission
+	Public OP 					As OverlayPermission
+	Public GoHomeAllow			As Boolean = True
 End Sub
 
 Sub Globals
@@ -136,7 +137,11 @@ Sub Activity_Resume
 	
 	MyLog("Main: Activity_Resume")
 	
-	B4XPages.MainPage.GoHome(False)
+	If (GoHomeAllow) Then
+		B4XPages.MainPage.GoHome(False)
+	Else
+		GoHomeAllow = True
+	End If
 	B4XPages.Delegate.Activity_Resume
 End Sub
 

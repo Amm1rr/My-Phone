@@ -619,7 +619,6 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	'//-- 
 	If (IsNewInstalledApp) Then
 		tagColors = Colors.DarkGray
-'		tagApps.CLV.DefaultTextColor = Colors.Yellow
 		tagApps.LabelProperties.TextColor = Colors.Yellow
 	Else
 		tagColors = Colors.DarkGray
@@ -661,7 +660,14 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
 
 			tagApps.mBase.Enabled = False
-			tagApps.CLV.Clear
+			
+			If (IsNewInstalledApp) Then
+				tagColors = Colors.DarkGray
+				tagApps.LabelProperties.TextColor = Colors.Yellow
+			Else
+				tagColors = Colors.DarkGray
+				tagApps.LabelProperties.TextColor = Colors.LightGray
+			End If
 			
 			tagApps.AddTag(Text, tagColors, Value)
 			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
@@ -742,7 +748,7 @@ Public Sub RemoveAsRecently (Value As Object)
 End Sub
 
 Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
-'	MyLog("*** Event clvApps_ItemLongClick - ShowHideKeyboard(False)")
+'	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
 	ShowHideKeyboard(False)
 	ConfigCurrentAppApp(Position, Value.As(String))
 	CreateAppMenu(Value)
@@ -1353,12 +1359,15 @@ Private Sub RunApp(pkgName As String)
 	Try
 		pkgName = GetPackage(pkgName)
 		
-		Dim pm As PackageManager
+		Dim pm 		As PackageManager
 		Dim Intent1 As Intent
 			Intent1 = pm.GetApplicationIntent (pkgName)
-		If  Intent1.IsInitialized Then StartActivity (Intent1)
+		If 	Intent1.IsInitialized Then
+			StartActivity (Intent1)
+			Main.GoHomeAllow = False
+		End If
 	Catch
-		ToastMessageShow(pkgName & " : " &LastException.Message, False)
+		ToastMessageShow(pkgName & " : " & LastException.Message, False)
 		MyLog("++++++ Error Caught : RunApp => " & pkgName & " - " & LastException)
 	End Try
 End Sub
@@ -1418,9 +1427,9 @@ Private Sub btnSetting_Click
 		lst.Initialize
 		lstPackageNames.Initialize
 			
-		For Each pkg In Starter.NormalAppsList
+		For Each app In Starter.NormalAppsList
 				Dim r As Reflector
-					r.Target = pkg
+					r.Target = app
 				Dim str As String
 					str = r.GetField("Name").As(String)
 				
@@ -1555,23 +1564,21 @@ Public Sub SaveSettings
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
-	Starter.sql.BeginTransaction
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
-'		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "');" & _
-							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
-'	Starter.sql.TransactionSuccessful
-	Starter.sql.EndTransaction
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
+	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+	
+'	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "');" & _
+'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
 	
@@ -1837,7 +1844,7 @@ Private Sub GetARGB(Color As Int) As Int()
 End Sub
 
 Private Sub panSettings_LongClick
-	MyLog("*** Event: panSettings_LongClick - ShowHideKeyboard(False)")
+	MyLog("*** Event: panSettings_LongClick - HideKeyboard")
 	ShowHideKeyboard(False)
 	CloseSetting
 End Sub
@@ -1856,7 +1863,7 @@ End Sub
 
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 	If HasFocus = False Then
-		MyLog("*** Event: txtAppsSearch_FocusChanged => ShowHideKey(False)")
+		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
 		ShowHideKeyboard(False)
 	End If
 	DisableDragAndDrop
@@ -1878,9 +1885,12 @@ Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub txtAppsSearch_ClearButtonClick
-	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowHideKey(False)")
+	
+	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
+	
 	DisableDragAndDrop
 	ShowHideKeyboard(True)
+	
 End Sub
 
 
