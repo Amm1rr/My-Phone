@@ -98,7 +98,11 @@ Sub Class_Globals
 	Private y_dblClick 					As Int
 	Private lblCameraSetting 			As Label
 	Private lblClockSetting 			As Label
-	Private Table As IndexedTable
+	
+	Private AlphabetTable As IndexedTable
+	Public Alphabet As Map
+	Private AlphabetLastChars As String
+	
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -118,6 +122,9 @@ Public Sub Initialize
 	xui.RegisterDesignerClass(dd)
 	
 	IMElib.Initialize("")
+	
+	Alphabet.Initialize
+	AlphabetTable.Initialize("", "")
 	
 	DateTime.TimeFormat = "hh:mm:ss"
 	lblClock.Initialize("")
@@ -835,62 +842,7 @@ Private Sub CreateAppMenu(Value As Object)
 	clvAppRowMenu.Add(CreateListItemAppMenu("Uninstall", "Uninstall", we, he), "Uninstall")
 	clvAppRowMenu.Add(CreateListItemAppMenu("Hidden", "Hidden", we, he), "Hidden")
 	clvAppRowMenu.Add(CreateListItemAppMenu("Rename", "Rename", we, he), "Rename")
-	
-'	Dim lft As Int
-'	Dim tp As Int
-'	Dim wdh As Int
-'	Dim hig As Int
-'	
-'	wdh = (panApps.Width / 2) - 25
-'	AppRowHeighMenu = 105dip
-'	
-'	lft = panApps.Width - panAppMenuApp.Width + 5dip
-'	hig = (clvAppRowMenu.Size * AppRowHeighMenu) '- AppRowHeight / 4
-'	
-'	panAppMenuApp.Left = lft '(panApps.Width - clvAppRowMenu.sv.Width) + 8dip
-'	panAppMenuApp.Width = wdh
-'	
-'	tp = (panApps.Height / 2) - (panApps.Width / 2)
-'	panAppMenuApp.Top = tp + 50dip
-'	panAppMenuApp.Height = hig
-'	clvAppRowMenu.sv.Height = hig
-'	clvAppRowMenu.sv.Width = wdh
-'	clvAppRowMenu.sv.Left = 5dip
-	
-	
-	'//-- OLD
-'	If (AppMenu.IsInitialized) Then
-'		AppMenu.Visible = True
-'	Else
-'		AppMenu.Initialize("AppMenu")
-'		AppMenu.Color = Colors.DarkGray
-'		AppMenu.Width = 100%x / 2
-'		AppMenu.SetColorAnimated(300, Colors.Gray, Colors.DarkGray)
-'		AppMenu.AddSingleLine("Info")
-'		AppMenu.AddSingleLine(CurrentAppApp.Name)
-''		MyLog("CreateAppMenu => " & CurrentAppApp.PackageName & " - " & Value)
-'		If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
-'			AppMenu.AddSingleLine("Remove from Home")
-'		Else
-'			AppMenu.AddSingleLine("Add to Home")
-'		End If
-'		AppMenu.AddSingleLine("Uninstall")
-'		AppMenu.AddSingleLine("Hidden")
-'		AppMenu.AddSingleLine("Rename")
-'		
-'		Dim lft As Int
-'		Dim tp As Int
-'		Dim wdh As Int
-'		Dim hig As Int
-'		
-'		wdh = 50%x
-'		hig = (AppMenu.Size * AppRowHeigh) + AppRowHeigh / 4
-'		
-'		lft = (panApps.Width / 2) - (wdh / 2)
-'		tp = (panApps.Height / 2) - (hig / 2)
-'		
-'		Root.AddView(AppMenu, lft, tp, wdh, hig)
-'	End If
+
 End Sub
 
 Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
@@ -929,15 +881,15 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 		End If
 		
 		Dim ico As Bitmap = Starter.GetPackageIcon(pkgName)
-		Dim ap As App
-			ap.Name = Name
-			ap.PackageName = pkgName
-			If (ico.IsInitialized) Then ap.Icon = ico
-			ap.index = clvHome.Size + 1
-			ap.IsHomeApp = True
+		Dim app As App
+			app.Name = Name
+			app.PackageName = pkgName
+			If (ico.IsInitialized) Then app.Icon = ico
+			app.index = clvHome.Size + 1
+			app.IsHomeApp = True
 '			ap.IsHidden = False
 			
-		Starter.HomeApps.Add(ap)
+		Starter.HomeApps.Add(app)
 	End If
 	
 End Sub
@@ -1107,19 +1059,42 @@ Private Sub CreateListItemHome(Text As String, _
 	
 End Sub
 
+Public Sub AddtoAlphabetlist(AppName As String, Index As Int)
+	
+	Dim FirstChars As String = AppName.Trim.CharAt(0).As(String).ToUpperCase
+	If (FirstChars = AlphabetLastChars) Then Return
+	
+'	For i = 0 To Alphabet.Size - 1
+'		If (Alphabet.Get(i) = FirstChars) Then
+'			Return
+'		End If
+'	Next
+
+	AlphabetLastChars = FirstChars
+	Alphabet.Put(FirstChars, Index)
+'	If Not (Alphabet.ContainsKey(Index)) Then
+'		Alphabet.Put(FirstChars, Index)
+'	End If
+	
+End Sub
+
 Private Sub txtAppsSearch_TextChanged(Text As String)
-	Dim i As Int
-	Dim AppCount As Int
+	
+	Dim i, AppCount As Int = 0
+	
 	clvApps.Clear
-	For i = 0 To Starter.NormalAppsList.Size - 1
-		Dim Ap As App
-			Ap = Starter.NormalAppsList.Get(i)
-		If 	Ap.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
-			clvApps.Add(CreateListItemApp(Ap.Name, Ap.PackageName, clvApps.AsView.Width, AppRowHeigh), Ap.PackageName.As(String))
+	Alphabet.Clear
+	For Each App As App In Starter.NormalAppsList
+		If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
+			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
 			AppCount = AppCount + 1
-'			Table.tv.AddTextItem(Ap.Name, Ap.Name)
+			AddtoAlphabetlist(App.Name, i)
+			i = i + 1
 		End If
 	Next
+	
+	AlphabetTable.LoadAlphabetlist(clvApps.AsView, Alphabet)
+	AlphabetLastChars = ""
 	
 	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
 		If (Starter.Pref.AutoRunApp = True) Then
@@ -1147,18 +1122,12 @@ End Sub
 Public Sub Is_NormalApp(pkgName As String) As Boolean
 	MyLog("Is_NormalApp => " & pkgName)
 	
-	For i = 0 To Starter.NormalAppsList.Size - 1
-		Dim ap As App = Starter.NormalAppsList.Get(i)
-		If (ap.PackageName = pkgName) Then
-'			LogColor(ap & " - " & pkgName, Colors.Red)
+	For Each app As App In Starter.NormalAppsList
+		If (app.PackageName = pkgName) Then
+'			LogColor(app & " - " & pkgName, Colors.Red)
 			Return True
 		End If
 	Next
-'	For Each ap In Starter.NormalAppsList
-'		If (pkgName = ap) Then
-'			Return True
-'		End If
-'	Next
 
 	Return False
 	
@@ -1190,10 +1159,9 @@ Public Sub Setup
 	
 	'-- Add Apps to Home ListView
 	clvHome.Clear
-	For Each app In Starter.HomeApps
+	For Each app As App In Starter.HomeApps
 '		LogColor(app, Colors.Green)
-		Dim ap As App = app
-		AddToHomeList(ap.Name, ap.PackageName, clvHome.sv.Width, False)
+		AddToHomeList(app.Name, app.PackageName, clvHome.sv.Width, False)
 	Next
 	
 	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
@@ -1204,7 +1172,8 @@ Public Sub Setup
 End Sub
 
 Public Sub Is_HomeApp(pkgName As String) As Boolean
-'	MyLog("Is_HomeApps:" & pkgName)
+	Starter.LogShowToast = False
+	MyLog("Is_HomeApps:" & pkgName)
 	Dim i As Int
 	
 	For i = 0 To Starter.HomeApps.Size - 1
@@ -1219,6 +1188,7 @@ Public Sub Is_HomeApp(pkgName As String) As Boolean
 End Sub
 
 public Sub RemoveHomeItem(pkgName As String)
+	Starter.LogShowToast = False
 	MyLog("RemoveHomeItem => " & pkgName)
 	
 	pkgName = GetPackage(pkgName)
@@ -1253,6 +1223,7 @@ public Sub RemoveHomeItem(pkgName As String)
 End Sub
 
 public Sub RemoveAppItem_JustFromAppList(pkgName As String)
+	Starter.LogShowToast = False
 	MyLog("RemoveAppItem_JustFromAppList => " & pkgName)
 	
 	pkgName = GetPackage(pkgName)
@@ -1276,6 +1247,9 @@ End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
 	
+	Starter.LogShowToast = False
+	MyLog("B4XMainPage: " & pkgName)
+	
 	pkgName = GetPackage(pkgName)
 	
 	If (pkgName = Null) Or (pkgName = "") Then
@@ -1296,14 +1270,14 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 End Sub
 
 Public Sub GetAppNamebyPackage(pkgName As String) As String
-'	MyLog("GetAppNamebyPackage => " & pkgName)
+	Starter.LogShowToast = False
+	MyLog("GetAppNamebyPackage => " & pkgName)
 	
 	pkgName = GetPackage(pkgName)
 	
 	'// First Method, Search in AppList, a List Variable
-	For Each app In Starter.NormalAppsList
-		Dim ap As App = app
-		If (ap.PackageName = pkgName) Then Return ap.Name
+	For Each app As App In Starter.NormalAppsList
+		If (app.PackageName = pkgName) Then Return app.Name
 	Next
 
 '	'// Anothder Method to take apps from database	
@@ -1326,6 +1300,8 @@ Public Sub ShowHideKeyboard(Show As Boolean)
 End Sub
 
 Private Sub DisableDragAndDrop
+	Starter.LogShowToast = False
+	MyLog("B4XMainPage: DisableDragAndDrop")
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
@@ -1368,7 +1344,8 @@ Private Sub RunApp(pkgName As String)
 End Sub
 
 Private Sub panApps_Click
-	MyLog("*** Event: panApps_Click => ShowHideKey(False)")
+	Starter.LogShowToast = False
+	MyLog("*** Event: panApps_Click => HideKeyboard")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
 End Sub
@@ -1390,7 +1367,8 @@ Sub AnimateView(View As B4XView, Duration As Int, Left As Int, Top As Int, Width
 End Sub
 
 Private Sub btnSetting_Click
-'	MyLog("*** Event: btnSetting_Click => ShowHideKey(False)")
+	Starter.LogShowToast = False
+	MyLog("*** Event: btnSetting_Click => HideKeyboard")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop
 	
@@ -1485,6 +1463,8 @@ Private Sub btnSetting_Click
 End Sub
 
 Private Sub btnSave_Click
+	Starter.LogShowToast = False
+	MyLog("btnSave_Click")
 	SaveSettings
 	SaveHomeList
 	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
@@ -1495,6 +1475,7 @@ Private Sub btnSave_Click
 End Sub
 
 Public Sub ResetHomeList
+	Starter.LogShowToast = False
 	MyLog("ResetHomeList")
 	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
 	Starter.HomeApps.Clear
@@ -1505,16 +1486,16 @@ Public Sub ResetHomeList
 		
 		Dim pkg As String = ResHome.GetString("pkgName")
 		
-		Dim ap As App
-			ap.PackageName = pkg
-			ap.Name = ResHome.GetString("Name")
-			ap.index = i + 1
-			ap.Icon = Starter.GetPackageIcon(pkg)
-			ap.IsHomeApp = True
-'			ap.IsHidden = False
+		Dim app As App
+			app.PackageName = pkg
+			app.Name = ResHome.GetString("Name")
+			app.index = i + 1
+			app.Icon = Starter.GetPackageIcon(pkg)
+			app.IsHomeApp = True
+'			app.IsHidden = False
 		
-		clvHome.Add(CreateListItemHome(ap.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
-		Starter.HomeApps.Add(ap)
+		clvHome.Add(CreateListItemHome(app.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
+		Starter.HomeApps.Add(app)
 	Next
 	ResHome.Close
 '	Starter.HomeApps.SortTypeCaseInsensitive("index", True)
@@ -1529,6 +1510,7 @@ Private Sub CloseSetting
 End Sub
 
 Public Sub SaveSettings
+	Starter.LogShowToast = False
 	MyLog("SaveSettings")
 	
 	CloseSetting
@@ -1580,6 +1562,7 @@ Public Sub SaveSettings
 End Sub
 
 Public Sub SaveHomeList
+	Starter.LogShowToast = False
 	MyLog("SaveHomeList")
 	
 	Starter.sql.ExecNonQuery("DELETE FROM Home")
@@ -1592,15 +1575,15 @@ Public Sub SaveHomeList
 		Starter.sql.ExecNonQuery(query)
 '		LogColor(query, Colors.Red)
 		
-		Dim ap As App
-			ap.PackageName = pkg
-			ap.Name = name
-			ap.index = i + 1
-			ap.Icon = Starter.GetPackageIcon(pkg)
-			ap.IsHomeApp = True
-'			ap.IsHidden = False
+		Dim app As App
+			app.PackageName = pkg
+			app.Name = name
+			app.index = i + 1
+			app.Icon = Starter.GetPackageIcon(pkg)
+			app.IsHomeApp = True
+'			app.IsHidden = False
 		
-		Starter.HomeApps.Add(ap)
+		Starter.HomeApps.Add(app)
 	Next
 '	Starter.HomeApps.SortTypeCaseInsensitive("ID", True)
 	
@@ -1733,7 +1716,7 @@ Private Sub btnDelete_Click
 End Sub
 
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
-'	MyLog("*** Event: panSettings_Touch => Action: " & Action)
+	MyLog("*** Event: panSettings_Touch => Action: " & Action)
 	ShowHideKeyboard(False)
 	Select Action
 		Case 0 ' Down
@@ -2352,15 +2335,15 @@ Private Sub LoadHiddenManager
 		
 		Dim pkg As String = ResHidden.GetString("pkgName")
 		
-		Dim ap As App
-			ap.PackageName = pkg
-			ap.Name = ResHidden.GetString("Name")
-			ap.index = i + 1
-			ap.Icon = Starter.GetPackageIcon(pkg)
-			ap.IsHomeApp = True
-			ap.IsHidden = True
+		Dim app As App
+			app.PackageName = pkg
+			app.Name = ResHidden.GetString("Name")
+			app.index = i + 1
+			app.Icon = Starter.GetPackageIcon(pkg)
+			app.IsHomeApp = True
+			app.IsHidden = True
 		
-		clvHiddenApp.AddTextItem(ap.Name, ap.PackageName)
+		clvHiddenApp.AddTextItem(app.Name, app.PackageName)
 	Next
 	ResHidden.Close
 	clvHome.sv.Enabled = True

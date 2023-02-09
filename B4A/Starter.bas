@@ -23,6 +23,7 @@ Sub Process_Globals
 	Public ShowToastLog 			As Boolean = True
 	Public LogMode 					As Boolean = True
 	Public LogList 					As List
+	Public LogShowToast				As Boolean = True
 	Public Pref 					As Settings
 	
 	Type App(Name As String, _
@@ -102,15 +103,24 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 End Sub
 
 Public Sub MyLog (Text As String)
+	
 	If Not (LogMode) Then Return
+	
 '	Dim txtWriter As TextWriter
 '		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
 '		txtWriter.WriteList(LogList)
 '		txtWriter.Close
 '	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
+
 	LogList.Add(Text)
 	Log(Text)
-	If (ShowToastLog) Then ToastMessageShow(Text, False)
+	If (ShowToastLog) Then
+		If (LogShowToast) Then
+			ToastMessageShow(Text, False)
+		End If
+	End If
+	
+	LogShowToast = True
 End Sub
 
 Public Sub CreateDB

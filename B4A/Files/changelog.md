@@ -1,7 +1,9 @@
 
-# Version: Build 34 Alpha : 07/02/2023
-* Improve Functionality after run an app
+
+# Version: Build 34 Alpha : 09/02/2023
+* Added Alphabet list on app list
 * Fix RecentlyApps Bug
+* Improve Functionality after run an app
 
 # Version: Build 33 Alpha : 06/02/2023
 * Improve Double Click Event
