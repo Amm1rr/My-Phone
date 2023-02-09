@@ -1,7 +1,0 @@
-@ECHO OFF
-ECHO.
-
-COLOR 1
-
-ECHO.
-pause
