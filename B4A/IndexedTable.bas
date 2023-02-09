@@ -42,6 +42,7 @@ Public Sub LoadAlphabetlist (base As Panel, Alphalist As Map)
 '	Starter.MyLog("IndexedTable: LoadAlphabetlist")
 	
 	pnlIndex.RemoveView
+	pnlIndex.RemoveAllViews
 	hoverLabel.RemoveView
 	
 	base.AddView(hoverLabel, base.Width - 100dip, 0, 40dip, 40dip)

@@ -1300,8 +1300,8 @@ Public Sub ShowHideKeyboard(Show As Boolean)
 End Sub
 
 Private Sub DisableDragAndDrop
-	Starter.LogShowToast = False
-	MyLog("B4XMainPage: DisableDragAndDrop")
+'	Starter.LogShowToast = False
+'	MyLog("B4XMainPage: DisableDragAndDrop")
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
