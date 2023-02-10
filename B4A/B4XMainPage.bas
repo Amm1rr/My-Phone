@@ -516,23 +516,6 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	End If
 End Sub
 
-Private Sub clvApps_ItemClick (Position As Int, Value As Object)
-	
-	MyLog("Event clvApps_ItemClick => Position:" & Position & " - Value:" & Value)
-	
-	ConfigCurrentAppApp(Position, Value)
-	
-	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
-		DisableDragAndDrop
-	Else
-		RunApp(Value.As(String))
-		clvApps.AsView.BringToFront
-'		tagApps.LabelProperties.TextColor = Colors.Magenta
-		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
-'		SaveRecentlyList
-	End If
-End Sub
-
 Private Sub SaveRecentlyList
 	
 	MyLog("SaveRecentlyList")
@@ -751,54 +734,56 @@ Public Sub RemoveAsRecently (Value As Object)
 	
 End Sub
 
-Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
-'	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
-	ShowHideKeyboard(False)
-	ConfigCurrentAppApp(Position, Value.As(String))
-	CreateAppMenu(Value)
-End Sub
-
-Private Sub clvHome_ItemClick (Position As Int, Value As Object)
-'	MyLog("*** Event: clvHome_ItemClick => Position: " & Position & " - Value: " & Value)
-	If (dragAllow = False) Then
-				ConfigCurrentHomeApp(Position, Value.As(String))
-'				CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
-				clvHome.AsView.BringToFront
-				RunApp(CurrentHomeApp.PackageName)
-'			End If
-'		End If
-	End If
-	DisableDragAndDrop
-	
-End Sub
-
 Private Sub ConfigCurrentAppApp(Position As String, Value As String)
+	
+	Starter.LogShowToast = False
 	MyLog("ConfigCurrentAppApp: Position: " & Position & " - Value: " & Value)
+	
 	CurrentAppApp.index = Position
 	CurrentAppApp.PackageName = Value.As(String)
 	CurrentAppApp.Name = clvApps.GetPanel(Position).GetView(0).Text
 End Sub
 
 Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
+	
+	Starter.LogShowToast = False
 	MyLog("ConfigCurrentHomeApp: => Position: " & Position & " - Value: " & Value)
+	
 	CurrentHomeApp.index = Position
 	CurrentHomeApp.PackageName = Value.As(String)
 '	CurrentHomeApp.Name = panHome.GetView(0).Text
 '	CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
 End Sub
 
-Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
-'	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
+Private Sub clvHome_ItemClick (Position As Int, Value As Object)
+	
+'	MyLog("*** Event: clvHome_ItemClick => Position: " & Position & " - Value: " & Value)
+
 	If (dragAllow = False) Then
 		ConfigCurrentHomeApp(Position, Value.As(String))
-		CreateHomeMenu
+'		CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
+		clvHome.AsView.BringToFront
+		RunApp(CurrentHomeApp.PackageName)
+	End If
+	DisableDragAndDrop
+	
+End Sub
+
+
+Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
+	
+'	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
+
+	If (dragAllow = False) Then
+		ConfigCurrentHomeApp(Position, Value.As(String))
+		CreateHomeMenu(Position)
 	Else
 		dragger.RemoveDragButtons
 		dragAllow = False
 	End If
 End Sub
 
-Private Sub CreateHomeMenu
+Private Sub CreateHomeMenu (Position As Int)
 	MyLog("CreateHomeMenu")
 	
 	panHRowMenuHome.RemoveAllViews
@@ -806,7 +791,12 @@ Private Sub CreateHomeMenu
 	panHRowMenuHome.LoadLayout("HomeRowMenu")
 	panHRowMenuHome.Enabled = True
 	panHRowMenuHome.BringToFront
-	panHRowMenuHome.Visible = True
+
+	Dim Top As Int = clvHome.GetPanel(Position).Parent.Top - clvHome.sv.ScrollViewOffsetY + clvHome.GetBase.Top + clvHome.GetPanel(Position).Height
+	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
+'	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left - (panHRowMenuHome.As(B4XView).Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
+	panHRowMenuHome.As(B4XView).SetLayoutAnimated(0, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
+	panHRowMenuHome.SetVisibleAnimated(150, True)
 	
 	clvHRowMenu.Clear
 '	clvHRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
@@ -819,6 +809,66 @@ Private Sub CreateHomeMenu
 
 End Sub
 
+Private Sub CreateListItemHomeMenu(Text As String, _
+							   Value As String, _
+							   Width As Int, _
+							   Height As Int) As Panel
+	
+'	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
+	Dim p As B4XView = xui.CreatePanel("")
+	
+		p.SetLayoutAnimated(0, 0, 0, Width, Height)
+		p.LoadLayout("HomeRowMenuRow")
+
+'	Dim p As Panel = panHomeRowMenuRowHome
+'	panHomeRowMenuRowHome.SetLayoutAnimated(0,0,0, Width, Height)
+'	panHomeRowMenuRowHome.LoadLayout("HomeRowMenu")
+	
+	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
+	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Text = Text
+	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Tag = Value
+	
+'	If Starter.Pref.ShowIconHomeApp Then
+'		imgHomRowMenuRowIconHome.Visible = True
+'		lblHomRowMenuRowAppTitle.Left = 35dip
+'	Else
+	imgHomRowMenuRowIconHome.Visible = False
+	lblHomRowMenuRowAppTitle.Left = 5dip
+'	End If
+	
+'	Try
+'		imgHomRowMenuRowIconHome.Bitmap = Starter.GetPackageIcon(Value)
+'	Catch
+'		Log("CreateListItemHome-Icon=> " & LastException)
+'	End Try
+	
+	Return p
+End Sub
+
+Private Sub clvApps_ItemClick (Position As Int, Value As Object)
+	
+	MyLog("Event clvApps_ItemClick => Position:" & Position & " - Value:" & Value)
+	
+	ConfigCurrentAppApp(Position, Value)
+	
+	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
+		DisableDragAndDrop
+	Else
+		RunApp(Value.As(String))
+		clvApps.AsView.BringToFront
+'		tagApps.LabelProperties.TextColor = Colors.Magenta
+		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
+'		SaveRecentlyList
+	End If
+End Sub
+
+Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
+'	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
+	ShowHideKeyboard(False)
+	ConfigCurrentAppApp(Position, Value.As(String))
+	CreateAppMenu(Value)
+End Sub
+
 Private Sub CreateAppMenu(Value As Object)
 	MyLog("CreateAppMenu => " & Value.As(String))
 	DisableDragAndDrop
@@ -828,7 +878,7 @@ Private Sub CreateAppMenu(Value As Object)
 	panAppMenuApp.RequestFocus
 	panAppMenuApp.Enabled = True
 	panAppMenuApp.BringToFront
-	panAppMenuApp.Visible = True
+	panAppMenuApp.SetVisibleAnimated(150, True)
 	
 	clvAppRowMenu.Clear
 '	clvAppRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
@@ -960,42 +1010,6 @@ Private Sub CreateListItemApp(Text As String, _
 	
 End Sub
 
-Private Sub CreateListItemHomeMenu(Text As String, _
-							   Value As String, _
-							   Width As Int, _
-							   Height As Int) As Panel
-	
-'	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
-	Dim p As B4XView = xui.CreatePanel("")
-	
-	p.SetLayoutAnimated(0, 0, 0, Width, Height)
-	p.LoadLayout("HomeRowMenuRow")
-
-'	Dim p As Panel = panHomeRowMenuRowHome
-'	panHomeRowMenuRowHome.SetLayoutAnimated(0,0,0, Width, Height)
-'	panHomeRowMenuRowHome.LoadLayout("HomeRowMenu")
-	
-	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
-	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Text = Text
-	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Tag = Value
-	
-'	If Starter.Pref.ShowIconHomeApp Then
-'		imgHomRowMenuRowIconHome.Visible = True
-'		lblHomRowMenuRowAppTitle.Left = 35dip
-'	Else
-		imgHomRowMenuRowIconHome.Visible = False
-		lblHomRowMenuRowAppTitle.Left = 5dip
-'	End If
-	
-'	Try
-'		imgHomRowMenuRowIconHome.Bitmap = Starter.GetPackageIcon(Value)
-'	Catch
-'		Log("CreateListItemHome-Icon=> " & LastException)
-'	End Try
-	
-	Return p
-End Sub
-
 Private Sub CreateListItemAppMenu(Text As String, _
 							   Value As String, _
 							   Width As Int, _
@@ -1096,7 +1110,7 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 		End If
 	Next
 	
-	If (AppCount > 10) Then
+	If (AppCount > 20) Then
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
 	Else
 		' This line code is mean,
@@ -1315,8 +1329,8 @@ Private Sub DisableDragAndDrop
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
-		panHRowMenuHome.Visible = False
-		panAppMenuApp.Visible = False
+		panHRowMenuHome.SetVisibleAnimated(150, False)
+		panAppMenuApp.SetVisibleAnimated(150, False)
 		
 		'//-- Save and Disabled Drag and Drop Home List App
 		If (dragAllow) Then
@@ -1515,7 +1529,8 @@ End Sub
 Private Sub CloseSetting
 	btnSetting.Enabled = True
 	panSetting.Enabled = True
-	panSetting.Visible = False
+	panSetting.SetVisibleAnimated(300, False)
+	Sleep(300)
 	panSetting.RemoveAllViews
 End Sub
 
@@ -1993,7 +2008,7 @@ End Sub
 
 
 Private Sub lblVersion_Click
-	panLog.Visible = True
+	panLog.SetVisibleAnimated(150, False)
 '	panSetting.Visible = False
 	
 	chkShowToastLog.Checked = Starter.ShowToastLog
@@ -2293,8 +2308,8 @@ Private Sub btnHiddenApps_Click
 '	MyLog("*** Event: btnHiddenApps_Click")
 	panHideManager.RemoveAllViews
 	panHideManager.LoadLayout("HiddenApps")
+	panHideManager.SetVisibleAnimated(300, True)
 	panHideManager.Enabled = True
-	panHideManager.Visible = True
 	panHideManager.BringToFront
 	panHideManager.RequestFocus
 	
@@ -2324,9 +2339,9 @@ Private Sub panHiddenApps_LongClick
 End Sub
 
 Private Sub CloseHiddenManager
+	panHideManager.SetVisibleAnimated(300, False)
+	Sleep(300)
 	panHideManager.RemoveAllViews
-	panHideManager.Visible = False
-	
 	Starter.SetupAppsList(False)
 End Sub
 
