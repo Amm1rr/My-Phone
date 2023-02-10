@@ -1792,6 +1792,7 @@ Private Sub DoubleTap
 		End If
 	Catch
 		MyLog("*+*+*+ DoubleTap : " & LastException)
+		LogColor("*+*+*+ DoubleTap : " & LastException, Colors.Red)
 	End Try
 End Sub
 

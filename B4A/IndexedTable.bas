@@ -14,6 +14,7 @@ Sub Class_Globals
 	Private hoverLabel 					As Label
 	Private const PANEL_INDEX_WIDTH 	As Float = 40dip
 	Private hoverTopPosition 			As Int
+	Private lblLast As Label
 End Sub
 
 Public Sub Initialize (vCallback As Object, vEventName As String)
@@ -23,12 +24,13 @@ Public Sub Initialize (vCallback As Object, vEventName As String)
 	mEventName = vEventName
 	pnlIndex.Initialize("pnlIndex")
 	Dim cd As ColorDrawable
-		cd.Initialize2(Colors.White, 2dip, 2dip, Colors.Black)
+		cd.Initialize2(Colors.White, 12dip, 2dip, 0xFF3A89D3)
 	hoverLabel.Initialize("")
 	hoverLabel.Background = cd
+	hoverLabel.TextColor = 0xFF3A89D3
 	hoverLabel.Visible = False
 	hoverLabel.Gravity = Gravity.CENTER
-	hoverLabel.TextSize = 17
+	hoverLabel.TextSize = 18
 End Sub
 
 Public Sub DesignerCreateView (base As Panel, lbl As Label, props As Map)
@@ -89,8 +91,12 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 '		LogColor(lbl.Tag, Colors.Red)
 		B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
 	Else
+		If (lbl <> lblLast) Then _
+			XUIViewsUtils.PerformHapticFeedback(Sender)
 		hoverLabel.Top = (lbl.Top - 15dip) + hoverTopPosition
 		hoverLabel.Text = lbl.Text
 		hoverLabel.Visible = True
+		B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
+		lblLast = lbl
 	End If
 End Sub
