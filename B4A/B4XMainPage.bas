@@ -100,9 +100,9 @@ Sub Class_Globals
 	Private lblClockSetting 			As Label
 	
 	Private AlphabetTable As IndexedTable
-	Public Alphabet As Map
 	Private AlphabetLastChars As String
-	
+	Public Alphabet As Map
+	Private panHomRow As B4XView
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -197,6 +197,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		dragger.Initialize(clvHome)
 		dragger.SetDefaults(35dip, xui.Color_Black, xui.Color_Yellow)
+		
+		panHomRow.Tag = panHomRow.Color
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
@@ -359,6 +361,7 @@ Private Sub DisableEdgeEdit
 End Sub
 
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
+'	Starter.LogShowToast = False
 '	MyLog("*** Event: gestHome_gesture")
 	
 	DisableDragAndDrop
@@ -1093,7 +1096,13 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 		End If
 	Next
 	
-	AlphabetTable.LoadAlphabetlist(clvApps.AsView, Alphabet)
+	If (AppCount > 10) Then
+		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
+	Else
+		' This line code is mean,
+		' Just Remove Last AlphaList from UI
+		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, True, clvApps.AsView.Top)
+	End If
 	AlphabetLastChars = ""
 	
 	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
@@ -1228,6 +1237,9 @@ public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 	
 	pkgName = GetPackage(pkgName)
 	
+	Dim query As String = "DELETE FROM Apps WHERE pkgName='" & pkgName & "'"
+	Starter.sql.ExecNonQuery(query)
+	
 	For i = 0 To clvApps.Size - 1
 		If (i < clvApps.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
 			Dim appvalue As String = clvApps.GetValue(i).As(String).ToLowerCase
@@ -1239,8 +1251,6 @@ public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 			End If
 		End If
 	Next
-	Dim query As String = "DELETE FROM Apps WHERE pkgName='" & pkgName & "'"
-	Starter.sql.ExecNonQuery(query)
 	
 '	LogColor(query, Colors.Green)
 End Sub
@@ -2297,7 +2307,8 @@ Private Sub btnHiddenApps_Click
 End Sub
 
 Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
-	MyLog("*** Event: panSettings_Touch => Action: " & Action)
+'	Starter.LogShowToast = False
+'	MyLog("*** Event: panSettings_Touch => Action: " & Action)
 	ShowHideKeyboard(False)
 	Select Action
 		Case 0 ' Down
@@ -2386,3 +2397,14 @@ End Sub
 Private Sub btnClose_Click
 	CloseSetting
 End Sub
+
+'Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float)
+'	Select Action
+'		Case 0 ' Down
+'			LogColor("Down Tag: " & panHomRow.Tag, Colors.Blue)
+'			panHomRow.Color = Colors.DarkGray
+'		Case 1 ' Up
+'			LogColor("Up Tag: " & panHomRow.Tag, Colors.Blue)
+'			panHomRow.Color = panHomRow.Tag
+'	End Select
+'End Sub

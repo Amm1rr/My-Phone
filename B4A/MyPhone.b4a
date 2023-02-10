@@ -117,7 +117,8 @@ Sub Activity_ActionBarHomeClick
 End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
-	MyLog("****** Event: Main:Activity_KeyPress & => " & KeyCode)
+	Starter.LogShowToast = False
+	MyLog("****** Event: Main:Activity_KeyPress => " & KeyCode)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
@@ -128,7 +129,8 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 			B4XPages.MainPage.GoHome(True)
 			Return True
 	End Select
-	Return False
+	
+	Return True
 
 '	If KeyCode = KeyCodes.KEYCODE_BACK Then
 '		Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
