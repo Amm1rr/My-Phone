@@ -1,7 +1,8 @@
 
-# Version: Build 35 Alpha : 02/03/2023
+# Version: Build 35 Alpha : 11/02/2023
 * Improve Home Menu
 * Improve UI and Animations
+* Fix RecentlyApps
 
 # Version: Build 34 Alpha : 09/02/2023
 * Added Alphabet list on app list

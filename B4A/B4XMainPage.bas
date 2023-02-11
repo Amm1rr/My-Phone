@@ -601,102 +601,134 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
 	
-'	tagApps.CLV.AddTextItem(Text, Value)
-	
-'	If (RecentlyList.Size > 0) Then
-'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 0)) Then Return
-'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-'	End If
-	
-	'//-- Check if This Function Called from Service
-	'//-- If IsNewInstalledApp = True , that is mean it's called from Service
-	'//-- 
-	If (IsNewInstalledApp) Then
-		tagColors = Colors.DarkGray
-		tagApps.LabelProperties.TextColor = Colors.Yellow
-	Else
-		tagColors = Colors.DarkGray
-		tagApps.LabelProperties.TextColor = Colors.LightGray
-	End If
-	
 	If (FindRecentlyItem(Value)) Then Return
 	If Not (Is_NormalApp(Value)) Then Return
 	
-	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
-		
-		If Text = "" Then
-			tagApps.AddTag(GetAppNamebyPackage(Value), tagColors, Value)
-		Else
-			tagApps.AddTag(Text, tagColors, Value)
-		End If
-		RecentlyList.Add(Value)
-		
-		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-'		LogColor(q, Colors.Green)
-		
-		Try
-			Starter.sql.ExecNonQuery(q)
-		Catch
-			MyLog("Error Cought: AddToRecently => " & LastException)
-		End Try
-		
-'		Dim lstReverse As List = ReverseList(RecentlyList)
-'		RecentlyList = lstReverse
-'		tagApps.CLV.Clear
-'		For Each item In lstReverse
-'			tagApps.AddTag(GetAppNamebyPackage(item), Colors.DarkGray, item)
-'		Next
-		
-	Else If (RecentlyList.Size >= 5) Then
-		Try
-	'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
-	'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-
-			tagApps.mBase.Enabled = False
-			
-			tagApps.CLV.Clear
-			tagApps.AddTag(Text, tagColors, Value)
-			tagApps.LabelProperties.TextColor = Colors.LightGray
-			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
-			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
-			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
-			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
-			
-			Dim i0 As Object = RecentlyList.Get(0)
-			Dim i1 As Object = RecentlyList.Get(1)
-			Dim i2 As Object = RecentlyList.Get(2)
-			Dim i3 As Object = RecentlyList.Get(3)
-			
-			RecentlyList.Clear
-			RecentlyList.Add(Value)
-			RecentlyList.Add(i0)
-			RecentlyList.Add(i1)
-			RecentlyList.Add(i2)
-			RecentlyList.Add(i3)
-			
-			Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-			Starter.sql.ExecNonQuery(q)
-			
-		Catch
-			MyLog("++++++++++++ Func: AddToRecently => " & LastException)
-		End Try
-		
-		tagApps.mBase.Enabled = True
-		
-	Else
-		
+	If Text = "" Then _
+		Text = GetAppNamebyPackage(Value)
+	
+	tagApps.mBase.Enabled = False
+	tagApps.CLV.Clear
+	tagColors = Colors.DarkGray
+	
+	RecentlyList.AddAllAt(0, Array(Value))
+	
+	If (RecentlyList.Size > 5) Then _
+		RecentlyList.RemoveAt(RecentlyList.Size - 1)
+	
+	Starter.sql.ExecNonQuery("DELETE FROM RecentlyApps")
+	
+	Dim j As Int
+	If (IsNewInstalledApp) Then
+		tagApps.LabelProperties.TextColor = Colors.Yellow
 		tagApps.AddTag(Text, tagColors, Value)
-		RecentlyList.Add(Value)
-		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-		Starter.sql.ExecNonQuery(q)
-		
+		j = 1
+	Else
+		tagApps.LabelProperties.TextColor = Colors.LightGray
+		j = 0
 	End If
 	
-	'//----- Reset RecentlyBar Color to Default
-	tagColors = Colors.DarkGray
-	tagApps.LabelProperties.TextColor = Colors.LightGray
 	
-'	SaveRecentlyList
+	For i = j To RecentlyList.Size - 1
+		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(i)), tagColors, RecentlyList.Get(i))
+		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & GetAppNamebyPackage(RecentlyList.Get(i)) & "','" & RecentlyList.Get(i) & "')")
+	Next
+	
+	
+'	Dim tmp As String
+'	For i = 0 To RecentlyList.Size - 1
+'		tmp = "('" & GetAppNamebyPackage(RecentlyList.Get(i)) & "','" & RecentlyList.Get(i) & "')," & tmp
+'	Next
+'	
+'	For Each pkg In RecentlyList
+'		tmp = "('" & GetAppNamebyPackage(pkg) & "','" & pkg & "')," & tmp
+'	Next
+'	Dim q As String
+'	If (tmp <> "") Then
+'		tmp = tmp.SubString2(0, tmp.Length - 1)
+'		q = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUE" & tmp
+'		Starter.sql.ExecNonQuery(q)
+'	End If
+	
+	
+	tagApps.mBase.Enabled = True
+	
+	
+'	tagColors = Colors.DarkGray
+'	If (IsNewInstalledApp) Then
+'		tagApps.LabelProperties.TextColor = Colors.Yellow
+'	Else
+'		tagApps.LabelProperties.TextColor = Colors.LightGray
+'	End If
+'	
+'	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
+'		
+'		tagApps.AddTag(Text, tagColors, Value)
+'		
+'		RecentlyList.Add(Value)
+'		
+'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+''		LogColor(q, Colors.Green)
+'		
+'		Starter.sql.ExecNonQuery(q)
+'		
+''		Dim lstReverse As List = ReverseList(RecentlyList)
+''		RecentlyList = lstReverse
+''		tagApps.CLV.Clear
+''		For Each item In lstReverse
+''			tagApps.AddTag(GetAppNamebyPackage(item), Colors.DarkGray, item)
+''		Next
+'		
+'	Else If (RecentlyList.Size >= 5) Then
+'		Try
+'			'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
+'			'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
+'
+'			tagApps.mBase.Enabled = False
+'			
+'			tagApps.CLV.Clear
+'			tagApps.AddTag(Text, tagColors, Value)
+'			tagApps.LabelProperties.TextColor = Colors.LightGray
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
+'			
+'			Dim i0 As Object = RecentlyList.Get(0)
+'			Dim i1 As Object = RecentlyList.Get(1)
+'			Dim i2 As Object = RecentlyList.Get(2)
+'			Dim i3 As Object = RecentlyList.Get(3)
+'			
+'			RecentlyList.Clear
+'			RecentlyList.Add(Value)
+'			RecentlyList.Add(i0)
+'			RecentlyList.Add(i1)
+'			RecentlyList.Add(i2)
+'			RecentlyList.Add(i3)
+'			
+'			Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+'			Starter.sql.ExecNonQuery(q)
+'			
+'		Catch
+'			MyLog("++++++++++++ Func: AddToRecently => " & LastException)
+'		End Try
+'		
+'		tagApps.mBase.Enabled = True
+'		
+'	Else
+'		
+'		tagApps.AddTag(Text, tagColors, Value)
+'		RecentlyList.Add(Value)
+'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+'		Starter.sql.ExecNonQuery(q)
+'		
+'	End If
+'	
+'	'//----- Reset RecentlyBar Color to Default
+'	tagColors = Colors.DarkGray
+'	tagApps.LabelProperties.TextColor = Colors.LightGray
+'	
+''	SaveRecentlyList
 	
 End Sub
 
@@ -706,9 +738,9 @@ Private Sub ReverseList(lst As List) As List
 	Return lst
 End Sub
 
-Public Sub RemoveAsRecently (Value As Object)
+Public Sub RemoveAsRecently (Value As String)
 '							(Index As Int)
-	MyLog("RemoveAsRecently => " & Value.As(String))
+	MyLog("RemoveAsRecently => " & Value)
 	Value = GetPackage(Value.As(String))
 	
 	Dim i As Int
@@ -1744,6 +1776,7 @@ Private Sub btnDelete_Click
 End Sub
 
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
+	Starter.LogShowToast = False
 	MyLog("*** Event: panSettings_Touch => Action: " & Action)
 	ShowHideKeyboard(False)
 	Select Action
@@ -1888,7 +1921,7 @@ Private Sub tagApps_ItemClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
-	RemoveAsRecently(Value)
+	RemoveAsRecently(Value.As(String))
 End Sub
 
 Private Sub txtAppsSearch_ClearButtonClick
