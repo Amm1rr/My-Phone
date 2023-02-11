@@ -23,8 +23,9 @@ Sub Process_Globals
 	Public ShowToastLog 			As Boolean = True
 	Public LogMode 					As Boolean = True
 	Public LogList 					As List
-	Public LogShowToast				As Boolean = True
+	Public LogShowToast				As Boolean = True 
 	Public Pref 					As Settings
+	Public const NAVBARHEIGHT		As Int = 24
 	
 	Type App(Name As String, _
 			PackageName As String, _

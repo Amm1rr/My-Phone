@@ -4,7 +4,7 @@ git status
 ECHO.
 ECHO.
 git add *
-git commit -m "Update (auto commit)"
+git commit -m "Improve Home Menu and UI"
 COLOR 1
 git push
 COLOR 2

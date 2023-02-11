@@ -13,7 +13,7 @@ Sub Class_Globals
 	Private mEventName 					As String
 	Private hoverLabel 					As Label
 	Private const PANEL_INDEX_WIDTH 	As Float = 40dip
-	Private hoverTopPosition 			As Int
+	Private hoverLabelTopMargin 		As Int
 	Private lblLast As Label
 End Sub
 
@@ -51,12 +51,11 @@ Public Sub LoadAlphabetlist (base 			As Panel, _
 	
 	If (justCleanTable) Then Return
 	
-	hoverTopPosition = top
+	hoverLabelTopMargin = top
 	
 	base.AddView(pnlIndex, base.Width - PANEL_INDEX_WIDTH, top, PANEL_INDEX_WIDTH, base.Height)
 	base.AddView(hoverLabel, base.Width - 100dip, top, 40dip, 40dip)
 	Dim lblHeight As Float = (pnlIndex.Height - 2dip) / 26 'Alphalist.Size
-	LogColor(Alphalist.Size, Colors.Red)
 	
 	Dim i As Int = 0
 	For Each alpha As String In Alphalist.Keys
@@ -80,7 +79,7 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	
 	hoverLabel.Visible = False
 	
-	Dim item As Int = Y / pnlIndex.Height * pnlIndex.NumberOfViews
+	Dim item As Int = Y / (pnlIndex.Height - 250) * pnlIndex.NumberOfViews
 		item = Min(item, pnlIndex.NumberOfViews - 1)
 	
 	If (item < 0) Then Return
@@ -93,7 +92,7 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	Else
 		If (lbl <> lblLast) Then _
 			XUIViewsUtils.PerformHapticFeedback(Sender)
-		hoverLabel.Top = (lbl.Top - 15dip) + hoverTopPosition
+		hoverLabel.Top = (lbl.Top - 15dip) + hoverLabelTopMargin
 		hoverLabel.Text = lbl.Text
 		hoverLabel.Visible = True
 		B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)

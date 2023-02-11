@@ -320,7 +320,7 @@ Public Sub FixWallTrans
 	Dim jo As JavaObject
 	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
 	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
-	Root.Height = Root.Height + 24dip
+	Root.Height = Root.Height + Starter.NAVBARHEIGHT
 	'}-----
 	
 	'{----- ### Fix Wallpaper
@@ -773,7 +773,10 @@ End Sub
 Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
 	
 '	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
-
+	
+	DisableDragAndDrop
+	Sleep(50)
+	
 	If (dragAllow = False) Then
 		ConfigCurrentHomeApp(Position, Value.As(String))
 		CreateHomeMenu(Position)
@@ -796,7 +799,7 @@ Private Sub CreateHomeMenu (Position As Int)
 	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 '	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left - (panHRowMenuHome.As(B4XView).Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 	panHRowMenuHome.As(B4XView).SetLayoutAnimated(0, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
-	panHRowMenuHome.SetVisibleAnimated(150, True)
+	panHRowMenuHome.SetVisibleAnimated(30, True)
 	
 	clvHRowMenu.Clear
 '	clvHRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
@@ -1329,7 +1332,7 @@ Private Sub DisableDragAndDrop
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
-		panHRowMenuHome.SetVisibleAnimated(150, False)
+		panHRowMenuHome.SetVisibleAnimated(30, False)
 		panAppMenuApp.SetVisibleAnimated(150, False)
 		
 		'//-- Save and Disabled Drag and Drop Home List App
@@ -2008,7 +2011,7 @@ End Sub
 
 
 Private Sub lblVersion_Click
-	panLog.SetVisibleAnimated(150, False)
+	panLog.SetVisibleAnimated(150, True)
 '	panSetting.Visible = False
 	
 	chkShowToastLog.Checked = Starter.ShowToastLog
