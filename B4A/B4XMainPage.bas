@@ -533,9 +533,6 @@ Private Sub SaveRecentlyList
 		tmp = tmp.SubString2(0, tmp.Length - 1)
 		query = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUE" & tmp
 		Starter.sql.ExecNonQuery(query)
-		LogColor(query, Colors.Green)
-		
-		Starter.sql.ExecNonQuery(query)
 	End If
 	
 End Sub
@@ -628,26 +625,26 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 		j = 0
 	End If
 	
-	
+	Dim query As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES"
+	Dim tmp As String
 	For i = j To RecentlyList.Size - 1
-		tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(i)), tagColors, RecentlyList.Get(i))
-		Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & GetAppNamebyPackage(RecentlyList.Get(i)) & "','" & RecentlyList.Get(i) & "')")
+		Dim appName As String = GetAppNamebyPackage(RecentlyList.Get(i))
+		tagApps.AddTag(appName, tagColors, RecentlyList.Get(i))
+		tmp = "('" & appName & "','" & RecentlyList.Get(i) & "')," & tmp
 	Next
-	
+	If (tmp.Length > 0) Then
+		query = query & tmp.SubString2(0, tmp.Length - 1)
+		Starter.sql.ExecNonQuery(query)
+	End If
 	
 '	Dim tmp As String
-'	For i = 0 To RecentlyList.Size - 1
-'		tmp = "('" & GetAppNamebyPackage(RecentlyList.Get(i)) & "','" & RecentlyList.Get(i) & "')," & tmp
-'	Next
-'	
 '	For Each pkg In RecentlyList
 '		tmp = "('" & GetAppNamebyPackage(pkg) & "','" & pkg & "')," & tmp
 '	Next
-'	Dim q As String
 '	If (tmp <> "") Then
 '		tmp = tmp.SubString2(0, tmp.Length - 1)
-'		q = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUE" & tmp
-'		Starter.sql.ExecNonQuery(q)
+'		query = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES" & tmp
+'		Starter.sql.ExecNonQuery(query)
 '	End If
 	
 	
@@ -1601,21 +1598,15 @@ Public Sub SaveSettings
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "')")
-	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
-	
-'	Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('CameraApp','" & Starter.Pref.CameraApp & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('PhoneApp','" & Starter.Pref.PhoneApp & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ClockApp','" & Starter.Pref.ClockApp & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIcon','" & Starter.Pref.ShowIcon & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "');" & _
-'							"INSERT OR REPLACE INTO Settings(KeySetting, Value) VALUES('AutoRunApp','" & Starter.Pref.AutoRunApp & "')")
+	Dim query As String = "INSERT OR REPLACE INTO Settings(KeySetting, Value) " & _
+						  "VALUES('ShowKeyboard','" & Starter.Pref.ShowKeyboard & "'), " & _
+						  "('CameraApp','" & Starter.Pref.CameraApp & "'), " & _
+						  "('PhoneApp','" & Starter.Pref.PhoneApp & "'), " & _
+						  "('ClockApp','" & Starter.Pref.ClockApp & "'), " & _
+						  "('ShowIcon','" & Starter.Pref.ShowIcon & "'), " & _
+						  "('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "'), " & _
+						  "('AutoRunApp','" & Starter.Pref.AutoRunApp & "')"
+	Starter.sql.ExecNonQuery(query)
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
 	
