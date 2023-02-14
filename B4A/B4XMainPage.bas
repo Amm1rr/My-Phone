@@ -2372,7 +2372,6 @@ Private Sub CloseHiddenManager
 	Starter.SetupAppsList(False)
 End Sub
 
-
 Private Sub clvHiddenApp_ItemClick (Index As Int, Value As Object)
 	CLVSelection.ItemClicked(Index)
 End Sub
@@ -2435,7 +2434,6 @@ End Sub
 Private Sub btnSetAsDefault_Click
 	SetDefaultLauncher
 End Sub
-
 
 Private Sub btnClose_Click
 	CloseSetting

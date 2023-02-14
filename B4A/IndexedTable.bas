@@ -92,6 +92,7 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	Else
 		If (lbl <> lblLast) Then _
 			XUIViewsUtils.PerformHapticFeedback(Sender)
+		
 		hoverLabel.Top = (lbl.Top - 15dip) + hoverLabelTopMargin
 		hoverLabel.Text = lbl.Text
 		hoverLabel.Visible = True
