@@ -103,6 +103,16 @@ Sub Class_Globals
 	Private AlphabetLastChars As String
 	Public Alphabet As Map
 	Private panHomRow As B4XView
+	
+	'panHomeRow_LongClick
+	Private TimerLongClick As Timer
+	Dim longCLickFirstimeTouched As Long
+	Dim longCLickX As Float
+	Dim longCLickY As Float
+	Dim longCLickX0, longClickY0 As Float
+	Dim longCLickClvIndex As Int
+	Dim longCLickClvPNL As B4XView
+	Dim ClickPanHome As Boolean	
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -137,6 +147,9 @@ Public Sub Initialize
 	clocktimer.Initialize("clocktimer", 1000)
 	clocktimer.Enabled = True
 	
+	TimerLongClick.Initialize("TimerLongClick", 500)
+	TimerLongClick.Enabled = False
+	
 '	If Not (panLog.IsInitialized) Then panLog.Initialize("panLog")
 	
 End Sub
@@ -144,6 +157,16 @@ End Sub
 Private Sub clocktimer_Tick
 	lblClock.Text = DateTime.Time(DateTime.Now)
 	lblDate.Text = DateTime.Date(DateTime.Now)
+End Sub
+
+Private Sub TimerLongClick_Tick
+	If DateTime.Now - longCLickFirstimeTouched > 1000 And longCLickX - longCLickX0 < 10dip And longCLickY - longClickY0 < 10dip Then
+		TimerLongClick.Enabled = False
+		ClickPanHome = False
+		XUIViewsUtils.PerformHapticFeedback(longCLickClvPNL)
+		longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+		clvHome_ItemLongClick(longCLickClvIndex, clvHome.GetValue(longCLickClvIndex))
+	End If
 End Sub
 
 Public Sub GetSetting(Key As String) As String
@@ -180,6 +203,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		LoadRecentlyList
 		
+		
 		If Not (imgPhone.IsInitialized) Then imgPhone.Initialize("", "")
 				imgPhone.Load(File.DirAssets, "Phone.png")
 		
@@ -196,7 +220,11 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		'//--
 		
 		dragger.Initialize(clvHome)
-		dragger.SetDefaults(35dip, xui.Color_Black, xui.Color_Yellow)
+		dragger.SetDefaults(20dip, xui.Color_Black, xui.Color_Yellow)
+		
+		Dim R As Reflector
+			R.Target = clvHome.AsView
+			R.SetOnTouchListener("clvHome_Touch")
 		
 		panHomRow.Tag = panHomRow.Color
 		
@@ -2439,13 +2467,41 @@ Private Sub btnClose_Click
 	CloseSetting
 End Sub
 
-'Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float)
-'	Select Action
-'		Case 0 ' Down
-'			LogColor("Down Tag: " & panHomRow.Tag, Colors.Blue)
-'			panHomRow.Color = Colors.DarkGray
-'		Case 1 ' Up
-'			LogColor("Up Tag: " & panHomRow.Tag, Colors.Blue)
-'			panHomRow.Color = panHomRow.Tag
-'	End Select
-'End Sub
+Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
+	
+	longCLickClvIndex = clvHome.GetItemFromView(Sender)
+	longCLickClvPNL = clvHome.GetPanel(longCLickClvIndex)
+	
+	Select Action
+		Case 0 ' Down
+			longCLickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
+			ClickPanHome = True
+			
+				' Long Click
+				longCLickFirstimeTouched = DateTime.Now
+				longCLickX0 = X
+				longClickY0 = Y
+				TimerLongClick.Enabled = True
+			
+			DisableDragAndDrop
+		Case 1 ' Up
+			longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+			TimerLongClick.Enabled = False
+			If (ClickPanHome) Then _
+				RunApp(clvHome.GetValue(longCLickClvIndex))
+			
+		Case 3 ' Move
+			longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+			TimerLongClick.Enabled = False
+			DisableDragAndDrop
+			
+	End Select
+	
+	Return True
+	
+End Sub
+
+Private Sub clvHome_Touch (ViewTag As Object, Action As Int, X As Float, Y As Float, EventData As Object) As Boolean
+	LogColor(Action & " Yeap", Colors.Red)
+	Return True
+End Sub
