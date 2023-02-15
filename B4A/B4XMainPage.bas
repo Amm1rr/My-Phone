@@ -107,8 +107,8 @@ Sub Class_Globals
 	'panHomeRow_LongClick
 	Private TimerLongClick As Timer
 	Dim longCLickFirstimeTouched As Long
-	Dim longCLickX As Float
-	Dim longCLickY As Float
+	Dim longClickX As Float
+	Dim longClickY As Float
 	Dim longCLickX0, longClickY0 As Float
 	Dim longCLickClvIndex As Int
 	Dim longCLickClvPNL As B4XView
@@ -160,7 +160,7 @@ Private Sub clocktimer_Tick
 End Sub
 
 Private Sub TimerLongClick_Tick
-	If DateTime.Now - longCLickFirstimeTouched > 1000 And longCLickX - longCLickX0 < 10dip And longCLickY - longClickY0 < 10dip Then
+	If DateTime.Now - longCLickFirstimeTouched > 1000 And longClickX - longCLickX0 < 10dip And longClickY - longClickY0 < 10dip Then
 		TimerLongClick.Enabled = False
 		ClickPanHome = False
 		XUIViewsUtils.PerformHapticFeedback(longCLickClvPNL)
@@ -649,9 +649,9 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 		tagApps.AddTag(Text, tagColors, Value)
 		j = 1
 	Else
-		tagApps.LabelProperties.TextColor = Colors.LightGray
 		j = 0
 	End If
+	tagApps.LabelProperties.TextColor = Colors.LightGray
 	
 	Dim query As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES"
 	Dim tmp As String
