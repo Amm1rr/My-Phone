@@ -2531,19 +2531,19 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
 			ClickPanCLV = True
 			
-			' Long Click
-			longCLickFirstimeTouched = DateTime.Now
-			longClickX0 = X
-			longClickY0 = Y
-			clvLongClick = 1
-			TimerLongClick.Enabled = True
+				' Long Click
+				longCLickFirstimeTouched = DateTime.Now
+				longClickX0 = X
+				longClickY0 = Y
+				clvLongClick = 1
+				TimerLongClick.Enabled = True
 			
 			DisableDragAndDrop
 		Case 1 ' Up
 			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
 			TimerLongClick.Enabled = False
 			If (ClickPanCLV) Then _
-				RunApp(clvHome.GetValue(longClickClvIndex))
+				RunApp(clvApps.GetValue(longClickClvIndex))
 			
 		Case 3 ' Move
 			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
