@@ -109,10 +109,13 @@ Sub Class_Globals
 	Dim longCLickFirstimeTouched As Long
 	Dim longClickX As Float
 	Dim longClickY As Float
-	Dim longCLickX0, longClickY0 As Float
-	Dim longCLickClvIndex As Int
-	Dim longCLickClvPNL As B4XView
-	Dim ClickPanHome As Boolean	
+	Dim longClickX0, longClickY0 As Float
+	Dim longClickClvIndex As Int
+	Dim longClickClvPNL As B4XView
+	Dim ClickPanCLV As Boolean
+	Dim clvLongClick As Int	' 0 = clvHome
+							' 1 = clvApps
+	Private panAppRow As B4XView
 End Sub
 
 Private Sub MyLog (Text As String)
@@ -147,7 +150,7 @@ Public Sub Initialize
 	clocktimer.Initialize("clocktimer", 1000)
 	clocktimer.Enabled = True
 	
-	TimerLongClick.Initialize("TimerLongClick", 500)
+	TimerLongClick.Initialize("TimerLongClick", 100)
 	TimerLongClick.Enabled = False
 	
 '	If Not (panLog.IsInitialized) Then panLog.Initialize("panLog")
@@ -160,13 +163,24 @@ Private Sub clocktimer_Tick
 End Sub
 
 Private Sub TimerLongClick_Tick
-	If DateTime.Now - longCLickFirstimeTouched > 1000 And longClickX - longCLickX0 < 10dip And longClickY - longClickY0 < 10dip Then
-		TimerLongClick.Enabled = False
-		ClickPanHome = False
-		XUIViewsUtils.PerformHapticFeedback(longCLickClvPNL)
-		longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
-		clvHome_ItemLongClick(longCLickClvIndex, clvHome.GetValue(longCLickClvIndex))
-	End If
+			If DateTime.Now - longCLickFirstimeTouched > 350 And longClickX - longClickX0 < 10dip And longClickY - longClickY0 < 10dip Then
+				TimerLongClick.Enabled = False
+				ClickPanCLV = False
+				XUIViewsUtils.PerformHapticFeedback(longClickClvPNL)
+				
+				Select clvLongClick
+					Case 0:	'clvHome
+						longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+						clvHome_ItemLongClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
+						clvLongClick = -1
+					Case 1:	'clvApps
+						longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+						clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
+						clvLongClick = -1
+				End Select
+				
+				
+			End If
 End Sub
 
 Public Sub GetSetting(Key As String) As String
@@ -227,6 +241,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			R.SetOnTouchListener("clvHome_Touch")
 		
 		panHomRow.Tag = panHomRow.Color
+		panAppRow.Tag = panAppRow.Color
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
@@ -796,9 +811,13 @@ Private Sub ConfigCurrentAppApp(Position As String, Value As String)
 	Starter.LogShowToast = False
 	MyLog("ConfigCurrentAppApp: Position: " & Position & " - Value: " & Value)
 	
-	CurrentAppApp.index = Position
-	CurrentAppApp.PackageName = Value.As(String)
-	CurrentAppApp.Name = clvApps.GetPanel(Position).GetView(0).Text
+	CurrentAppApp.index 		= Position
+	CurrentAppApp.PackageName 	= Value.As(String)
+	
+	'Every custom list view has a panel within
+	Dim p 		As Panel 	= clvApps.GetRawListItem(Position).Panel.GetView(0)
+	CurrentAppApp.Name 		= dd.GetViewByName(p, "lblAppTitle").Text
+
 End Sub
 
 Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
@@ -855,7 +874,7 @@ Private Sub CreateHomeMenu (Position As Int)
 	Dim Top As Int = clvHome.GetPanel(Position).Parent.Top - clvHome.sv.ScrollViewOffsetY + clvHome.GetBase.Top + clvHome.GetPanel(Position).Height
 	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 '	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left - (panHRowMenuHome.As(B4XView).Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
-	panHRowMenuHome.As(B4XView).SetLayoutAnimated(0, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
+'	panHRowMenuHome.As(B4XView).SetLayoutAnimated(0, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 	panHRowMenuHome.SetVisibleAnimated(30, True)
 	
 	clvHRowMenu.Clear
@@ -1389,7 +1408,7 @@ Private Sub DisableDragAndDrop
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
-		panHRowMenuHome.SetVisibleAnimated(30, False)
+		panHRowMenuHome.SetVisibleAnimated(130, False)
 		panAppMenuApp.SetVisibleAnimated(150, False)
 		
 		'//-- Save and Disabled Drag and Drop Home List App
@@ -1934,7 +1953,6 @@ Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 	DisableDragAndDrop
 End Sub
 
-
 Private Sub tagApps_ItemClick (Index As Int, Value As Object)
 	RunApp(Value.As(String))
 End Sub
@@ -2469,29 +2487,30 @@ End Sub
 
 Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	
-	longCLickClvIndex = clvHome.GetItemFromView(Sender)
-	longCLickClvPNL = clvHome.GetPanel(longCLickClvIndex)
+	longClickClvIndex = clvHome.GetItemFromView(Sender)
+	longClickClvPNL = clvHome.GetPanel(longClickClvIndex)
 	
 	Select Action
 		Case 0 ' Down
-			longCLickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
-			ClickPanHome = True
+			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
+			ClickPanCLV = True
 			
 				' Long Click
 				longCLickFirstimeTouched = DateTime.Now
-				longCLickX0 = X
+				longClickX0 = X
 				longClickY0 = Y
+				clvLongClick = 0
 				TimerLongClick.Enabled = True
 			
 			DisableDragAndDrop
 		Case 1 ' Up
-			longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+			longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
 			TimerLongClick.Enabled = False
-			If (ClickPanHome) Then _
-				RunApp(clvHome.GetValue(longCLickClvIndex))
+			If (ClickPanCLV) Then _
+				RunApp(clvHome.GetValue(longClickClvIndex))
 			
 		Case 3 ' Move
-			longCLickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+			longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
 			TimerLongClick.Enabled = False
 			DisableDragAndDrop
 			
@@ -2501,7 +2520,37 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	
 End Sub
 
-Private Sub clvHome_Touch (ViewTag As Object, Action As Int, X As Float, Y As Float, EventData As Object) As Boolean
-	LogColor(Action & " Yeap", Colors.Red)
+
+
+Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
+	longClickClvIndex = clvApps.GetItemFromView(Sender)
+	longClickClvPNL = clvApps.GetPanel(longClickClvIndex)
+	
+	Select Action
+		Case 0 ' Down
+			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
+			ClickPanCLV = True
+			
+			' Long Click
+			longCLickFirstimeTouched = DateTime.Now
+			longClickX0 = X
+			longClickY0 = Y
+			clvLongClick = 1
+			TimerLongClick.Enabled = True
+			
+			DisableDragAndDrop
+		Case 1 ' Up
+			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+			TimerLongClick.Enabled = False
+			If (ClickPanCLV) Then _
+				RunApp(clvHome.GetValue(longClickClvIndex))
+			
+		Case 3 ' Move
+			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+			TimerLongClick.Enabled = False
+			DisableDragAndDrop
+			
+	End Select
+	
 	Return True
 End Sub
