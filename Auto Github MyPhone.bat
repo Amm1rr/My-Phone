@@ -10,6 +10,7 @@ ECHO.
 ECHO.
 ECHO.##### Git Add Files
 git add *
+ECHO.
 ECHO.##### Git Commit:
 ECHO.
 ECHO.	%MSG%:
