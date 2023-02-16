@@ -1,7 +1,7 @@
 @ECHO OFF
 CLS
 COLOR 8
-TITLE="Auto Git MyPhone"
+TITLE=Auto Git MyPhone
 ECHO.
 SET MSG="Update (auto commit)"
 ECHO.##### Git Status
