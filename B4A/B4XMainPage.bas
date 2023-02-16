@@ -41,7 +41,7 @@ Sub Class_Globals
 	Private imgIconApp As 				ImageView
 	Private imgIconHome As 				ImageView
 	Private clocktimer 					As Timer
-	Public txtAppsSearch 				As AS_TextFieldAdvanced
+	Public txtAppsSearch 				As EditText
 	
 	Private lstPackageNames 			As List
 	Private RecentlyList 				As List
@@ -173,6 +173,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	CLVSelection.Initialize(clvHome)
 	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_TEMP
 	
+	SetBackgroundTintList(txtAppsSearch, Colors.Transparent, Colors.Transparent)
+	
 	If (FirstStart) Then
 	
 		FixWallTrans
@@ -181,12 +183,11 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		LoadRecentlyList
 		
-		
 		If Not (imgPhone.IsInitialized) Then imgPhone.Initialize("", "")
-				imgPhone.Load(File.DirAssets, "Phone.png")
+		imgPhone.Load(File.DirAssets, "Phone.png")
 		
 		If Not (imgCamera.IsInitialized) Then imgCamera.Initialize("", "")
-				imgCamera.Load(File.DirAssets, "Camera.png")
+		imgCamera.Load(File.DirAssets, "Camera.png")
 		
 		gestHome.SetOnTouchListener(panHome, "gestHome_gesture")
 		
@@ -1234,7 +1235,7 @@ Public Sub Setup
 	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
 	Starter.NormalAppsList.SortTypeCaseInsensitive("Name", True)
 	
-	txtAppsSearch_TextChanged("")
+	txtAppsSearch_TextChanged("", "")
 	
 End Sub
 
@@ -1361,7 +1362,7 @@ End Sub
 
 Public Sub ShowHideKeyboard(Show As Boolean)
 	If Show Then
-		IMElib.ShowKeyboard(txtAppsSearch.TextField)
+		IMElib.ShowKeyboard(txtAppsSearch)
 	Else
 		IMElib.HideKeyboard
 	End If
@@ -1538,7 +1539,7 @@ Private Sub btnSave_Click
 		ResetHomeList
 	
 	If (chkShowIcons.Tag <> chkShowIcons.Checked) Then _
-		txtAppsSearch_TextChanged(txtAppsSearch.Text)
+		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 End Sub
 
 Public Sub ResetHomeList
@@ -2257,19 +2258,6 @@ Public Sub SetupInstalledApps_OLD
 	
 End Sub
 
-Private Sub txtAppsSearch_ClearButtonClick
-	
-	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
-	
-	DisableDragAndDrop(True)
-	ShowHideKeyboard(True)
-	
-End Sub
-
-Private Sub txtAppsSearch_EnterPressed
-	txtAppsSearch_TextChanged(txtAppsSearch.Text)
-End Sub
-
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	MyLog("*** Event: AppsClick: => Index: " & Index & " - Value: " & Value)
 	Dim pkgName As String = CurrentAppApp.PackageName
@@ -2309,6 +2297,33 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	
 End Sub
 
+Private Sub SetBackgroundTintList(View As View,Active As Int, Enabled As Int)
+	Dim States(2,1) As Int
+		States(0,0) = 16842908     	'Active
+		States(1,0) = 16842910    	'Enabled
+	Dim Color(2) As Int = Array As Int(Active,Enabled)
+	Dim CSL As JavaObject
+		CSL.InitializeNewInstance("android.content.res.ColorStateList",Array As Object(States,Color))
+	Dim jo As JavaObject
+		jo.InitializeStatic("android.support.v4.view.ViewCompat")
+		jo.RunMethod("setBackgroundTintList", Array(View, CSL))
+End Sub
+
+
+'Private Sub txtAppsSearch_ClearButtonClick
+'	
+'	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
+'	
+'	DisableDragAndDrop(True)
+'	ShowHideKeyboard(True)
+'	
+'End Sub
+
+Private Sub txtAppsSearch_EnterPressed
+	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+End Sub
+
+
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 '	If HasFocus = False Then
 '		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
@@ -2317,7 +2332,7 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 '	DisableDragAndDrop(True)
 End Sub
 
-Private Sub txtAppsSearch_TextChanged(Text As String)
+Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	Dim i, AppCount As Int = 0
 	
@@ -2341,16 +2356,18 @@ Private Sub txtAppsSearch_TextChanged(Text As String)
 	End If
 	AlphabetLastChars = ""
 	
-	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
-		If (Starter.Pref.AutoRunApp = True) Then
-			Dim pkg As String = clvApps.GetValue(0).As(String)
-			If (LastRunApp <> pkg) Then
-				RunApp(pkg)
-				LastRunApp = pkg
-				AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
+	If (Old <> New) Then
+		If (txtAppsSearch.Text = New) And (AppCount = 1) Then
+			If (Starter.Pref.AutoRunApp = True) Then
+				Dim pkg As String = clvApps.GetValue(0).As(String)
+				If (LastRunApp <> pkg) Then
+					RunApp(pkg)
+					LastRunApp = pkg
+					AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
+				End If
 			End If
 		End If
-	End If
+	end If
 	
 	lblInfo.Text = AppCount & " apps"
 	

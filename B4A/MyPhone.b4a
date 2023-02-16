@@ -82,6 +82,8 @@ Version=12.2
 
 #BridgeLogger: True
 #AdditionalJar: com.android.support:support-v4
+' Change Background Color EditText
+#AdditionalJar: com.android.support:support-compat
 
 Sub Process_Globals
 	Public ActionBarHomeClicked As Boolean

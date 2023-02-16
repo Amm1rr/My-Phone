@@ -1,4 +1,8 @@
 
+# Version: Build 35 Alpha : /02/2023
+* Change txtSearch library to Native
+
+
 # Version: Build 35 Alpha : 11/02/2023
 * Improve Home Menu
 * Improve UI and Animations
