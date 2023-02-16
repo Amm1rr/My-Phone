@@ -10,12 +10,9 @@ ECHO.
 ECHO.
 ECHO.##### Git Add Files
 git add *
-ECHO.
-ECHO.
 ECHO.##### Git Commit:
 ECHO.
 ECHO.	%MSG%:
-ECHO.
 ECHO.
 git commit -m %MSG
 ECHO.
@@ -26,7 +23,7 @@ git push
 COLOR 2
 ECHO.
 ECHO.
-ECHO.##### Git Status:
+ECHO.##### Git Status
 git status
 ECHO.
 ECHO.
