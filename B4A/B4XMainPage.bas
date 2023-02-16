@@ -157,46 +157,6 @@ Public Sub Initialize
 	
 End Sub
 
-Private Sub clocktimer_Tick
-	lblClock.Text = DateTime.Time(DateTime.Now)
-	lblDate.Text = DateTime.Date(DateTime.Now)
-End Sub
-
-Private Sub TimerLongClick_Tick
-			If DateTime.Now - longCLickFirstimeTouched > 350 And longClickX - longClickX0 < 10dip And longClickY - longClickY0 < 10dip Then
-				TimerLongClick.Enabled = False
-				ClickPanCLV = False
-				XUIViewsUtils.PerformHapticFeedback(longClickClvPNL)
-				
-				Select clvLongClick
-					Case 0:	'clvHome
-						TimerLongClick.Enabled = False
-						If panHomRow.Tag = "" Then panHomRow.Tag = 0
-						longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
-						clvHome_ItemLongClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
-						clvLongClick = -1
-					Case 1:	'clvApps
-						TimerLongClick.Enabled = False
-						If panAppRow.Tag = "" Then panAppRow.Tag = 0
-						longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
-						clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
-						clvLongClick = -1
-				End Select
-				
-				
-			End If
-End Sub
-
-Public Sub GetSetting(Key As String) As String
-	Dim tmpResult As String
-	Private CurSql As Cursor
-	CurSql = Starter.sql.ExecQuery("SELECT " & Key & " FROM Settings")
-	CurSql.Position = 0
-	tmpResult = CurSql.GetString("")
-	CurSql.Close
-	Return tmpResult
-End Sub
-
 'This event will be called once, before the page becomes visible.
 Private Sub B4XPage_Created (Root1 As B4XView)
 	MyLog("###### Event: B4XPage_Created")
@@ -282,6 +242,46 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
+End Sub
+
+Private Sub clocktimer_Tick
+	lblClock.Text = DateTime.Time(DateTime.Now)
+	lblDate.Text = DateTime.Date(DateTime.Now)
+End Sub
+
+Private Sub TimerLongClick_Tick
+	If DateTime.Now - longCLickFirstimeTouched > 350 And longClickX - longClickX0 < 10dip And longClickY - longClickY0 < 10dip Then
+		TimerLongClick.Enabled = False
+		ClickPanCLV = False
+		XUIViewsUtils.PerformHapticFeedback(longClickClvPNL)
+				
+		Select clvLongClick
+			Case 0:	'clvHome
+				TimerLongClick.Enabled = False
+				If panHomRow.Tag = "" Then panHomRow.Tag = 0
+				longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+				clvHome_ItemLongClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
+				clvLongClick = -1
+			Case 1:	'clvApps
+				TimerLongClick.Enabled = False
+				If panAppRow.Tag = "" Then panAppRow.Tag = 0
+				longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+				clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
+				clvLongClick = -1
+		End Select
+				
+				
+	End If
+End Sub
+
+Public Sub GetSetting(Key As String) As String
+	Dim tmpResult As String
+	Private CurSql As Cursor
+	CurSql = Starter.sql.ExecQuery("SELECT " & Key & " FROM Settings")
+	CurSql.Position = 0
+	tmpResult = CurSql.GetString("")
+	CurSql.Close
+	Return tmpResult
 End Sub
 
 Public Sub Open_Edgebar()
@@ -1178,45 +1178,6 @@ Public Sub AddtoAlphabetlist(AppName As String, Index As Int)
 	
 End Sub
 
-Private Sub txtAppsSearch_TextChanged(Text As String)
-	
-	Dim i, AppCount As Int = 0
-	
-	clvApps.Clear
-	Alphabet.Clear
-	For Each App As App In Starter.NormalAppsList
-		If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
-			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
-			AppCount = AppCount + 1
-			AddtoAlphabetlist(App.Name, i)
-			i = i + 1
-		End If
-	Next
-	
-	If (AppCount > 20) Then
-		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
-	Else
-		' This line code is mean,
-		' Just Remove Last AlphaList from UI
-		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, True, clvApps.AsView.Top)
-	End If
-	AlphabetLastChars = ""
-	
-	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
-		If (Starter.Pref.AutoRunApp = True) Then
-			Dim pkg As String = clvApps.GetValue(0).As(String)
-			If (LastRunApp <> pkg) Then
-				RunApp(pkg)
-				LastRunApp = pkg
-				AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
-			End If
-		End If
-	End If
-	
-	lblInfo.Text = AppCount & " apps"
-	
-End Sub
-
 Public Sub GetOverlayPermission() As ResumableSub
 	Dim c As RequestDrawOverPermission 'this is the name of the class
 	c.Initialize
@@ -1421,8 +1382,8 @@ Private Sub DisableDragAndDrop(DisableHomeDrag As Boolean)
 			MyLog("DisableDragAndDrop => HideKeyboard")
 			ShowHideKeyboard(False)
 			SaveHomeList
+			dragAllow = False
 		End If
-		dragAllow = False
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -1933,20 +1894,12 @@ End Sub
 Private Sub clvHome_ScrollChanged (Offset As Int)
 	'//-- Hide Home List Popup Menu
 	panHRowMenuHome.Visible = False
-'	DisableDragAndDrop
+	DisableDragAndDrop(False)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
 	panAppMenuApp.Visible = False
 	ShowHideKeyboard(False)
-	DisableDragAndDrop(True)
-End Sub
-
-Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
-	If HasFocus = False Then
-		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
-		ShowHideKeyboard(False)
-	End If
 	DisableDragAndDrop(True)
 End Sub
 
@@ -1963,16 +1916,6 @@ End Sub
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
 	RemoveAsRecently(Value.As(String))
 End Sub
-
-Private Sub txtAppsSearch_ClearButtonClick
-	
-	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
-	
-	DisableDragAndDrop(True)
-	ShowHideKeyboard(True)
-	
-End Sub
-
 
 Private Sub chkAutoRun_CheckedChange(Checked As Boolean)
 	
@@ -2314,6 +2257,15 @@ Public Sub SetupInstalledApps_OLD
 	
 End Sub
 
+Private Sub txtAppsSearch_ClearButtonClick
+	
+	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
+	
+	DisableDragAndDrop(True)
+	ShowHideKeyboard(True)
+	
+End Sub
+
 Private Sub txtAppsSearch_EnterPressed
 	txtAppsSearch_TextChanged(txtAppsSearch.Text)
 End Sub
@@ -2354,6 +2306,53 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 '			SaveRecentlyList
 			
 	End Select
+	
+End Sub
+
+Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
+'	If HasFocus = False Then
+'		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
+'		ShowHideKeyboard(False)
+'	End If
+'	DisableDragAndDrop(True)
+End Sub
+
+Private Sub txtAppsSearch_TextChanged(Text As String)
+	
+	Dim i, AppCount As Int = 0
+	
+	clvApps.Clear
+	Alphabet.Clear
+	For Each App As App In Starter.NormalAppsList
+		If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
+			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
+			AppCount = AppCount + 1
+			AddtoAlphabetlist(App.Name, i)
+			i = i + 1
+		End If
+	Next
+	
+	If (AppCount > 20) Then
+		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
+	Else
+		' This line code is mean,
+		' Just Remove Last AlphaList from UI
+		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, True, clvApps.AsView.Top)
+	End If
+	AlphabetLastChars = ""
+	
+	If (txtAppsSearch.Text = Text) And (AppCount = 1) Then
+		If (Starter.Pref.AutoRunApp = True) Then
+			Dim pkg As String = clvApps.GetValue(0).As(String)
+			If (LastRunApp <> pkg) Then
+				RunApp(pkg)
+				LastRunApp = pkg
+				AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
+			End If
+		End If
+	End If
+	
+	lblInfo.Text = AppCount & " apps"
 	
 End Sub
 
@@ -2505,7 +2504,7 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 				clvLongClick = 0
 				TimerLongClick.Enabled = True
 			
-'			DisableDragAndDrop(False)
+			DisableDragAndDrop(False)
 		Case 1 ' Up
 			TimerLongClick.Enabled = False
 			If panHomRow.Tag = "" Then panHomRow.Tag = 0
@@ -2517,15 +2516,13 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			TimerLongClick.Enabled = False
 			If panHomRow.Tag = "" Then panHomRow.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
-'			DisableDragAndDrop(False)
+			DisableDragAndDrop(False)
 			
 	End Select
 	
 	Return True
 	
 End Sub
-
-
 
 Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	longClickClvIndex = clvApps.GetItemFromView(Sender)
