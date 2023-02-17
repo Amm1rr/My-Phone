@@ -252,8 +252,6 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					
 				NormalAppsList.Add(currentapp)
 				sql.BeginTransaction
-'					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
-'					sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
 					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0);" & _ 
 									 "INSERT Or REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
 				sql.EndTransaction
@@ -273,7 +271,6 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
 		NormalAppsList.SortTypeCaseInsensitive("Name", True)
-		
 		
 		
 		'//----- Load Home
@@ -347,11 +344,14 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
+	MyLog("  END   :=> SetupAppsList : Reload:[" & ForceReload & "]")
+	
 End Sub
 
 Public Sub GetPackageIcon(pkgName As String) As Bitmap
 	Try
-'		LogColor("GetPackageIcon => " & PackageName, Colors.Yellow)
+'		LogShowToast = False
+'		MyLog("GetPackageIcon => " & pkgName)
 		
 		Dim pm As PackageManager, Data As Object = pm.GetApplicationIcon(pkgName)
 		If Data Is BitmapDrawable Then
@@ -371,10 +371,14 @@ Public Sub GetPackageIcon(pkgName As String) As Bitmap
 End Sub
 
 Private Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
-	Dim BMP As Bitmap, BG As Canvas, Drect As Rect
+	
+	Dim BMP As Bitmap, Drect As Rect, BG As Canvas
+	
 	BMP.InitializeMutable(Size,Size)
 	Drect.Initialize(0,0,Size,Size)
 	BG.Initialize2(BMP)
 	BG.DrawDrawable(Drawable,Drect)
+	
 	Return BG.Bitmap
+	
 End Sub

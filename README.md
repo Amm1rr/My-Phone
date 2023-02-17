@@ -1,6 +1,7 @@
 
 # My Phone
 My Phone is a Swiss knife Android Launcher.
+This app is in development
 
 nJoy! ;)
 

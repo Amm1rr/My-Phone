@@ -1584,12 +1584,13 @@ End Sub
 
 Private Sub CloseSetting
 	Starter.LogShowToast = False
-	MyLog("    CloseSetting")
+	MyLog("        CloseSetting")
 	btnSetting.Enabled = True
 	panSetting.Enabled = True
-	panSetting.SetVisibleAnimated(300, False)
-	Sleep(300)
+	panSetting.SetVisibleAnimated(150, False)
+	Sleep(150)
 	panSetting.RemoveAllViews
+	MyLog("END CloseSetting")
 End Sub
 
 Public Sub SaveSettings
