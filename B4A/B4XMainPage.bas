@@ -251,20 +251,18 @@ Private Sub clocktimer_Tick
 End Sub
 
 Private Sub TimerLongClick_Tick
-	If DateTime.Now - longCLickFirstimeTouched > 350 And longClickX - longClickX0 < 10dip And longClickY - longClickY0 < 10dip Then
+	If DateTime.Now - longCLickFirstimeTouched > 400 And longClickX - longClickX0 < 10dip And longClickY - longClickY0 < 10dip Then
 		TimerLongClick.Enabled = False
 		ClickPanCLV = False
 		XUIViewsUtils.PerformHapticFeedback(longClickClvPNL)
 				
 		Select clvLongClick
 			Case 0:	'clvHome
-				TimerLongClick.Enabled = False
 				If panHomRow.Tag = "" Then panHomRow.Tag = 0
 				longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
 				clvHome_ItemLongClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
 				clvLongClick = -1
 			Case 1:	'clvApps
-				TimerLongClick.Enabled = False
 				If panAppRow.Tag = "" Then panAppRow.Tag = 0
 				longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
 				clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
@@ -363,7 +361,8 @@ Private Sub EdgeLoad
 End Sub
 
 Public Sub FixWallTrans
-'	MyLog("FixWallTrans")
+	Starter.LogShowToast = False
+	MyLog("FixWallTrans")
 	'------{ ### Set Navigation Bar Transparent
 	Dim jo As JavaObject
 	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
@@ -500,11 +499,12 @@ Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consum
 '			Return True
 	End Select
 	Return True
+	
 End Sub
 
 'You can see the list of page related events in the B4XPagesManager object. The event name is B4XPage.
 
-' How to User:
+' How to Use:
 ' FontToBitmap(Chr(0xF013), False, 28b, Colors.White)
 ' 
 Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As Float, color As Int) As B4XBitmap
@@ -838,7 +838,8 @@ End Sub
 
 Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 	
-'	MyLog("*** Event: clvHome_ItemClick => Position: " & Position & " - Value: " & Value)
+	Starter.LogShowToast = False
+	MyLog("*** Event: clvHome_ItemClick => Position: " & Position & " - Value: " & Value)
 
 	If (dragAllow = False) Then
 		ConfigCurrentHomeApp(Position, Value.As(String))
@@ -853,7 +854,8 @@ End Sub
 
 Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
 	
-'	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
+	Starter.LogShowToast = False
+	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
 	
 	DisableDragAndDrop(True)
 	Sleep(50)
@@ -931,6 +933,7 @@ End Sub
 
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	
+	Starter.LogShowToast = False
 	MyLog("Event clvApps_ItemClick => Position:" & Position & " - Value:" & Value)
 	
 	ConfigCurrentAppApp(Position, Value)
@@ -947,7 +950,8 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 End Sub
 
 Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
-'	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
+	Starter.LogShowToast = False
+	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
 	ShowHideKeyboard(False)
 	ConfigCurrentAppApp(Position, Value.As(String))
 	CreateAppMenu(Value)
@@ -983,7 +987,8 @@ Private Sub CreateAppMenu(Value As Object)
 End Sub
 
 Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
-'	MyLog("*** Event: clvRowMenu_Click => " & Value.As(String))
+	Starter.LogShowToast = False
+	MyLog("*** Event: clvRowMenu_Click => " & Value.As(String))
 	DisableDragAndDrop(True)
 	dragAllow = False
 	
@@ -1060,7 +1065,9 @@ Private Sub CreateListItemApp(Text As String, _
 							  Width As Int, _
 							  Height As Int) As Panel
 	
-'	MyLog("CreateListItemAppMenu => " & Text & ":" & Tag & ":" & Width.As(String) & ":" & Height.As(String))
+'	Starter.LogShowToast = False
+'	MyLog("CreateListItemApp => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
+	
 	Dim p As B4XView = xui.CreatePanel("")
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
 		p.LoadLayout("AppRow")
@@ -1099,7 +1106,8 @@ Private Sub CreateListItemAppMenu(Text As String, _
 							   Width As Int, _
 							   Height As Int) As Panel
 	
-'	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
+	Starter.LogShowToast = False
+	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
 	Dim p As B4XView = xui.CreatePanel("")
 	
 	p.SetLayoutAnimated(0, 0, 0, Width, Height)
@@ -1131,7 +1139,8 @@ Private Sub CreateListItemHome(Text As String, _
 							   Width As Int, _
 							   Height As Int) As Panel
 	
-'	MyLog("CreateListItemHome => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
+	Starter.LogShowToast = False
+	MyLog("CreateListItemHome => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
 	Dim p As B4XView = xui.CreatePanel("")
 	
 	p.SetLayoutAnimated(0, 0, 0, Width, Height)
@@ -1188,6 +1197,7 @@ Public Sub GetOverlayPermission() As ResumableSub
 End Sub
 
 Public Sub Is_NormalApp(pkgName As String) As Boolean
+	Starter.LogShowToast = False
 	MyLog("Is_NormalApp => " & pkgName)
 	
 	For Each app As App In Starter.NormalAppsList
@@ -1369,8 +1379,10 @@ Public Sub ShowHideKeyboard(Show As Boolean)
 End Sub
 
 Private Sub DisableDragAndDrop(DisableHomeDrag As Boolean)
-'	Starter.LogShowToast = False
-'	MyLog("B4XMainPage: DisableDragAndDrop")
+	
+	Starter.LogShowToast = False
+	MyLog("B4XMainPage: DisableDragAndDrop => HomeDrag: " & DisableHomeDrag)
+	
 	Try
 		
 		'//-- Hide App and Home List Popup Menu
@@ -1571,6 +1583,8 @@ Public Sub ResetHomeList
 End Sub
 
 Private Sub CloseSetting
+	Starter.LogShowToast = False
+	MyLog("    CloseSetting")
 	btnSetting.Enabled = True
 	panSetting.Enabled = True
 	panSetting.SetVisibleAnimated(300, False)
@@ -1899,12 +1913,13 @@ Private Sub clvHome_ScrollChanged (Offset As Int)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
-	panAppMenuApp.Visible = False
+	panAppMenuApp.SetVisibleAnimated(130, False)
 	ShowHideKeyboard(False)
 	DisableDragAndDrop(True)
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
+'	Starter.LogShowToast = False
 '	MyLog("*** Event: panApps_Touch => ShowHideKey(False)")
 	ShowHideKeyboard(False)
 	DisableDragAndDrop(True)
@@ -1924,6 +1939,7 @@ End Sub
 
 Public Sub SetDefaultLauncher
 	
+	Starter.LogShowToast = False
 	MyLog("SetDefaultLauncher")
 	
 	If (GetDefaultLauncher <> Starter.Pref.MyPackage) Then
@@ -1977,6 +1993,13 @@ Private Sub inRange(num As Int, n1 As Int, n2 As Int) As Boolean
 	Return num >= n1 And num <= n2
 End Sub
 
+'	//-- Example, How to use:
+'	ShowCustomToast("Testing...", True, Colors.Green)
+'	Sleep(3000)
+'	'-- Or
+'	Dim cs As CSBuilder
+'		cs.Initialize.Color(Colors.Blue).Size(20).Append("Custom Toast").PopAll
+'	ShowCustomToast(cs, True, Colors.Red)
 Public Sub ToastMessageShow_Custom(Text As Object, LongDuration As Boolean, BackgroundColor As Int)
 	Dim ctxt As JavaObject
 	ctxt.InitializeContext
@@ -1995,7 +2018,7 @@ Public Sub ToastMessageShow_Custom(Text As Object, LongDuration As Boolean, Back
 	toast.RunMethod("show", Null)
 '	toast.RunMethod("cancel", Null) '//-- For Hide Toast
 	
-	'//-- Example, Hot to use this method:
+	'//-- Example, How to use:
 '	ShowCustomToast("Testing...", True, Colors.Green)
 '	Sleep(3000)
 '	'//-- Or
@@ -2059,9 +2082,8 @@ End Sub
 Public Sub setAlwaysOnTop(frm As Object, Value As Boolean)
 	Dim frmJO As JavaObject = frm
 	Dim stage As JavaObject = frmJO.GetField("stage")
-	stage.RunMethod("setAlwaysOnTop", Array(Value))
+		stage.RunMethod("setAlwaysOnTop", Array(Value))
 End Sub
-
 
 Public Sub SetupInstalledApps_OLD
 	
@@ -2259,7 +2281,10 @@ Public Sub SetupInstalledApps_OLD
 End Sub
 
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
+	
+	Starter.LogShowToast = False
 	MyLog("*** Event: AppsClick: => Index: " & Index & " - Value: " & Value)
+	
 	Dim pkgName As String = CurrentAppApp.PackageName
 	Dim Name As String = CurrentAppApp.Name
 	
@@ -2367,7 +2392,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 				End If
 			End If
 		End If
-	end If
+	End If
 	
 	lblInfo.Text = AppCount & " apps"
 	
@@ -2397,7 +2422,8 @@ Private Sub btnHiddenAppsClose_Click
 End Sub
 
 Private Sub btnHiddenApps_Click
-'	MyLog("*** Event: btnHiddenApps_Click")
+	Starter.LogShowToast = False
+	MyLog("*** Event: btnHiddenApps_Click")
 	panHideManager.RemoveAllViews
 	panHideManager.LoadLayout("HiddenApps")
 	panHideManager.SetVisibleAnimated(300, True)
@@ -2431,6 +2457,10 @@ Private Sub panHiddenApps_LongClick
 End Sub
 
 Private Sub CloseHiddenManager
+	
+	Starter.LogShowToast = False
+	MyLog("CloseHiddenManager")
+	
 	panHideManager.SetVisibleAnimated(300, False)
 	Sleep(300)
 	panHideManager.RemoveAllViews
@@ -2442,6 +2472,10 @@ Private Sub clvHiddenApp_ItemClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub LoadHiddenManager
+	
+	Starter.LogShowToast = False
+	MyLog("LoadHiddenManager")
+	
 	CLVSelection.Initialize(clvHiddenApp)
 	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_PERMANENT
 	

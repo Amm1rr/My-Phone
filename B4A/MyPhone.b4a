@@ -96,7 +96,7 @@ Sub Globals
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
-	MyLog("****** Event: Main: Activity_Create => IsFirstTime" & FirstTime)
+	MyLog("****** Event: Main: Activity_Create => IsFirstTime: " & FirstTime)
 	Dim pm As B4XPagesManager
 		pm.Initialize(Activity)
 End Sub

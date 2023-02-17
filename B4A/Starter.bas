@@ -49,10 +49,12 @@ Sub Service_Create
 	'This is the program entry point.
 	'This is a good place to load resources that are not specific to a single activity.
 	
+	LogList.Initialize
+	MyLog("Service :=> Service_Create")
+	
 	CreateDB
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
-	LogList.Initialize
 	
 	SetupSettings
 	SetupAppsList(False)
@@ -60,6 +62,7 @@ Sub Service_Create
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
+	MyLog("Service :=> Service_Start")
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -80,6 +83,7 @@ Sub Service_Destroy
 End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
+	LogShowToast = False
 	MyLog("*** Event: PE_PackageRemoved => " & Package)
 	
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
@@ -93,6 +97,7 @@ Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
+	LogShowToast = False
 	MyLog("*** Event: PE_PackageAdded => " & Package)
 	
 	SetupAppsList(True)
@@ -113,7 +118,7 @@ Public Sub MyLog (Text As String)
 '		txtWriter.Close
 '	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
 
-	LogList.Add(Text)
+	LogList.Add(Text & " (" & DateTime.Time(DateTime.Now) & ")")
 	Log(Text)
 	If (ShowToastLog) Then
 		If (LogShowToast) Then
@@ -125,6 +130,7 @@ Public Sub MyLog (Text As String)
 End Sub
 
 Public Sub CreateDB
+	MyLog("Service :=> CreateDB")
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
@@ -199,7 +205,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("Service :=> SetupAppsList : " & ForceReload)
+	MyLog("Service :=> SetupAppsList : Reload:[" & ForceReload & "]")
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
