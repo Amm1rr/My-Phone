@@ -535,7 +535,7 @@ Public Sub GoHome(ClearSearch As Boolean)
 '		If (AppMenu.IsInitialized) Then AppMenu.Visible = False
 '		If ClearSearch Then txtAppsSearch.Text = ""
 
-		ShowHideKeyboard(False)
+		HideKeyboard
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -553,11 +553,11 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	
 	If (Position = 1) Then
 '		MyLog("*** Event: TabStrip1_pageSelected => ShowHideKey(True)")
-		If Starter.Pref.ShowKeyboard Then ShowHideKeyboard(True)
+		If Starter.Pref.ShowKeyboard Then ShowKeyboard
 	Else
 		Try
 '			MyLog("*** Event: TabStrip1_pageSelected => ShowHideKey(False)")
-			ShowHideKeyboard(False)
+			HideKeyboard
 		Catch
 			MyLog("+++***+++*** Event: TabStrip1_pageSelected => Error Caught => " & LastException.Message)
 			ToastMessageShow(LastException.Message, True)
@@ -954,7 +954,7 @@ End Sub
 Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
 	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard")
-	ShowHideKeyboard(False)
+	HideKeyboard
 	ConfigCurrentAppApp(Position, Value.As(String))
 	CreateAppMenu(Value)
 End Sub
@@ -1372,12 +1372,12 @@ Public Sub GetAppNamebyPackage(pkgName As String) As String
 	Return ""
 End Sub
 
-Public Sub ShowHideKeyboard(Show As Boolean)
-	If Show Then
-		IMElib.ShowKeyboard(txtAppsSearch)
-	Else
-		IMElib.HideKeyboard
-	End If
+Public Sub ShowKeyboard
+	IMElib.ShowKeyboard(txtAppsSearch)
+End Sub
+
+Public Sub HideKeyboard
+	IMElib.HideKeyboard
 End Sub
 
 ' Hide Home Popup Menu
@@ -1400,33 +1400,8 @@ Public Sub HideAppMenu
 	panAppMenuApp.SetVisibleAnimated(100, False)
 End Sub
 
-Private Sub DisableDragAndDrop(DisableHomeDrag As Boolean)
-	
-'	Starter.LogShowToast = False
-'	MyLog("B4XMainPage: DisableDragAndDrop => HomeDrag: " & DisableHomeDrag)
-	
-	Try
-		
-		'//-- Hide App and Home List Popup Menu
-		panHRowMenuHome.SetVisibleAnimated(130, False)
-		panAppMenuApp.SetVisibleAnimated(150, False)
-		
-		'//-- Save and Disabled Drag and Drop Home List App
-		If (dragAllow) And (DisableHomeDrag) Then
-			dragger.RemoveDragButtons
-			MyLog("DisableDragAndDrop => HideKeyboard")
-			ShowHideKeyboard(False)
-			SaveHomeList
-			dragAllow = False
-		End If
-		
-	Catch
-		ToastMessageShow(LastException.Message, True)
-		MyLog("++++++ Error Caught: DisableDragAndDrop => " & LastException)
-	End Try
-End Sub
-
 Private Sub RunApp(pkgName As String)
+	
 	MyLog("RunApp => " & pkgName)
 	
 	Try
@@ -1446,10 +1421,13 @@ Private Sub RunApp(pkgName As String)
 End Sub
 
 Private Sub panApps_Click
+	
 	Starter.LogShowToast = False
 	MyLog("*** Event: panApps_Click => HideKeyboard")
-	ShowHideKeyboard(False)
+	
+	HideKeyboard
 	HideAppMenu
+	
 End Sub
 
 Sub AnimateView(View As B4XView, Duration As Int, Left As Int, Top As Int, Width As Int, Height As Int)
@@ -1471,7 +1449,7 @@ End Sub
 Private Sub btnSetting_Click
 	Starter.LogShowToast = False
 	MyLog("*** Event: btnSetting_Click => HideKeyboard")
-	ShowHideKeyboard(False)
+	HideKeyboard
 	HideAppMenu
 	
 	btnSetting.Enabled = False
@@ -1817,7 +1795,7 @@ End Sub
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 	Starter.LogShowToast = False
 	MyLog("*** Event: panSettings_Touch => Action: " & Action)
-	ShowHideKeyboard(False)
+	HideKeyboard
 	Select Action
 		Case 0 ' Down
 			If (DblClick(x, y)) Then CloseSetting
@@ -1924,7 +1902,7 @@ End Sub
 
 Private Sub panSettings_LongClick
 	MyLog("*** Event: panSettings_LongClick - HideKeyboard")
-	ShowHideKeyboard(False)
+	HideKeyboard
 	CloseSetting
 End Sub
 
@@ -1936,7 +1914,7 @@ End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
 	panAppMenuApp.SetVisibleAnimated(130, False)
-	ShowHideKeyboard(False)
+	HideKeyboard
 	HideAppMenu
 End Sub
 
@@ -1944,7 +1922,7 @@ Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("*** Event: panApps_Touch => A: " & Action & " : HideKeyboard")
 	If (Action = 0) Then
-		ShowHideKeyboard(False)
+		HideKeyboard
 		HideAppMenu
 	End If
 End Sub
@@ -2468,7 +2446,7 @@ End Sub
 Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("*** Event: panSettings_Touch => Action: " & Action)
-	ShowHideKeyboard(False)
+	HideKeyboard
 	Select Action
 		Case 0 ' Down
 			If (DblClick(x, y)) Then CloseHiddenManager
