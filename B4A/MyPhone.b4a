@@ -92,11 +92,12 @@ Sub Process_Globals
 End Sub
 
 Sub Globals
-	
+	Private LogListColor 	As Int = 0xFF09EB06
+	Private LogListColorEnd As Int = 0xFF09EB06
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
-	MyLog("****** Event: Main: Activity_Create => IsFirstTime: " & FirstTime, Starter.LogListColor)
+	MyLog("****** Event: Main: Activity_Create => IsFirstTime: " & FirstTime, LogListColor)
 	Dim pm As B4XPagesManager
 		pm.Initialize(Activity)
 End Sub
@@ -106,13 +107,13 @@ End Sub
 
 public Sub RestartActivity
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: RestartActivity", Starter.LogListColor)
+	MyLog("****** Event: Main: RestartActivity", LogListColor)
 	Activity.Finish
 	StartActivity(Me)
 End Sub
 
 Sub Activity_ActionBarHomeClick
-	MyLog("****** Event: Main: Activity_ActionBarHomeClick", Starter.LogListColor)
+	MyLog("****** Event: Main: Activity_ActionBarHomeClick", LogListColor)
 	ActionBarHomeClicked = True
 	B4XPages.Delegate.Activity_ActionBarHomeClick
 	ActionBarHomeClicked = False
@@ -120,19 +121,17 @@ End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main:Activity_KeyPress => " & KeyCode, Starter.LogListColor)
+	MyLog("****** Event: Main:Activity_KeyPress => " & KeyCode, LogListColor)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
 			If (B4XPages.MainPage.txtAppsSearch.Text <> "") Then B4XPages.MainPage.txtAppsSearch.Text = ""
 			B4XPages.MainPage.GoHome(True)
-			Return True
 		Case KeyCodes.KEYCODE_HOME
 			B4XPages.MainPage.GoHome(True)
-			Return True
 	End Select
 	
-	Return True
+	Return False
 
 '	If KeyCode = KeyCodes.KEYCODE_BACK Then
 '		Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
@@ -145,7 +144,7 @@ End Sub
 Sub Activity_Resume
 	
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: Activity_Resume", Starter.LogListColor)
+	MyLog("****** Event: Main: Activity_Resume", LogListColor)
 	
 	If (GoHomeAllow) Then
 		B4XPages.MainPage.GoHome(False)
@@ -158,18 +157,18 @@ End Sub
 Sub Activity_Pause (UserClosed As Boolean)
 	
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: Activity_Pause => UserClosed: " & UserClosed, Starter.LogListColor)
+	MyLog("****** Event: Main: Activity_Pause => UserClosed: " & UserClosed, LogListColor)
 	B4XPages.Delegate.Activity_Pause
 	
 End Sub
 
 Sub Activity_PermissionResult (Permission As String, Result As Boolean)
-	MyLog("****** Event: Main: PermissionResult => " & Permission & ":" & Result, Starter.LogListColor)
+	MyLog("****** Event: Main: PermissionResult => " & Permission & ":" & Result, LogListColor)
 	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
 End Sub
 
 Sub Create_Menu (Menu As Object)
-	MyLog("****** Event: Main: Create_Menu", Starter.LogListColor)
+	MyLog("****** Event: Main: Create_Menu", LogListColor)
 	B4XPages.Delegate.Create_Menu(Menu)
 End Sub
 
@@ -181,7 +180,7 @@ End Sub
 public boolean _onCreateOptionsMenu(android.view.Menu menu) {
 	 processBA.raiseEvent(null, "create_menu", menu);
 	 return true;
-	
+	 
 }
 #End If
 #End Region

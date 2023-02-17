@@ -24,7 +24,8 @@ Sub Process_Globals
 	Public LogMode 					As Boolean  = True
 	Public LogShowToast				As Boolean  = True 
 	Public LogList 					As List
-	Public LogListColor				As Int		= Colors.Black
+	Private LogListColor			As Int		= 0xFF4040FF
+	Private LogListColorEnd			As Int 		= 0xFF8989FF
 	Public Pref 					As Settings
 	Public const NAVBARHEIGHT		As Int = 24
 	
@@ -51,7 +52,9 @@ Sub Service_Create
 	'This is a good place to load resources that are not specific to a single activity.
 	
 	LogList.Initialize
-	MyLog("Service :=> Service_Create", Colors.Cyan)
+	MyLog("########################### " & CRLF _
+			& "Service :=> Service_Create" _
+			& CRLF & "########################### " & CRLF, Colors.Magenta)
 	
 	CreateDB
 	
@@ -118,8 +121,11 @@ Public Sub MyLog (Text As String, color As Int)
 '		txtWriter.Close
 '	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
 
-	LogList.Add(Text & " (" & DateTime.Time(DateTime.Now) & ")")
-	LogColor(Text & " (" & DateTime.Time(DateTime.Now) & ")", color)
+	DateTime.DateFormat="HH:mm:ss.SSS"
+	Dim time As String = DateTime.Date(DateTime.Now)
+	
+	LogList.Add(Text & " (" & time & ")")
+	LogColor(Text & " (" & time & ")", color)
 	If (ShowToastLog) Then
 		If (LogShowToast) Then
 			ToastMessageShow(Text, False)
@@ -130,7 +136,7 @@ Public Sub MyLog (Text As String, color As Int)
 End Sub
 
 Private Sub CreateDB
-	MyLog("Service :=> CreateDB", LogListColor)
+	MyLog("CreateDB", LogListColor)
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
@@ -140,7 +146,7 @@ Private Sub CreateDB
 End Sub
 
 Private Sub SetupSettings
-	MyLog("Service :=> SetupSettings", LogListColor)
+	MyLog("SetupSettings", LogListColor)
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -180,8 +186,7 @@ Private Sub SetupSettings
 	Next
 	CurSettingSql.Close
 	
-'	LogColor("SetupSettings: " & Pref, Colors.Red)
-
+	MyLog("End SetupSettings", LogListColorEnd)
 End Sub
 
 Public Sub ValToBool(value As Object) As Boolean
@@ -205,7 +210,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("Service :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
+	MyLog("SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -344,7 +349,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
-	MyLog("  END   :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
+	MyLog("End Service :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
 	
 End Sub
 
