@@ -70,7 +70,7 @@ Sub ShowWindow
 End Sub
 
 Sub OverlayEdge_Touch(Action As Int, X As Float, Y As Float, ScreenX As Float, ScreenY As Float)
-	Starter.MyLog("Event: OverlayEdge_Touch => " & Action)
+	Starter.MyLog("Event: OverlayEdge_Touch => " & Action, Starter.LogListColor)
 	
 	If (Action = 0) Then
 		XUIViewsUtils.PerformHapticFeedback(Sender)

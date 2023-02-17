@@ -17,13 +17,14 @@ Sub Process_Globals
 	Dim PhID As PhoneId
 	
 	Public sql 						As SQL
-	Public AppsList 				As List			'-- All Installed Apps
-	Public NormalAppsList 			As List			'-- Normal Apps to show
-	Public HomeApps 				As List			'-- Home Screen Apps
-	Public ShowToastLog 			As Boolean = True
-	Public LogMode 					As Boolean = True
+	Public AppsList 				As List		'-- All Installed Apps
+	Public NormalAppsList 			As List		'-- Normal Apps to show
+	Public HomeApps 				As List		'-- Home Screen Apps
+	Public ShowToastLog 			As Boolean  = True
+	Public LogMode 					As Boolean  = True
+	Public LogShowToast				As Boolean  = True 
 	Public LogList 					As List
-	Public LogShowToast				As Boolean = True 
+	Public LogListColor				As Int		= Colors.Black
 	Public Pref 					As Settings
 	Public const NAVBARHEIGHT		As Int = 24
 	
@@ -50,19 +51,18 @@ Sub Service_Create
 	'This is a good place to load resources that are not specific to a single activity.
 	
 	LogList.Initialize
-	MyLog("Service :=> Service_Create")
+	MyLog("Service :=> Service_Create", Colors.Cyan)
 	
 	CreateDB
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
 	
 	SetupSettings
-	SetupAppsList(False)
 
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
-	MyLog("Service :=> Service_Start")
+	MyLog("Service :=> Service_Start", LogListColor)
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -74,7 +74,7 @@ End Sub
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	LogColor(StackTrace, Colors.Red)
 	LogColor(Error.Message, Colors.Red)
-	MyLog("Application_Error: " & Error & ":" & StackTrace)
+	MyLog("Application_Error: " & Error & ":" & StackTrace, LogListColor)
 	Return True
 End Sub
 
@@ -84,7 +84,7 @@ End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageRemoved => " & Package)
+	MyLog("*** Event: PE_PackageRemoved => " & Package, LogListColor)
 	
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
@@ -98,7 +98,7 @@ End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageAdded => " & Package)
+	MyLog("*** Event: PE_PackageAdded => " & Package, LogListColor)
 	
 	SetupAppsList(True)
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
@@ -108,7 +108,7 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	ToastMessageShow(name & " Installed!", True)
 End Sub
 
-Public Sub MyLog (Text As String)
+Public Sub MyLog (Text As String, color As Int)
 	
 	If Not (LogMode) Then Return
 	
@@ -119,7 +119,7 @@ Public Sub MyLog (Text As String)
 '	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
 
 	LogList.Add(Text & " (" & DateTime.Time(DateTime.Now) & ")")
-	Log(Text & " (" & DateTime.Time(DateTime.Now) & ")")
+	LogColor(Text & " (" & DateTime.Time(DateTime.Now) & ")", color)
 	If (ShowToastLog) Then
 		If (LogShowToast) Then
 			ToastMessageShow(Text, False)
@@ -129,8 +129,8 @@ Public Sub MyLog (Text As String)
 	LogShowToast = True
 End Sub
 
-Public Sub CreateDB
-	MyLog("Service :=> CreateDB")
+Private Sub CreateDB
+	MyLog("Service :=> CreateDB", LogListColor)
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
@@ -140,7 +140,7 @@ Public Sub CreateDB
 End Sub
 
 Private Sub SetupSettings
-	MyLog("Service :=> SetupSettings")
+	MyLog("Service :=> SetupSettings", LogListColor)
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -205,7 +205,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("Service :=> SetupAppsList : Reload:[" & ForceReload & "]")
+	MyLog("Service :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -344,7 +344,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
-	MyLog("  END   :=> SetupAppsList : Reload:[" & ForceReload & "]")
+	MyLog("  END   :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
 	
 End Sub
 
@@ -364,7 +364,7 @@ Public Sub GetPackageIcon(pkgName As String) As Bitmap
 		If (LastException.Message = "java.lang.Exception:  android.content.pm.PackageManager$NameNotFoundException: yes") Then
 			Return Null
 		Else
-			MyLog("#Service:Starter => GetPackageIcon: " & pkgName & " - " & LastException.Message)
+			MyLog("#Service:Starter => GetPackageIcon: " & pkgName & " - " & LastException.Message, LogListColor)
 			Return Null
 		End If
 	End Try
