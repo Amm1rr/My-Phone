@@ -137,7 +137,7 @@ Public Sub Initialize
 	IMElib.Initialize("")
 	
 	Alphabet.Initialize
-	AlphabetTable.Initialize("", "")
+	AlphabetTable.Initialize("")
 	
 	DateTime.TimeFormat = "hh:mm:ss"
 	lblClock.Initialize("")
@@ -174,6 +174,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	CLVSelection.Mode = CLVSelection.MODE_SINGLE_ITEM_TEMP
 	
 	SetBackgroundTintList(txtAppsSearch, Colors.Transparent, Colors.Transparent)
+	
+	HideAppMenu
 	
 	If (FirstStart) Then
 	
@@ -411,9 +413,6 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 '	Starter.LogShowToast = False
 '	MyLog("*** Event: gestHome_gesture")
 	
-	DisableDragAndDrop(True)
-	DisableEdgeEdit
-	
 	If action = gestHome.ACTION_MOVE Then
 		movecount = movecount + 1
 		' noise on the touch screen electroincs can cause lots of apparent move events
@@ -433,6 +432,9 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 		Case gestHome.ACTION_DOWN
 			a = "Down "
 '			Log("Gesture started")
+			
+			HideHomeMenu(True)
+			DisableEdgeEdit
 			
 '			'// Double Tap
 '			If (DateTime.Now - LastClick) < 250 Then
@@ -528,7 +530,7 @@ Public Sub GoHome(ClearSearch As Boolean)
 	MyLog("GoHome: ClearSearch => " & ClearSearch)
 	Try
 		Tabstrip1.ScrollTo(0, True)
-		DisableDragAndDrop(True)
+		HideHomeMenu(True)
 '		If (HomeMenu.IsInitialized) Then HomeMenu.Visible = False
 '		If (AppMenu.IsInitialized) Then AppMenu.Visible = False
 '		If ClearSearch Then txtAppsSearch.Text = ""
@@ -545,7 +547,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	
 '	MyLog("*** Event: TabStrip1_pageSelected => " & Position)
 
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	CloseSetting
 	DisableEdgeEdit
 	
@@ -847,7 +849,7 @@ Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 		clvHome.AsView.BringToFront
 		RunApp(CurrentHomeApp.PackageName)
 	End If
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	
 End Sub
 
@@ -857,7 +859,7 @@ Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
 	MyLog("*** Event: clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value)
 	
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	Sleep(50)
 	
 	If (dragAllow = False) Then
@@ -938,14 +940,14 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	
 	ConfigCurrentAppApp(Position, Value)
 	
-	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
-		DisableDragAndDrop(True)
+	If (panAppMenuApp.IsInitialized) Then
+		HideAppMenu
 	Else
-		RunApp(Value.As(String))
-		clvApps.AsView.BringToFront
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
 		AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
 '		SaveRecentlyList
+		RunApp(Value.As(String))
+		clvApps.AsView.BringToFront
 	End If
 End Sub
 
@@ -959,7 +961,7 @@ End Sub
 
 Private Sub CreateAppMenu(Value As Object)
 	MyLog("CreateAppMenu => " & Value.As(String))
-	DisableDragAndDrop(True)
+	HideAppMenu
 	
 	panAppMenuApp.RemoveAllViews
 	panAppMenuApp.LoadLayout("AppRowMenu")
@@ -989,7 +991,7 @@ End Sub
 Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
 	MyLog("*** Event: clvRowMenu_Click => " & Value.As(String))
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	dragAllow = False
 	
 	Select Value
@@ -1378,10 +1380,30 @@ Public Sub ShowHideKeyboard(Show As Boolean)
 	End If
 End Sub
 
+' Hide Home Popup Menu
+' DisHomeDrag = Disable Home Drag and Drop
+Public Sub HideHomeMenu (DisHomeDrag As Boolean)
+	panHRowMenuHome.SetVisibleAnimated(100, False)
+	
+	'//-- Save and Disabled Drag and Drop Home List App
+	If (dragAllow) And (DisHomeDrag) Then
+		dragger.RemoveDragButtons
+		MyLog("HideHomeMenu and Disable Home Drag and Drop List")
+		SaveHomeList
+		dragAllow = False
+	End If
+	
+End Sub
+
+' Hide App Popup Menu
+Public Sub HideAppMenu
+	panAppMenuApp.SetVisibleAnimated(100, False)
+End Sub
+
 Private Sub DisableDragAndDrop(DisableHomeDrag As Boolean)
 	
-	Starter.LogShowToast = False
-	MyLog("B4XMainPage: DisableDragAndDrop => HomeDrag: " & DisableHomeDrag)
+'	Starter.LogShowToast = False
+'	MyLog("B4XMainPage: DisableDragAndDrop => HomeDrag: " & DisableHomeDrag)
 	
 	Try
 		
@@ -1427,7 +1449,7 @@ Private Sub panApps_Click
 	Starter.LogShowToast = False
 	MyLog("*** Event: panApps_Click => HideKeyboard")
 	ShowHideKeyboard(False)
-	DisableDragAndDrop(True)
+	HideAppMenu
 End Sub
 
 Sub AnimateView(View As B4XView, Duration As Int, Left As Int, Top As Int, Width As Int, Height As Int)
@@ -1450,7 +1472,7 @@ Private Sub btnSetting_Click
 	Starter.LogShowToast = False
 	MyLog("*** Event: btnSetting_Click => HideKeyboard")
 	ShowHideKeyboard(False)
-	DisableDragAndDrop(True)
+	HideAppMenu
 	
 	btnSetting.Enabled = False
 	panSetting.RemoveAllViews
@@ -1668,7 +1690,7 @@ Public Sub SaveHomeList
 End Sub
 
 Private Sub lblClock_Click
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	If (Starter.Pref.ClockApp = "") Then
 		ToastMessageShow_Custom("First select Clock App from Setting page", False, Colors.Blue - 100)
 		Tabstrip1.ScrollTo(1, True)
@@ -1681,12 +1703,12 @@ Private Sub lblClock_Click
 End Sub
 
 Private Sub btnPhone_Click
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	Run_PhoneDialer
 End Sub
 
 Public Sub Run_PhoneDialer
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	Dim Intent1 As Intent
 	Intent1.Initialize(Intent1.ACTION_VIEW, "tel:")
 	StartActivity (Intent1)
@@ -1694,7 +1716,6 @@ End Sub
 
 Public Sub Run_Calendar
 	Try
-		DisableDragAndDrop(True)
 		Dim i As Intent
 		Dim phid As String = "phid"
 		i.Initialize("android.intent.action.VIEW", "content://com.android.calendar/time/" & DateTime.Now)
@@ -1709,7 +1730,7 @@ End Sub
 
 Public Sub Run_Alarm
 	Try
-		DisableDragAndDrop(True)
+		HideHomeMenu(True)
 		Dim i As Intent
 		i.Initialize("android.intent.action.SET_ALARM", "")
 		StartActivity(i)
@@ -1720,7 +1741,7 @@ Public Sub Run_Alarm
 End Sub
 
 Private Sub panPhone_Click
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	If (Starter.Pref.PhoneApp = "") Then
 		Run_PhoneDialer
 	Else
@@ -1729,7 +1750,7 @@ Private Sub panPhone_Click
 End Sub
 
 Private Sub panCamera_Click
-	DisableDragAndDrop(True)
+	HideHomeMenu(True)
 	If (Starter.Pref.CameraApp = "") Then
 		ToastMessageShow_Custom("First select Camera App from Setting page", False, Colors.Blue - 100)
 		Tabstrip1.ScrollTo(1, True)
@@ -1910,20 +1931,22 @@ End Sub
 Private Sub clvHome_ScrollChanged (Offset As Int)
 	'//-- Hide Home List Popup Menu
 	panHRowMenuHome.Visible = False
-	DisableDragAndDrop(False)
+	HideHomeMenu(False)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
 	panAppMenuApp.SetVisibleAnimated(130, False)
 	ShowHideKeyboard(False)
-	DisableDragAndDrop(True)
+	HideAppMenu
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
-'	MyLog("*** Event: panApps_Touch => ShowHideKey(False)")
-	ShowHideKeyboard(False)
-	DisableDragAndDrop(True)
+'	MyLog("*** Event: panApps_Touch => A: " & Action & " : HideKeyboard")
+	If (Action = 0) Then
+		ShowHideKeyboard(False)
+		HideAppMenu
+	End If
 End Sub
 
 Private Sub tagApps_ItemClick (Index As Int, Value As Object)
@@ -2289,7 +2312,7 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	Dim pkgName As String = CurrentAppApp.PackageName
 	Dim Name As String = CurrentAppApp.Name
 	
-	DisableDragAndDrop(True)
+	HideAppMenu
 	dragAllow = False
 	
 	Select Value
@@ -2313,11 +2336,11 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 			ToastMessageShow("Rename => " & Name, False)
 			
 		Case pkgName	'Run App
-			RunApp(Value.As(String))
-			clvApps.AsView.BringToFront
 '			tagApps.LabelProperties.TextColor = Colors.Magenta
 			AddToRecently(Name, pkgName, False)
 '			SaveRecentlyList
+			RunApp(Value.As(String))
+			clvApps.AsView.BringToFront
 			
 	End Select
 	
@@ -2340,7 +2363,7 @@ End Sub
 '	
 '	MyLog("*** Event: txtAppsSearch_ClearButtonClick => ShowKeyboard")
 '	
-'	DisableDragAndDrop(True)
+'	HideAppMenu
 '	ShowHideKeyboard(True)
 '	
 'End Sub
@@ -2355,7 +2378,7 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 '		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
 '		ShowHideKeyboard(False)
 '	End If
-'	DisableDragAndDrop(True)
+'	HideAppMenu
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
@@ -2387,9 +2410,10 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 			If (Starter.Pref.AutoRunApp = True) Then
 				Dim pkg As String = clvApps.GetValue(0).As(String)
 				If (LastRunApp <> pkg) Then
-					RunApp(pkg)
 					LastRunApp = pkg
 					AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
+					RunApp(pkg)
+					clvApps.AsView.BringToFront
 				End If
 			End If
 		End If
@@ -2556,19 +2580,18 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 				clvLongClick = 0
 				TimerLongClick.Enabled = True
 			
-			DisableDragAndDrop(False)
+			HideHomeMenu(False)
 		Case 1 ' Up
 			TimerLongClick.Enabled = False
 			If panHomRow.Tag = "" Then panHomRow.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
 			If (ClickPanCLV) And (dragAllow = False) Then _
-				RunApp(clvHome.GetValue(longClickClvIndex))
+				clvHome_ItemClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
 			
 		Case 3 ' Move
 			TimerLongClick.Enabled = False
 			If panHomRow.Tag = "" Then panHomRow.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
-			DisableDragAndDrop(False)
 			
 	End Select
 	
@@ -2592,19 +2615,19 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 				clvLongClick = 1
 				TimerLongClick.Enabled = True
 			
-			DisableDragAndDrop(True)
+			HideAppMenu
+			
 		Case 1 ' Up
 			TimerLongClick.Enabled = False
 			If panAppRow.Tag = "" Then panAppRow.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
 			If (ClickPanCLV) Then _
-				RunApp(clvApps.GetValue(longClickClvIndex))
+				clvApps_ItemClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
 			
 		Case 3 ' Move
 			TimerLongClick.Enabled = False
 			If panAppRow.Tag = "" Then panAppRow.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
-			DisableDragAndDrop(True)
 			
 	End Select
 	

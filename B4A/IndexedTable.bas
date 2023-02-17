@@ -5,23 +5,18 @@ Type=Class
 Version=5.5
 @EndOfDesignText@
 'Class module
-#Event: ItemClick (Position As Int, Value As Object)
 Sub Class_Globals
 	Public 	tv 							As List
 	Private pnlIndex 					As Panel
-	Private mTarget 					As Object
-	Private mEventName 					As String
 	Private hoverLabel 					As Label
 	Private const PANEL_INDEX_WIDTH 	As Float = 40dip
 	Private hoverLabelTopMargin 		As Int
 	Private lblLast As Label
 End Sub
 
-Public Sub Initialize (vCallback As Object, vEventName As String)
+Public Sub Initialize (vEventName As String)
 	Starter.LogShowToast = False
 	Starter.MyLog("****** Event: IndexedTable => " & vEventName)
-	mTarget = vCallback
-	mEventName = vEventName
 	pnlIndex.Initialize("pnlIndex")
 	Dim cd As ColorDrawable
 		cd.Initialize2(Colors.White, 12dip, 2dip, 0xFF3A89D3)

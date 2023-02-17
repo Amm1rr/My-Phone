@@ -119,7 +119,7 @@ Public Sub MyLog (Text As String)
 '	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
 
 	LogList.Add(Text & " (" & DateTime.Time(DateTime.Now) & ")")
-	Log(Text)
+	Log(Text & " (" & DateTime.Time(DateTime.Now) & ")")
 	If (ShowToastLog) Then
 		If (LogShowToast) Then
 			ToastMessageShow(Text, False)
