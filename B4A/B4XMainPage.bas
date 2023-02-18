@@ -565,6 +565,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 		If Starter.Pref.ShowKeyboard Then _
 			ShowKeyboard
 	Else					'// Home
+		HideAppMenu
 		CloseSetting
 		HideKeyboard
 	End If
@@ -1682,6 +1683,9 @@ End Sub
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("*** Event: panSettings_Touch => Action: " & Action, Colors.LightGray)
+	
+	LogColor("Hide", Colors.Red)
+	HideAppMenu
 	HideKeyboard
 	Select Action
 		Case 0 ' Down
@@ -1814,10 +1818,12 @@ Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 End Sub
 
 Private Sub tagApps_ItemClick (Index As Int, Value As Object)
+	HideAppMenu
 	RunApp(Value.As(String))
 End Sub
 
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
+	HideAppMenu
 	RemoveAsRecently(Value.As(String))
 End Sub
 
@@ -2233,22 +2239,25 @@ End Sub
 'End Sub
 
 Private Sub txtAppsSearch_EnterPressed
+	HideAppMenu
 	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 End Sub
 
 
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
+	HideAppMenu
 '	If HasFocus = False Then
 '		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
 '		ShowHideKeyboard(False)
 '	End If
-'	HideAppMenu
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 '	Starter.LogShowToast = False
 '	MyLog("txtAppsSearch_TextChanged => " & Old & " : " & New, LogListColor)
+	
+	HideAppMenu
 	
 	Dim i, AppCount As Int = 0
 	
