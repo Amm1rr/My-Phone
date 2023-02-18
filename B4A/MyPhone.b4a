@@ -92,12 +92,12 @@ Sub Process_Globals
 End Sub
 
 Sub Globals
-	Private LogListColor 	As Int = 0xFF09EB06
-	Private LogListColorEnd As Int = 0xFF09EB06
+	Private LogListColor 	As Int = 0xFFB4AF2E
+'	Private LogListColorEnd As Int = 0xFFA49E1B
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
-	MyLog("****** Event: Main: Activity_Create => IsFirstTime: " & FirstTime, LogListColor)
+	MyLog("Main: Activity_Create => IsFirstTime: " & FirstTime, LogListColor, True)
 	Dim pm As B4XPagesManager
 		pm.Initialize(Activity)
 End Sub
@@ -107,13 +107,13 @@ End Sub
 
 public Sub RestartActivity
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: RestartActivity", LogListColor)
+	MyLog("Main: RestartActivity", LogListColor, True)
 	Activity.Finish
 	StartActivity(Me)
 End Sub
 
 Sub Activity_ActionBarHomeClick
-	MyLog("****** Event: Main: Activity_ActionBarHomeClick", LogListColor)
+	MyLog("Event: Main: Activity_ActionBarHomeClick", LogListColor, True)
 	ActionBarHomeClicked = True
 	B4XPages.Delegate.Activity_ActionBarHomeClick
 	ActionBarHomeClicked = False
@@ -121,7 +121,7 @@ End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main:Activity_KeyPress => " & KeyCode, LogListColor)
+	MyLog("Event: Main:Activity_KeyPress => " & KeyCode, LogListColor, True)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
@@ -144,7 +144,7 @@ End Sub
 Sub Activity_Resume
 	
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: Activity_Resume", LogListColor)
+	MyLog("Event: Main: Activity_Resume", LogListColor, True)
 	
 	If (GoHomeAllow) Then
 		B4XPages.MainPage.GoHome(False)
@@ -157,23 +157,23 @@ End Sub
 Sub Activity_Pause (UserClosed As Boolean)
 	
 	Starter.LogShowToast = False
-	MyLog("****** Event: Main: Activity_Pause => UserClosed: " & UserClosed, LogListColor)
+	MyLog("Event: Main: Activity_Pause => UserClosed: " & UserClosed, LogListColor, True)
 	B4XPages.Delegate.Activity_Pause
 	
 End Sub
 
 Sub Activity_PermissionResult (Permission As String, Result As Boolean)
-	MyLog("****** Event: Main: PermissionResult => " & Permission & ":" & Result, LogListColor)
+	MyLog("Event: Main: PermissionResult => " & Permission & ":" & Result, LogListColor, True)
 	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
 End Sub
 
 Sub Create_Menu (Menu As Object)
-	MyLog("****** Event: Main: Create_Menu", LogListColor)
+	MyLog("Event: Main: Create_Menu", LogListColor, True)
 	B4XPages.Delegate.Create_Menu(Menu)
 End Sub
 
-Private Sub MyLog (Text As String, color As Int)
-	Starter.MyLog(Text, color)
+Private Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
+	Starter.MyLog(Text, color, DebugMode)
 End Sub
 
 #if Java

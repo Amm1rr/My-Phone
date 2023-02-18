@@ -53,8 +53,8 @@ Sub Service_Create
 	
 	LogList.Initialize
 	MyLog("########################### " & CRLF _
-			& "Service :=> Service_Create" _
-			& CRLF & "########################### " & CRLF, Colors.Magenta)
+			& "                   Service_Create" _
+			& CRLF & "########################### " & CRLF, Colors.Magenta, True)
 	
 	CreateDB
 	
@@ -65,7 +65,7 @@ Sub Service_Create
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
-	MyLog("Service :=> Service_Start", LogListColor)
+	MyLog("Service_Start", LogListColor, True)
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -77,7 +77,7 @@ End Sub
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	LogColor(StackTrace, Colors.Red)
 	LogColor(Error.Message, Colors.Red)
-	MyLog("Application_Error: " & Error & ":" & StackTrace, LogListColor)
+	MyLog("Application_Error: " & Error & ":" & StackTrace, LogListColor, True)
 	Return True
 End Sub
 
@@ -87,7 +87,7 @@ End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageRemoved => " & Package, LogListColor)
+	MyLog("*** Event: PE_PackageRemoved => " & Package, LogListColor, True)
 	
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
@@ -101,17 +101,17 @@ End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageAdded => " & Package, LogListColor)
+	MyLog("*** Event: PE_PackageAdded => " & Package, LogListColor, True)
 	
 	SetupAppsList(True)
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	
-	B4XPages.MainPage.AddToRecently(name, Package, True)
+	AddToRecently(name, Package, True)
 	B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
 	ToastMessageShow(name & " Installed!", True)
 End Sub
 
-Public Sub MyLog (Text As String, color As Int)
+Public Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
 	
 	If Not (LogMode) Then Return
 	
@@ -124,11 +124,13 @@ Public Sub MyLog (Text As String, color As Int)
 	DateTime.DateFormat="HH:mm:ss.SSS"
 	Dim time As String = DateTime.Date(DateTime.Now)
 	
-	LogList.Add(Text & " (" & time & ")")
-	LogColor(Text & " (" & time & ")", color)
-	If (ShowToastLog) Then
-		If (LogShowToast) Then
-			ToastMessageShow(Text, False)
+	If (DebugMode) Then
+		LogList.Add(Text & " (" & time & ")")
+		LogColor(Text & " (" & time & ")", color)
+		If (ShowToastLog) Then
+			If (LogShowToast) Then
+				ToastMessageShow(Text, False)
+			End If
 		End If
 	End If
 	
@@ -136,17 +138,18 @@ Public Sub MyLog (Text As String, color As Int)
 End Sub
 
 Private Sub CreateDB
-	MyLog("CreateDB", LogListColor)
+	MyLog("CreateDB", LogListColor, True)
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
 	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
+	MyLog("CreateDB END", LogListColorEnd, False)
 End Sub
 
 Private Sub SetupSettings
-	MyLog("SetupSettings", LogListColor)
+	MyLog("SetupSettings", LogListColor, True)
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -186,7 +189,7 @@ Private Sub SetupSettings
 	Next
 	CurSettingSql.Close
 	
-	MyLog("End SetupSettings", LogListColorEnd)
+	MyLog("End SetupSettings", LogListColorEnd, False)
 End Sub
 
 Public Sub ValToBool(value As Object) As Boolean
@@ -210,7 +213,7 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
+	MyLog("SetupAppsList : Reload => " & ForceReload, LogListColor, True)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -232,6 +235,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		packages = pm.GetInstalledPackages
 	
 	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
+		
+		MyLog("SetupAppsList : Reload => TRUE", LogListColor, True)
 		
 		'# First Time Run after Installation
 		'#
@@ -349,7 +354,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
-	MyLog("End Service :=> SetupAppsList : Reload:[" & ForceReload & "]", Colors.Blue)
+	MyLog("SetupAppsList END : Reload => " & ForceReload, LogListColorEnd, True)
 	
 End Sub
 
@@ -369,7 +374,7 @@ Public Sub GetPackageIcon(pkgName As String) As Bitmap
 		If (LastException.Message = "java.lang.Exception:  android.content.pm.PackageManager$NameNotFoundException: yes") Then
 			Return Null
 		Else
-			MyLog("#Service:Starter => GetPackageIcon: " & pkgName & " - " & LastException.Message, LogListColor)
+			MyLog("GetPackageIcon: " & pkgName & " - " & LastException.Message, LogListColor, True)
 			Return Null
 		End If
 	End Try
@@ -385,5 +390,144 @@ Private Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
 	BG.DrawDrawable(Drawable,Drect)
 	
 	Return BG.Bitmap
+	
+End Sub
+
+Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
+	MyLog("AddToRecently => " & Text & " - " & Value, LogListColor, True)
+	
+	Value = B4XPages.MainPage.GetPackage(Value)
+	
+	If Not (B4XPages.MainPage.RecentlyList.IsInitialized) Then B4XPages.MainPage.RecentlyList.Initialize
+	
+	If (B4XPages.MainPage.FindRecentlyItem(Value)) Then Return
+	If Not (B4XPages.MainPage.Is_NormalApp(Value)) Then Return
+	
+	If Text = "" Then _
+		Text = B4XPages.MainPage.GetAppNamebyPackage(Value)
+	
+	B4XPages.MainPage.tagApps.mBase.Enabled = False
+	B4XPages.MainPage.tagApps.CLV.Clear
+	B4XPages.MainPage.tagColors = Colors.DarkGray
+	
+	B4XPages.MainPage.RecentlyList.AddAllAt(0, Array(Value))
+	
+	If (B4XPages.MainPage.RecentlyList.Size > 5) Then _
+		B4XPages.MainPage.RecentlyList.RemoveAt(B4XPages.MainPage.RecentlyList.Size - 1)
+	
+	sql.ExecNonQuery("DELETE FROM RecentlyApps")
+	
+	Dim j As Int
+	If (IsNewInstalledApp) Then
+		B4XPages.MainPage.tagApps.LabelProperties.TextColor = Colors.Yellow
+		B4XPages.MainPage.tagApps.AddTag(Text, B4XPages.MainPage.tagColors, Value)
+		j = 1
+	Else
+		j = 0
+	End If
+	B4XPages.MainPage.tagApps.LabelProperties.TextColor = Colors.LightGray
+	
+	Dim query As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES"
+	Dim tmp As String
+	For i = j To B4XPages.MainPage.RecentlyList.Size - 1
+		Dim appName As String = B4XPages.MainPage.GetAppNamebyPackage(B4XPages.MainPage.RecentlyList.Get(i))
+		B4XPages.MainPage.tagApps.AddTag(appName, B4XPages.MainPage.tagColors, B4XPages.MainPage.RecentlyList.Get(i))
+		tmp = "('" & appName & "','" & B4XPages.MainPage.RecentlyList.Get(i) & "')," & tmp
+	Next
+	If (tmp.Length > 0) Then
+		query = query & tmp.SubString2(0, tmp.Length - 1)
+		sql.ExecNonQuery(query)
+	End If
+	
+'	Dim tmp As String
+'	For Each pkg In RecentlyList
+'		tmp = "('" & GetAppNamebyPackage(pkg) & "','" & pkg & "')," & tmp
+'	Next
+'	If (tmp <> "") Then
+'		tmp = tmp.SubString2(0, tmp.Length - 1)
+'		query = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES" & tmp
+'		Starter.sql.ExecNonQuery(query)
+'	End If
+	
+	
+	B4XPages.MainPage.tagApps.mBase.Enabled = True
+	
+	MyLog("AddToRecently END=> " & Text & " - " & Value, LogListColorEnd, True)
+	
+'	tagColors = Colors.DarkGray
+'	If (IsNewInstalledApp) Then
+'		tagApps.LabelProperties.TextColor = Colors.Yellow
+'	Else
+'		tagApps.LabelProperties.TextColor = Colors.LightGray
+'	End If
+'	
+'	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
+'		
+'		tagApps.AddTag(Text, tagColors, Value)
+'		
+'		RecentlyList.Add(Value)
+'		
+'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+	''		LogColor(q, Colors.Green)
+'		
+'		Starter.sql.ExecNonQuery(q)
+'		
+	''		Dim lstReverse As List = ReverseList(RecentlyList)
+	''		RecentlyList = lstReverse
+	''		tagApps.CLV.Clear
+	''		For Each item In lstReverse
+	''			tagApps.AddTag(GetAppNamebyPackage(item), Colors.DarkGray, item)
+	''		Next
+'		
+'	Else If (RecentlyList.Size >= 5) Then
+'		Try
+'			'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
+'			'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
+	'
+'			tagApps.mBase.Enabled = False
+'			
+'			tagApps.CLV.Clear
+'			tagApps.AddTag(Text, tagColors, Value)
+'			tagApps.LabelProperties.TextColor = Colors.LightGray
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
+'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
+'			
+'			Dim i0 As Object = RecentlyList.Get(0)
+'			Dim i1 As Object = RecentlyList.Get(1)
+'			Dim i2 As Object = RecentlyList.Get(2)
+'			Dim i3 As Object = RecentlyList.Get(3)
+'			
+'			RecentlyList.Clear
+'			RecentlyList.Add(Value)
+'			RecentlyList.Add(i0)
+'			RecentlyList.Add(i1)
+'			RecentlyList.Add(i2)
+'			RecentlyList.Add(i3)
+'			
+'			Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+'			Starter.sql.ExecNonQuery(q)
+'			
+'		Catch
+'			MyLog("++++++++++++ Func: AddToRecently => " & LastException)
+'		End Try
+'		
+'		tagApps.mBase.Enabled = True
+'		
+'	Else
+'		
+'		tagApps.AddTag(Text, tagColors, Value)
+'		RecentlyList.Add(Value)
+'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
+'		Starter.sql.ExecNonQuery(q)
+'		
+'	End If
+'	
+'	'//----- Reset RecentlyBar Color to Default
+'	tagColors = Colors.DarkGray
+'	tagApps.LabelProperties.TextColor = Colors.LightGray
+'	
+	''	SaveRecentlyList
 	
 End Sub

@@ -16,7 +16,7 @@ End Sub
 
 Public Sub Initialize (vEventName As String)
 	Starter.LogShowToast = False
-	Starter.MyLog("****** Event: IndexedTable => " & vEventName, Colors.Yellow)
+	Starter.MyLog("****** Event: IndexedTable => " & vEventName, Colors.Yellow, False)
 	pnlIndex.Initialize("pnlIndex")
 	Dim cd As ColorDrawable
 		cd.Initialize2(Colors.White, 12dip, 2dip, 0xFF3A89D3)
