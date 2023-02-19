@@ -188,12 +188,11 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		'###### { ### Set Statusbar Colour
 		Dim jo As JavaObject
 		Dim window As JavaObject
-			window = jo.InitializeContext.RunMethod("getWindow", Null)
-			window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+		window = jo.InitializeContext.RunMethod("getWindow", Null)
+		window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
 		Root.Height = Root.Height + Starter.NAVBARHEIGHT
 		'}-----
 		
-'		StartService(Starter)
 		Starter.SetupAppsList(False)
 		
 		Setup
@@ -2499,4 +2498,5 @@ Private Sub lblClearSearch_Click
 	DisableSearch = False
 	Sleep(0)
 	txtAppsSearch.Text = ""
+	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
 End Sub
