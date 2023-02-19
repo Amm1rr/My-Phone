@@ -1,7 +1,9 @@
 
-# Version: Build 35 Alpha : /02/2023
+# Version: Build 36 Alpha : /02/2023
 * Change txtSearch library to Native
-
+* Improve fix statusbar and navbar
+* Improve log DevTools
++ Added clear search box button
 
 # Version: Build 35 Alpha : 11/02/2023
 * Improve Home Menu

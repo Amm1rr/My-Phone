@@ -60,6 +60,8 @@ Sub Service_Create
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
 	
+	FixWallTrans
+	
 	SetupSettings
 
 End Sub
@@ -150,6 +152,7 @@ End Sub
 
 Private Sub SetupSettings
 	MyLog("SetupSettings", LogListColor, True)
+	
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
 		CurSettingSql = sql.ExecQuery("SELECT * FROM Settings")
@@ -530,4 +533,38 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 '	
 	''	SaveRecentlyList
 	
+End Sub
+
+Public Sub FixWallTrans
+	
+	LogShowToast = False
+	MyLog("FixWallTrans", LogListColor, True)
+	
+'	'###### { ### Set Navigation Bar Transparent
+'	Dim jo As JavaObject
+'		jo.InitializeContext
+'	Dim window As JavaObject
+'	window = jo.RunMethod("getWindow", Null)
+'	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+''	root.Height = root.Height + NAVBARHEIGHT
+	'}-----
+	
+	'{###### ### Fix Wallpaper
+	Dim r As Reflector
+		r.Target = r.GetContext
+		r.Target = r.RunStaticMethod("android.app.WallpaperManager", "getInstance", Array As Object(r.GetContext), Array As String("android.content.Context"))
+	
+'	r.RunMethod4("suggestDesiredDimensions", Array As Object(root.Width * 2, root.height), Array As String("java.lang.int", "java.lang.int"))
+	r.RunMethod4("suggestDesiredDimensions", Array As Object(GetDeviceLayoutValues.Width * 2, GetDeviceLayoutValues.Height), Array As String("java.lang.int", "java.lang.int"))
+	
+	Dim pagesx As Float
+		pagesx = 1.00 / 5
+	
+	Dim pagesy As Float
+		pagesy = 1.00
+	
+	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
+	'}-----
+	
+	MyLog("FixWallTrans END" & TAB, LogListColor, True)
 End Sub

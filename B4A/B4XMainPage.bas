@@ -12,7 +12,7 @@ Version=9.85
 'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=Project.zip
 
 Sub Class_Globals
-	Private Root 						As B4XView
+	Public 	Root 						As B4XView
 	Private xui 						As XUI
 	Public 	panHome 					As B4XView
 	Private panSetting 					As B4XView
@@ -118,6 +118,9 @@ Sub Class_Globals
 	Dim clvLongClick As Int	' 0 = clvHome
 							' 1 = clvApps
 	Private panAppRow As B4XView
+	Private panPhone As B4XView
+	Private panCamera As Panel
+	Private DisableSearch As Boolean
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
@@ -130,7 +133,6 @@ Public Sub Initialize
 	MyLog("###### Initialize", 0xFFC95E08, True)
 	
 	StartService(Starter)
-	
 	StartTimeClick = True
 	
 	dd.Initialize
@@ -182,8 +184,14 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	HideAppMenu
 	
 	If (FirstStart) Then
-	
-		FixWallTrans
+		
+		'###### { ### Set Statusbar Colour
+		Dim jo As JavaObject
+		Dim window As JavaObject
+			window = jo.InitializeContext.RunMethod("getWindow", Null)
+			window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+		Root.Height = Root.Height + Starter.NAVBARHEIGHT
+		'}-----
 		
 '		StartService(Starter)
 		Starter.SetupAppsList(False)
@@ -370,32 +378,6 @@ Private Sub EdgeLoad
 	
 End Sub
 
-Public Sub FixWallTrans
-	Starter.LogShowToast = False
-	MyLog("FixWallTrans", LogListColor, True)
-	'------{ ### Set Navigation Bar Transparent
-	Dim jo As JavaObject
-	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
-	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
-	Root.Height = Root.Height + Starter.NAVBARHEIGHT
-	'}-----
-	
-	'{----- ### Fix Wallpaper
-	Dim r As Reflector
-	r.Target = r.RunStaticMethod("android.app.WallpaperManager", "getInstance", Array As Object(r.GetContext), Array As String("android.content.Context"))
-	
-	r.RunMethod4("suggestDesiredDimensions", Array As Object(Root.Width * 2, Root.height), Array As String("java.lang.int", "java.lang.int"))
-	Dim pagesx As Float
-	
-	Dim pagesy As Float
-	pagesx = 1.00 / 5
-	pagesy = 1.00
-	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
-	'}-----
-	
-	MyLog("FixWallTrans END" & TAB, LogListColor, True)
-End Sub
-
 Private Sub Run_Info(PackageName As String)
 	MyLog("Run_Info => " & PackageName, LogListColor, True)
 	Dim p As Phone
@@ -429,75 +411,47 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 		' this loop slows the rate down to one comfortable for LogCat
 		' adjust the value for your device if necessary
 		If movecount < 10 Then
+			LogColor("movecount: " & movecount, Colors.Red)
 			Return True ' need to return true otherwise we don't get any other events in the gesture
 		End If
 		movecount = 0
 	End If
 	
-	Dim v As View
-	v = o
-	Dim a As String = action
-	
 	Select action
-		Case gestHome.ACTION_DOWN
-			a = "Down "
-'			Log("Gesture started")
+		Case gestHome.ACTION_DOWN 				' Down
 			
 			HideHomeMenu(True)
 			DisableEdgeEdit
 			
-'			'// Double Tap
-'			If (DateTime.Now - LastClick) < 250 Then
-''				Log("Double Click => " & (DateTime.Now - LastClick))
-'				DoubleTap
-'			End If
 			If (DblClick(x, y)) Then DoubleTap
 			
-		Case gestHome.ACTION_UP
+		Case gestHome.ACTION_UP					' Up
 			'// Double Tap Time Variable
 			LastClick = DateTime.Now
 			
-			a = "Up "
+		Case gestHome.ACTION_POINTER_DOWN		' PtrDown
 			
-		Case gestHome.ACTION_POINTER_DOWN
-			a = "PtrDown "
-		Case gestHome.ACTION_POINTER_UP
-			a = "PtrUp "
-		Case gestHome.ACTION_MOVE
-			a = "Move "
+		Case gestHome.ACTION_POINTER_UP			' PtrUp
+			
+		Case gestHome.ACTION_MOVE				' Action Move
+			
 	End Select
-	Dim ix, iy, count As Int
-		ix = x
-		iy = y
-	count = gestHome.GetPointerCount
-	Dim msg As String = v.Tag & " id" & ptrID & " " & a & " x" & ix & " y" & iy & " cnt" & count' event parameters
-	Dim id As Int
-	For i = 0 To count -1
-		id = gestHome.GetPointerID(i)
-		ix = gestHome.GetX(id)
-		iy = gestHome.GetY(id)
-		msg = msg & " : id" & id & " x" & ix & " y" & iy ' retrieved data
-	Next
 	
-'	Log(msg)
-	If action = gestHome.ACTION_UP Then
-'		Log("Gesture ended")
-	End If
-	Return True ' need to return true otherwise we don't get any other events in the gesture
+	
+'	Dim ix, iy, count As Int
+'		ix = x
+'		iy = y
+'	count = gestHome.GetPointerCount
+'	Dim id As Int
+'	For i = 0 To count -1
+'		id = gestHome.GetPointerID(i)
+'		ix = gestHome.GetX(id)
+'		iy = gestHome.GetY(id)
+'	Next
+	
+	' Need to return true otherwise we don't get any other events in the gesture
+	Return False
 End Sub
-
-'Private Sub Activity_Resume
-'	MyLog("*** Event: Activity_Resume")
-'	SetDefaultLauncher
-'	btnSetAsDefaultLauncher.Visible = True
-'End Sub
-'
-'Private Sub Activity_Pause(UserClosed As Boolean)
-'	MyLog("*** Event: Activity_Pause")
-'	B4XPages.MainPage.SetDefaultLauncher
-'	B4XPages.MainPage.btnSetAsDefaultLauncher.Visible = True
-'	GoHome(False)
-'End Sub
 
 Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
 	MyLog("B4XMainPage: Activity_KeyPress & => " & KeyCode, LogListColor, True)
@@ -2259,6 +2213,8 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	HideAppMenu
 	
+	If (DisableSearch) Then Return
+	
 	Dim i, AppCount As Int = 0
 	
 	clvApps.Clear
@@ -2534,4 +2490,13 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	End Select
 	
 	Return True
+End Sub
+
+Private Sub lblClearSearch_Click
+	' It's a lite tricky here to solve UI app listview leg
+	DisableSearch = True
+	txtAppsSearch.Text = ""
+	DisableSearch = False
+	Sleep(0)
+	txtAppsSearch.Text = ""
 End Sub
