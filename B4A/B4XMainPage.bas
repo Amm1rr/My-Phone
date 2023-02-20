@@ -262,7 +262,10 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 End Sub
 
 Private Sub clocktimer_Tick
+	DateTime.TimeFormat = "hh:mm:ss"
 	lblClock.Text = DateTime.Time(DateTime.Now)
+	
+	DateTime.DateFormat = "dd.MMM.yyyy"
 	lblDate.Text = DateTime.Date(DateTime.Now)
 End Sub
 
@@ -1637,7 +1640,6 @@ Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("*** Event: panSettings_Touch => Action: " & Action, Colors.LightGray)
 	
-	LogColor("Hide", Colors.Red)
 	HideAppMenu
 	HideKeyboard
 	Select Action
