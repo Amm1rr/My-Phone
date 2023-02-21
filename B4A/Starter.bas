@@ -113,7 +113,7 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	ToastMessageShow(name & " Installed!", True)
 End Sub
 
-Public Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
+Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	
 	If Not (LogMode) Then Return
 	
@@ -126,7 +126,10 @@ Public Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
 	DateTime.DateFormat="HH:mm:ss.SSS"
 	Dim time As String = DateTime.Date(DateTime.Now)
 	
-	If (DebugMode) Then
+	If (JustShowInDebugMode) Then
+		LogList.Add(Text & " (" & time & ")")
+		LogColor(Text & " (" & time & ")", color)
+	Else
 		LogList.Add(Text & " (" & time & ")")
 		LogColor(Text & " (" & time & ")", color)
 		If (ShowToastLog) Then

@@ -6,17 +6,19 @@ Version=5.5
 @EndOfDesignText@
 'Class module
 Sub Class_Globals
-	Public 	tv 							As List
-	Private pnlIndex 					As Panel
-	Private hoverLabel 					As Label
-	Private const PANEL_INDEX_WIDTH 	As Float = 40dip
-	Private hoverLabelTopMargin 		As Int
+	Public 	tv 									As List
+	Private 		pnlIndex 					As Panel
+	Private 		hoverLabel 					As Label
+	Private const 	PANEL_INDEX_WIDTH 			As Float = 40dip
+	Private 		hoverLabelTopMargin 		As Int
 	Private lblLast As Label
 End Sub
 
 Public Sub Initialize (vEventName As String)
+	
 	Starter.LogShowToast = False
 	Starter.MyLog("****** Event: IndexedTable => " & vEventName, Colors.Yellow, False)
+	
 	pnlIndex.Initialize("pnlIndex")
 	Dim cd As ColorDrawable
 		cd.Initialize2(Colors.White, 12dip, 2dip, 0xFF3A89D3)
@@ -26,6 +28,7 @@ Public Sub Initialize (vEventName As String)
 	hoverLabel.Visible = False
 	hoverLabel.Gravity = Gravity.CENTER
 	hoverLabel.TextSize = 18
+	
 End Sub
 
 Public Sub DesignerCreateView (base As Panel, lbl As Label, props As Map)
