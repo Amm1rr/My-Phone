@@ -95,3 +95,7 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 		lblLast = lbl
 	End If
 End Sub
+
+Public Sub HideHoverLabel
+	hoverLabel.Visible = False
+End Sub

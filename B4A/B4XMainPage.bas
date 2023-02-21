@@ -424,6 +424,7 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 			
 			HideHomeMenu(True)
 			DisableEdgeEdit
+			HideKeyboard
 			
 			If (DblClick(x, y)) Then DoubleTap
 			
@@ -1230,9 +1231,15 @@ Public Sub HideHomeMenu (DisHomeDrag As Boolean)
 	
 End Sub
 
-' Hide App Popup Menu
+' Hide Apps Popup Menu
 Public Sub HideAppMenu
+	
+	Starter.LogShowToast = False
+	MyLog("HideAppMenu", LogListColor, False)
+	
 	panAppMenuApp.SetVisibleAnimated(100, False)
+	AlphabetTable.HideHoverLabel
+	
 End Sub
 
 Private Sub RunApp(pkgName As String)
@@ -1258,7 +1265,7 @@ End Sub
 Private Sub panApps_Click
 	
 	Starter.LogShowToast = False
-	MyLog("panApps_Click => ", LogListColor, True)
+	MyLog("panApps_Click", LogListColor, True)
 	
 	HideKeyboard
 	HideAppMenu
@@ -2432,6 +2439,9 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
 			ClickPanCLV = True
 			
+			HideKeyboard
+			HideHomeMenu(False)
+			
 				' Long Click
 				longCLickFirstimeTouched = DateTime.Now
 				longClickX0 = X
@@ -2439,7 +2449,6 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 				clvLongClick = 0
 				TimerLongClick.Enabled = True
 			
-			HideHomeMenu(False)
 		Case 1 ' Up
 			TimerLongClick.Enabled = False
 			If panHomRow.Tag = "" Then panHomRow.Tag = 0
@@ -2497,6 +2506,7 @@ Private Sub lblClearSearch_Click
 	' It's a lite tricky here to solve UI app listview leg
 	DisableSearch = True
 	txtAppsSearch.Text = ""
+	HideAppMenu
 	DisableSearch = False
 	Sleep(0)
 	txtAppsSearch.Text = ""

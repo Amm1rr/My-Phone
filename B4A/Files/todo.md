@@ -18,6 +18,7 @@ Todo List:
 + افزودن Multi Thread
 + Add Edgebar
 + Add ChatGPT
++ Add CSS
 
 Done:
 -----
