@@ -126,7 +126,7 @@ Private Sub lbl_Touch(ViewTag As Object, Action As Int, X As Float, Y As Float, 
 		Dim delta As Int = ListY - ListStartY
 		pnl.Top = Top + delta
 	Else 
-		LogColor("Event: lbl_Touch => action=" & Action, Colors.Blue)
+		LogColor("CLVDragger: lbl_Touch = action: " & Action, Colors.Blue)
 	End If
 	Return True
 End Sub

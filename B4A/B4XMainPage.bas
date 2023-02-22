@@ -417,8 +417,8 @@ End Sub
 
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
 	
-	Starter.LogShowToast = False
-	MyLog("gestHome_gesture", LogListColor, True)
+'	Starter.LogShowToast = False
+'	MyLog("gestHome_gesture", LogListColor, True)
 	
 	If action = gestHome.ACTION_MOVE Then
 		movecount = movecount + 1
@@ -1250,8 +1250,8 @@ End Sub
 ' DisHomeDrag = Disable Home Drag and Drop
 Public Sub HideHomeMenu (DisHomeDrag As Boolean)
 	
-	Starter.LogShowToast = False
-	Starter.MyLog("HideHomeMenu", Colors.LightGray, True)
+'	Starter.LogShowToast = False
+'	Starter.MyLog("HideHomeMenu", Colors.LightGray, True)
 	
 	panHRowMenuHome.SetVisibleAnimated(100, False)
 	
@@ -1268,8 +1268,8 @@ End Sub
 ' Hide Apps Popup Menu
 Public Sub HideAppMenu
 	
-	Starter.LogShowToast = False
-	MyLog("HideAppMenu", LogListColor, True)
+'	Starter.LogShowToast = False
+'	MyLog("HideAppMenu", LogListColor, True)
 	
 	panAppMenuApp.SetVisibleAnimated(100, False)
 	AlphabetTable.HideHoverLabel
@@ -1716,8 +1716,8 @@ End Sub
 
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 	
-	Starter.LogShowToast = False
-	MyLog("panSettings_Touch = Action: " & Action, Colors.LightGray, True)
+'	Starter.LogShowToast = False
+'	MyLog("panSettings_Touch = Action: " & Action, Colors.LightGray, True)
 	
 	HideAppMenu
 	HideKeyboard
@@ -1773,7 +1773,12 @@ Private Sub cmbClockSetting_SelectedIndexChanged (Index As Int)
 End Sub
 
 Private Sub lblDate_Click
-	lblClock_Click
+	
+	MyLog("lblDate_Click", LogListColor, True)
+	
+	HideHomeMenu(True)
+	Run_Calendar
+	
 End Sub
 
 Private Sub DoubleTap
@@ -1830,6 +1835,7 @@ End Sub
 Private Sub panSettings_LongClick
 	
 	MyLog("panSettings_LongClick", LogListColor, True)
+	
 	HideKeyboard
 	CloseSetting
 	
@@ -1837,7 +1843,8 @@ End Sub
 
 Private Sub clvHome_ScrollChanged (Offset As Int)
 	
-	MyLog("clvHome_ScrollChanged", LogListColor, True)
+'	MyLog("clvHome_ScrollChanged", LogListColor, True)
+
 	'//-- Hide Home List Popup Menu
 	panHRowMenuHome.Visible = False
 	HideHomeMenu(False)
@@ -1852,8 +1859,8 @@ End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 	
-	Starter.LogShowToast = False
-	MyLog("panApps_Touch => A: " & Action & " : HideKeyboard", LogListColor, True)
+'	Starter.LogShowToast = False
+'	MyLog("panApps_Touch => A: " & Action & " : HideKeyboard", LogListColor, True)
 	
 	If (Action = 0) Then
 		HideKeyboard
@@ -2519,8 +2526,8 @@ End Sub
 
 Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	
-	Starter.ShowToastLog = False
-	MyLog("panHomRow_Touch", LogListColor, True)
+'	Starter.ShowToastLog = False
+'	MyLog("panHomRow_Touch", LogListColor, True)
 	
 	longClickClvIndex = clvHome.GetItemFromView(Sender)
 	longClickClvPNL = clvHome.GetPanel(longClickClvIndex)
@@ -2560,7 +2567,7 @@ End Sub
 
 Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	
-	MyLog("panAppRow_Touch", LogListColor, True)
+'	MyLog("panAppRow_Touch", LogListColor, True)
 	
 	longClickClvIndex = clvApps.GetItemFromView(Sender)
 	longClickClvPNL = clvApps.GetPanel(longClickClvIndex)
