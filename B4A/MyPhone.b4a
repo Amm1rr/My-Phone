@@ -121,7 +121,7 @@ End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
 	Starter.LogShowToast = False
-	MyLog("Main:Activity_KeyPress => " & KeyCode, LogListColor, False)
+	MyLog("Main: Activity_KeyPress = " & KeyCode, LogListColor, False)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK

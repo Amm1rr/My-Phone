@@ -203,7 +203,7 @@ Private Sub SetupSettings
 	Next
 	CurSettingSql.Close
 	
-	MyLog("End SetupSettings", LogListColorEnd, False)
+	MyLog("SetupSettings END", LogListColorEnd, False)
 End Sub
 
 Public Sub ValToBool(value As Object) As Boolean
@@ -253,7 +253,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
 		
-		MyLog("SetupAppsList : Reload => TRUE", LogListColor, True)
+		MyLog("SetupAppsList : Reload = TRUE", LogListColor, True)
 		
 		'# First Time Run after Installation
 		'#

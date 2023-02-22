@@ -72,8 +72,8 @@ End Sub
 
 Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	
-'	Starter.LogShowToast = False
-'	Starter.MyLog("****** Event: IndexedTable: pnlIndex_Touch => Action: " & Action)
+	If (Action = pnlIndex.ACTION_DOWN) Then _
+		Starter.MyLog("****** IndexedTable: pnlIndex_Touch Down= Action: " & Action, 0, True)
 	
 	hoverLabel.Visible = False
 	
