@@ -81,6 +81,7 @@ Sub Class_Globals
 	Private clvLog 						As CustomListView
 	Private btnLogClose 				As Button
 	Private chkShowToastLog 			As CheckBox
+	Private chklogDebugMode 			As CheckBox
 	Private chkShowIconsHome 			As CheckBox
 	Private btnSetAsDefault 			As Button
 	Private btnHiddenAppsDelete 		As Button
@@ -123,14 +124,14 @@ Sub Class_Globals
 	Private DisableSearch As Boolean
 End Sub
 
-Private Sub MyLog (Text As String, color As Int, DebugMode As Boolean)
-	Starter.MyLog(Text, color, DebugMode)
+Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
+	Starter.MyLog(Text, color, JustInDebugMode)
 End Sub
 
 Public Sub Initialize
 '	B4XPages.GetManager.LogEvents = True
 	
-	MyLog("###### Initialize", 0xFFC95E08, True)
+	MyLog("###### Initialize", 0xFFC95E08, False)
 	
 	StartService(Starter)
 	StartTimeClick = True
@@ -165,7 +166,7 @@ End Sub
 
 'This event will be called once, before the page becomes visible.
 Private Sub B4XPage_Created (Root1 As B4XView)
-	MyLog("B4XPage_Created", LogListColor, True)
+	MyLog("B4XPage_Created", LogListColor, False)
 	
 	Root = Root1
 	Root.LoadLayout("MainPage")
@@ -257,7 +258,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
-	MyLog("B4XPage_Created END", LogListColorEnd, True)
+	MyLog("B4XPage_Created END", LogListColorEnd, False)
 	
 End Sub
 
@@ -293,6 +294,7 @@ Private Sub TimerLongClick_Tick
 End Sub
 
 Public Sub GetSetting(Key As String) As String
+	MyLog("GetSetting: " & Key, LogListColor, True)
 	Dim tmpResult As String
 	Private CurSql As Cursor
 	CurSql = Starter.sql.ExecQuery("SELECT " & Key & " FROM Settings")
@@ -303,6 +305,8 @@ Public Sub GetSetting(Key As String) As String
 End Sub
 
 Public Sub Open_Edgebar()
+	Starter.ShowToastLog = False
+	MyLog("Open_Edgebar", LogListColor, True)
 	If OP.RequestPermission("OP") Then
 		'A permission to draw overlays over applications is required
 		Wait For OP_DrawPermission(Allowed As Boolean)
@@ -339,6 +343,9 @@ Public Sub Open_Edgebar()
 End Sub
 
 Public Sub Open_NetMeterOverlay()
+	
+	MyLog("Open_NetMeterOverlay", LogListColor, True)
+	
 	If OP.RequestPermission("OP") Then
 		'A permission to draw overlays over applications is required
 		Wait For OP_DrawPermission(Allowed As Boolean)
@@ -356,7 +363,7 @@ End Sub
 '--/ Edge Drawer
 Private Sub EdgeLoad
 	
-	MyLog("Func: EdgeLoad", LogListColor, True)
+	MyLog("EdgeLoad", LogListColor, False)
 	
 	If Not (draggerEdge.IsInitialized) Then
 		draggerEdge.Initialize(clvEdge)
@@ -376,12 +383,14 @@ Private Sub EdgeLoad
 		clvEdge.AddTextItem("[Select App]", "[SelectApp]")
 	End If
 	
-	MyLog("End Func: EdgeLoad", LogListColorEnd, False)
+	MyLog("EdgeLoad END", LogListColorEnd, False)
 	
 End Sub
 
 Private Sub Run_Info(PackageName As String)
-	MyLog("Run_Info => " & PackageName, LogListColor, True)
+	
+	MyLog("Run_Info = " & PackageName, LogListColor, True)
+	
 	Dim p As Phone
 	Dim i As Intent
 
@@ -397,6 +406,9 @@ Private Sub Run_Info(PackageName As String)
 End Sub
 
 Private Sub DisableEdgeEdit
+	
+	MyLog("DisableEdgeEdit", LogListColor, True)
+	
 	If (dragAllowEdge) Then
 		draggerEdge.RemoveDragButtons
 		dragAllowEdge = False
@@ -404,8 +416,9 @@ Private Sub DisableEdgeEdit
 End Sub
 
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
-'	Starter.LogShowToast = False
-'	MyLog("*** Event: gestHome_gesture")
+	
+	Starter.LogShowToast = False
+	MyLog("gestHome_gesture", LogListColor, True)
 	
 	If action = gestHome.ACTION_MOVE Then
 		movecount = movecount + 1
@@ -457,8 +470,9 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 End Sub
 
 Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
-	MyLog("B4XMainPage: Activity_KeyPress & => " & KeyCode, LogListColor, True)
-	LogColor("*** Event B4XMainPage: Activity_KeyPress & => " & KeyCode, Colors.Red)
+	
+	MyLog("B4XMainPage: Activity_KeyPress = " & KeyCode, LogListColor, False)
+	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
 			GoHome(False)
@@ -494,7 +508,7 @@ Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As
 End Sub
 
 Public Sub GoHome(ClearSearch As Boolean)
-	MyLog("GoHome: ClearSearch => " & ClearSearch, LogListColor, False)
+	MyLog("GoHome = Clear Search: " & ClearSearch, LogListColor, False)
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		HideHomeMenu(True)
@@ -506,14 +520,14 @@ Public Sub GoHome(ClearSearch As Boolean)
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
-		MyLog("++++++++++++ Error Caught: GoHome => " & LastException, LogListColor, True)
+		MyLog("++++++++++++ Error Caught: GoHome = " & LastException, LogListColor, True)
 	End Try
 	MyLog("GoHome: ClearSearch => " & ClearSearch, LogListColorEnd, False)
 End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
 	
-'	MyLog("*** Event: TabStrip1_pageSelected => " & Position)
+	MyLog("TabStrip1_pageSelected = Position: " & Position, LogListColor, True)
 
 	HideHomeMenu(True)
 	DisableEdgeEdit
@@ -575,7 +589,8 @@ Private Sub LoadRecentlyList
 End Sub
 
 Public Sub FindRecentlyItem(pkgName As String) As Boolean
-'	MyLog("FindRecentlyItem => " & pkgName)
+	
+	MyLog("FindRecentlyItem = pkgName: " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
 	
@@ -587,6 +602,9 @@ Public Sub FindRecentlyItem(pkgName As String) As Boolean
 End Sub
 
 Public Sub GetPackage(pkg As String) As String
+	
+	MyLog("GetPackage = pkg: " & pkg, LogListColor, True)
+	
 	Dim pkgName As String
 	
 	Try
@@ -608,14 +626,18 @@ Public Sub GetPackage(pkg As String) As String
 End Sub
 
 Private Sub ReverseList(lst As List) As List
+	
+	MyLog("ReverseList", LogListColor, True)
+	
 	Dim java As JavaObject
-	java.InitializeStatic("java.util.Collections").RunMethod("reverse", Array(lst))
+		java.InitializeStatic("java.util.Collections").RunMethod("reverse", Array(lst))
 	Return lst
+	
 End Sub
 
 Public Sub RemoveAsRecently (Value As String)
 '							(Index As Int)
-	MyLog("RemoveAsRecently => " & Value, LogListColor, True)
+	MyLog("RemoveAsRecently = " & Value, LogListColor, True)
 	Value = GetPackage(Value.As(String))
 	
 	Dim i As Int
@@ -732,7 +754,9 @@ Private Sub CreateListItemHomeMenu(Text As String, _
 							   Width As Int, _
 							   Height As Int) As Panel
 	
-'	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String))
+	Starter.ShowToastLog = False
+	MyLog("CreateListItemAppMenu = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	
 	Dim p As B4XView = xui.CreatePanel("")
 	
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
@@ -766,7 +790,7 @@ End Sub
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog("Event clvApps_ItemClick => Position:" & Position & " - Value:" & Value, LogListColor, True)
+	MyLog("clvApps_ItemClick = Position:" & Position & " - Value:" & Value, LogListColor, False)
 	
 	ConfigCurrentAppApp(Position, Value)
 	
@@ -783,14 +807,15 @@ End Sub
 
 Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
-	MyLog("*** Event clvApps_ItemLongClick - HideKeyboard", LogListColor, True)
+	MyLog("clvApps_ItemLongClick - HideKeyboard", LogListColor, False)
 	HideKeyboard
 	ConfigCurrentAppApp(Position, Value.As(String))
 	CreateAppMenu(Value)
 End Sub
 
 Private Sub CreateAppMenu(Value As Object)
-	MyLog("CreateAppMenu => " & Value.As(String), LogListColor, True)
+	Starter.ShowToastLog = False
+	MyLog("CreateAppMenu => " & Value.As(String), LogListColor, False)
 	HideAppMenu
 	
 	panAppMenuApp.RemoveAllViews
@@ -842,7 +867,7 @@ End Sub
 
 Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As Boolean)
 	
-	MyLog("AddToHomeList => pkgName: " & pkgName & " -  Name: " & Name, LogListColor, True)
+	MyLog("AddToHomeList => pkgName: " & pkgName & " -  Name: " & Name, LogListColor, False)
 	
 	If (pkgName = Null) Or (pkgName.Trim = "") Or (pkgName.ToLowerCase = "null") Then Return
 	If (Name = Null) Or (Name.Trim = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
@@ -871,7 +896,7 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 End Sub
 
 Public Sub HideApp(pkgName As String)
-	MyLog("HideApp: " & pkgName, LogListColor, True)
+	MyLog("HideApp: " & pkgName, LogListColor, False)
 	pkgName = GetPackage(pkgName)
 	RemoveAppItem_JustFromAppList(pkgName)
 	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "',0,1)"
@@ -884,7 +909,7 @@ Public Sub HideApp(pkgName As String)
 End Sub
 
 Public Sub UninstallApp(pkgName As String)
-	MyLog("UninstallApp", LogListColor, True)
+	MyLog("UninstallApp", LogListColor, False)
 	
 	pkgName = GetPackage(pkgName)
 	
@@ -901,7 +926,7 @@ Private Sub CreateListItemApp(Text As String, _
 							  Height As Int) As Panel
 	
 	Starter.LogShowToast = False
-	MyLog("CreateListItemApp => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
@@ -941,8 +966,8 @@ Private Sub CreateListItemAppMenu(Text As String, _
 							   Width As Int, _
 							   Height As Int) As Panel
 	
-'	Starter.LogShowToast = False
-'	MyLog("CreateListItemAppMenu => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	Starter.LogShowToast = False
+	MyLog("CreateListItemAppMenu = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 	
@@ -975,8 +1000,8 @@ Private Sub CreateListItemHome(Text As String, _
 							   Width As Int, _
 							   Height As Int) As Panel
 	
-'	Starter.LogShowToast = False
-'	MyLog("CreateListItemHome => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	Starter.LogShowToast = False
+	MyLog("CreateListItemHome = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 	
@@ -1009,6 +1034,9 @@ Private Sub CreateListItemHome(Text As String, _
 End Sub
 
 Public Sub GetOverlayPermission() As ResumableSub
+	
+	MyLog("GetOverlayPermission", LogListColor, True)
+	
 	Dim c As RequestDrawOverPermission 'this is the name of the class
 	c.Initialize
 	Wait For (c.GetPermission) Complete (Success As Boolean)
@@ -1017,6 +1045,7 @@ Public Sub GetOverlayPermission() As ResumableSub
 End Sub
 
 Public Sub Is_NormalApp(pkgName As String) As Boolean
+	
 	Starter.LogShowToast = False
 	MyLog("Is_NormalApp => " & pkgName, LogListColor, True)
 	
@@ -1027,7 +1056,7 @@ Public Sub Is_NormalApp(pkgName As String) As Boolean
 		End If
 	Next
 	
-	MyLog("Is_NormalApp END => FALSE: " & pkgName, LogListColorEnd, True)
+	MyLog("Is_NormalApp END = FALSE: " & pkgName, LogListColorEnd, True)
 	
 	Return False
 	
@@ -1055,7 +1084,7 @@ End Sub
 
 Public Sub Setup
 	
-	MyLog("Setup", LogListColor, True)
+	MyLog("Setup", LogListColor, False)
 	
 	'-- Add Apps to Home ListView
 	clvHome.Clear
@@ -1069,13 +1098,15 @@ Public Sub Setup
 	
 	txtAppsSearch_TextChanged("", "")
 	
-	MyLog("Setup END", LogListColorEnd, True)
+	MyLog("Setup END", LogListColorEnd, False)
 	
 End Sub
 
 Public Sub Is_HomeApp(pkgName As String) As Boolean
+	
 	Starter.LogShowToast = False
-	MyLog("Is_HomeApps:" & pkgName, LogListColor, True)
+	MyLog("Is_HomeApps = pkgName: " & pkgName, LogListColor, True)
+	
 	Dim i As Int
 	
 	For i = 0 To Starter.HomeApps.Size - 1
@@ -1085,14 +1116,15 @@ Public Sub Is_HomeApp(pkgName As String) As Boolean
 '		If (pkgName = ap) Then Return True
 '	Next
 	
-	MyLog("Is_HomeApps END : FALSE" & pkgName, LogListColorEnd, False)
+	MyLog("Is_HomeApps END= Return: FALSE - " & pkgName, LogListColorEnd, True)
 	Return False
 	
 End Sub
 
 public Sub RemoveHomeItem(pkgName As String)
+	
 	Starter.LogShowToast = False
-	MyLog("RemoveHomeItem => " & pkgName, LogListColor, True)
+	MyLog("RemoveHomeItem = " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
 	
@@ -1123,13 +1155,14 @@ public Sub RemoveHomeItem(pkgName As String)
 	
 	ResetHomeList
 	
-	MyLog("RemoveHomeItem END => " & pkgName, LogListColorEnd, False)
+	MyLog("RemoveHomeItem END => " & pkgName, LogListColorEnd, True)
 	
 End Sub
 
 public Sub RemoveAppItem_JustFromAppList(pkgName As String)
+	
 	Starter.LogShowToast = False
-	MyLog("RemoveAppItem_JustFromAppList => " & pkgName, LogListColor, True)
+	MyLog("RemoveAppItem_JustFromAppList = " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
 	
@@ -1149,7 +1182,8 @@ public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 	Next
 	
 '	LogColor(query, Colors.Green)
-	MyLog("RemoveAppItem_JustFromAppList END => " & query, LogListColorEnd, True)
+	MyLog("RemoveAppItem_JustFromAppList END = " & query, LogListColorEnd, True)
+	
 End Sub
 
 Public Sub FindHomeItem(pkgName As String) As Boolean
@@ -1172,14 +1206,14 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 	End If
 	Next
 	
-	MyLog("FindHomeItem END: False : " & pkgName, LogListColorEnd, True)
+	MyLog("FindHomeItem END = Return: False - " & pkgName, LogListColorEnd, True)
 	Return False
 End Sub
 
 Public Sub GetAppNamebyPackage(pkgName As String) As String
 	
-'	Starter.LogShowToast = False
-'	MyLog("GetAppNamebyPackage => " & pkgName, LogListColor, False)
+	Starter.LogShowToast = False
+	MyLog("GetAppNamebyPackage = pkgName: " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
 	
@@ -1199,7 +1233,7 @@ Public Sub GetAppNamebyPackage(pkgName As String) As String
 '		Return resName.GetString("Name")
 '	End If
 	
-'	MyLog("End GetAppNamebyPackage => " & pkgName, LogListColorEnd, False)
+	MyLog("GetAppNamebyPackage END = pkgName: " & pkgName, LogListColorEnd, True)
 	
 	Return ""
 End Sub
@@ -1216,8 +1250,8 @@ End Sub
 ' DisHomeDrag = Disable Home Drag and Drop
 Public Sub HideHomeMenu (DisHomeDrag As Boolean)
 	
-'	Starter.LogShowToast = False
-'	Starter.MyLog("HideHomeMenu", Colors.LightGray, True)
+	Starter.LogShowToast = False
+	Starter.MyLog("HideHomeMenu", Colors.LightGray, True)
 	
 	panHRowMenuHome.SetVisibleAnimated(100, False)
 	
@@ -1235,7 +1269,7 @@ End Sub
 Public Sub HideAppMenu
 	
 	Starter.LogShowToast = False
-	MyLog("HideAppMenu", LogListColor, False)
+	MyLog("HideAppMenu", LogListColor, True)
 	
 	panAppMenuApp.SetVisibleAnimated(100, False)
 	AlphabetTable.HideHoverLabel
@@ -1244,7 +1278,7 @@ End Sub
 
 Private Sub RunApp(pkgName As String)
 	
-	MyLog("RunApp => " & pkgName, LogListColor, True)
+	MyLog("RunApp => " & pkgName, LogListColor, False)
 	
 	Try
 		pkgName = GetPackage(pkgName)
@@ -1289,8 +1323,10 @@ Sub AnimateView(View As B4XView, Duration As Int, Left As Int, Top As Int, Width
 End Sub
 
 Private Sub btnSetting_Click
+	
 	Starter.LogShowToast = False
-	MyLog("btnSetting_Click", LogListColor, True)
+	MyLog("btnSetting_Click", LogListColor, False)
+	
 	HideKeyboard
 	HideAppMenu
 	
@@ -1311,6 +1347,7 @@ Private Sub btnSetting_Click
 	chkShowIconsHome.Checked = Starter.Pref.ShowIconHomeApp
 	chkShowIconsHome.Tag = chkShowIconsHome.Checked
 	chkAutoRun.Checked = Starter.Pref.AutoRunApp
+	chklogDebugMode.Checked = Starter.Pref.DebugMode
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
@@ -1382,13 +1419,15 @@ Private Sub btnSetting_Click
 		
 '	End If
 	
-	MyLog("btnSetting_Click END", LogListColorEnd, True)
+	MyLog("btnSetting_Click END", LogListColorEnd, False)
 	
 End Sub
 
 Private Sub btnSave_Click
+	
 	Starter.LogShowToast = False
-	MyLog("btnSave_Click", LogListColor, True)
+	MyLog("btnSave_Click", LogListColor, False)
+	
 	SaveSettings
 	SaveHomeList
 	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
@@ -1397,12 +1436,15 @@ Private Sub btnSave_Click
 	If (chkShowIcons.Tag <> chkShowIcons.Checked) Then _
 		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 	
-	MyLog("btnSave_Click END", LogListColorEnd, True)
+	MyLog("btnSave_Click END", LogListColorEnd, False)
+	
 End Sub
 
 Public Sub ResetHomeList
+	
 	Starter.LogShowToast = False
 	MyLog("ResetHomeList", LogListColor, True)
+	
 	Dim ResHome As ResultSet = Starter.sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
 	Starter.HomeApps.Clear
 	clvHome.sv.Enabled = False
@@ -1426,21 +1468,28 @@ Public Sub ResetHomeList
 	ResHome.Close
 '	Starter.HomeApps.SortTypeCaseInsensitive("index", True)
 	clvHome.sv.Enabled = True
+	
 	MyLog("ResetHomeList END", LogListColorEnd, True)
+	
 End Sub
 
 Private Sub CloseSetting
+	
 	Starter.LogShowToast = False
 	MyLog("        CloseSetting", LogListColor, True)
+	
 	btnSetting.Enabled = True
 	panSetting.Enabled = True
 	panSetting.SetVisibleAnimated(100, False)
 	Sleep(100)
 	panSetting.RemoveAllViews
+	
 	MyLog("CloseSetting END", LogListColorEnd, True)
+	
 End Sub
 
 Public Sub SaveSettings
+	
 	Starter.LogShowToast = False
 	MyLog("SaveSettings", LogListColor, True)
 	
@@ -1469,6 +1518,7 @@ Public Sub SaveSettings
 	Starter.Pref.ShowIcon = chkShowIcons.Checked
 	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
 	Starter.Pref.AutoRunApp = chkAutoRun.Checked
+	Starter.Pref.DebugMode = chklogDebugMode.Checked
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
@@ -1479,7 +1529,8 @@ Public Sub SaveSettings
 						  "('ClockApp','" & Starter.Pref.ClockApp & "'), " & _
 						  "('ShowIcon','" & Starter.Pref.ShowIcon & "'), " & _
 						  "('ShowIconHomeApp','" & Starter.Pref.ShowIconHomeApp & "'), " & _
-						  "('AutoRunApp','" & Starter.Pref.AutoRunApp & "')"
+						  "('AutoRunApp','" & Starter.Pref.AutoRunApp & "'), " & _
+						  "('DebugMode','" & Starter.Pref.DebugMode & "')"
 	Starter.sql.ExecNonQuery(query)
 	
 	ToastMessageShow("Settings Changed and Saved !", False)
@@ -1489,6 +1540,7 @@ Public Sub SaveSettings
 End Sub
 
 Public Sub SaveHomeList
+	
 	Starter.LogShowToast = False
 	MyLog("SaveHomeList", LogListColor, True)
 	
@@ -1514,11 +1566,15 @@ Public Sub SaveHomeList
 	Next
 '	Starter.HomeApps.SortTypeCaseInsensitive("ID", True)
 	
-	MyLog("End SaveHomeList", LogListColorEnd, True)
+	MyLog("SaveHomeList END", LogListColorEnd, True)
 	
 End Sub
 
 Private Sub lblClock_Click
+	
+	Starter.ShowToastLog = False
+	MyLog("lblClock_Click", LogListColor, True)
+	
 	HideHomeMenu(True)
 	If (Starter.Pref.ClockApp = "") Then
 		ToastMessageShow_Custom("First select Clock App from Setting page", False, Colors.Blue - 100)
@@ -1555,10 +1611,13 @@ Public Sub Run_Calendar
 		ToastMessageShow(LastException.Message, True)
 		Log("Error Caught: " & LastException)
 	End Try
+	
 End Sub
 
 Public Sub Run_Alarm
 	Try
+		MyLog("Run_Alarm", LogListColor, True)
+		
 		HideHomeMenu(True)
 		Dim i As Intent
 		i.Initialize("android.intent.action.SET_ALARM", "")
@@ -1570,15 +1629,22 @@ Public Sub Run_Alarm
 End Sub
 
 Private Sub panPhone_Click
+	
+	MyLog("panPhone_Click", LogListColor, True)
+	
 	HideHomeMenu(True)
 	If (Starter.Pref.PhoneApp = "") Then
 		Run_PhoneDialer
 	Else
 		RunApp(Starter.Pref.PhoneApp)
 	End If
+	
 End Sub
 
 Private Sub panCamera_Click
+	
+	MyLog("panCamera_Click", LogListColor, True)
+	
 	HideHomeMenu(True)
 	If (Starter.Pref.CameraApp = "") Then
 		ToastMessageShow_Custom("First select Camera App from Setting page", False, Colors.Blue - 100)
@@ -1589,14 +1655,17 @@ Private Sub panCamera_Click
 	Else
 		RunApp(Starter.Pref.CameraApp)
 	End If
+	
 End Sub
 
 Public Sub getClassName() As Object
+	
 	Dim jo As JavaObject
 	Dim cls As String =  Application.PackageName & ".main"
 	'cls = cls.SubString("class ".Length)
 	jo.InitializeStatic(cls)
 	Return jo.GetField("processBA")
+	
 End Sub
 
 Private Sub AddPanelToOverlay(pan As Panel, width As Int, height As Int)
@@ -1621,6 +1690,8 @@ End Sub
 
 Private Sub btnDelete_Click
 	
+	MyLog("btnDelete_Click", LogListColor, True)
+	
 	'//-- Get Button On HomeRow
 	Dim btn As Button = Sender
 	btn.Visible = False
@@ -1644,8 +1715,9 @@ Private Sub btnDelete_Click
 End Sub
 
 Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
-'	Starter.LogShowToast = False
-'	MyLog("*** Event: panSettings_Touch => Action: " & Action, Colors.LightGray)
+	
+	Starter.LogShowToast = False
+	MyLog("panSettings_Touch = Action: " & Action, Colors.LightGray, True)
 	
 	HideAppMenu
 	HideKeyboard
@@ -1658,6 +1730,8 @@ Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 End Sub
 
 Public Sub DblClick(x As Float, y As Float) As Boolean
+	
+	MyLog("DblClick", LogListColor, True)
 	
 	If (DateTime.Now - LastClick) < 250 Then
 		
@@ -1705,6 +1779,7 @@ End Sub
 Private Sub DoubleTap
 	Try
 		MyLog("DoubleTap", LogListColor, True)
+		
 		If Manager.Enabled Then
 			Manager.LockScreen
 		Else
@@ -1753,15 +1828,20 @@ Private Sub GetARGB(Color As Int) As Int()
 End Sub
 
 Private Sub panSettings_LongClick
-	MyLog("*** Event: panSettings_LongClick - HideKeyboard", LogListColor, True)
+	
+	MyLog("panSettings_LongClick", LogListColor, True)
 	HideKeyboard
 	CloseSetting
+	
 End Sub
 
 Private Sub clvHome_ScrollChanged (Offset As Int)
+	
+	MyLog("clvHome_ScrollChanged", LogListColor, True)
 	'//-- Hide Home List Popup Menu
 	panHRowMenuHome.Visible = False
 	HideHomeMenu(False)
+	
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
@@ -1771,8 +1851,10 @@ Private Sub clvApps_ScrollChanged (Offset As Int)
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
-'	Starter.LogShowToast = False
-'	MyLog("*** Event: panApps_Touch => A: " & Action & " : HideKeyboard")
+	
+	Starter.LogShowToast = False
+	MyLog("panApps_Touch => A: " & Action & " : HideKeyboard", LogListColor, True)
+	
 	If (Action = 0) Then
 		HideKeyboard
 		HideAppMenu
@@ -2139,7 +2221,7 @@ End Sub
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog("AppsClick: => Index: " & Index & " - Value: " & Value, LogListColor, True)
+	MyLog("clvAppRowMenu_ItemClick = Index: " & Index & " - Value: " & Value, LogListColor, True)
 	
 	Dim pkgName As String = CurrentAppApp.PackageName
 	Dim Name As String = CurrentAppApp.Name
@@ -2207,17 +2289,17 @@ End Sub
 
 
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
+	MyLog("txtAppsSearch_FocusChanged = HasFocus : " & HasFocus, LogListColor, True)
 	HideAppMenu
 '	If HasFocus = False Then
-'		MyLog("*** Event: txtAppsSearch_FocusChanged => HideKeyboard")
-'		ShowHideKeyboard(False)
+'	ShowHideKeyboard(False)
 '	End If
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
-'	Starter.LogShowToast = False
-'	MyLog("txtAppsSearch_TextChanged => " & Old & " : " & New, LogListColor)
+	Starter.LogShowToast = False
+	MyLog("txtAppsSearch_TextChanged = " & Old & " : " & New, LogListColor, True)
 	
 	HideAppMenu
 	
@@ -2261,13 +2343,13 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	lblInfo.Text = AppCount & " apps"
 	
-'	MyLog("End txtAppsSearch_TextChanged => " & Old & " : " & New, LogListColorEnd)
+	MyLog("txtAppsSearch_TextChanged END = " & Old & " : " & New, LogListColorEnd, True)
 	
 End Sub
 
 Private Sub AddtoAlphabetlist(AppName As String, Index As Int)
 	
-	MyLog("AddtoAlphabetlist => " & AppName & " index: " & Index, LogListColor, False)
+	MyLog("AddtoAlphabetlist = " & AppName & " index: " & Index, LogListColor, True)
 	
 	Dim FirstChars As String = AppName.Trim.CharAt(0).As(String).ToUpperCase
 	If (FirstChars = B4XPages.MainPage.AlphabetLastChars) Then Return
@@ -2284,14 +2366,16 @@ Private Sub AddtoAlphabetlist(AppName As String, Index As Int)
 '		Alphabet.Put(FirstChars, Index)
 '	End If
 	
-	MyLog("AddtoAlphabetlist END => " & AppName & " index: " & Index, LogListColorEnd, False)
+	MyLog("AddtoAlphabetlist END = " & AppName & " index: " & Index, LogListColorEnd, True)
 	
 End Sub
 
 
 Private Sub btnHiddenAppsDelete_Click
 	Try
-'		MyLog("*** Event: btnHiddenAppsDelete_Click")
+		
+		MyLog("btnHiddenAppsDelete_Click", LogListColor, True)
+		
 		If clvHiddenApp.Size = 0 Then Return
 		If CLVSelection.SelectedItems.AsList.Size = 0 Then Return
 		
@@ -2304,7 +2388,7 @@ Private Sub btnHiddenAppsDelete_Click
 		Starter.sql.ExecNonQuery("UPDATE Apps SET IsHidden=0 WHERE pkgName='" & value & "'")
 '		CLVSelection.ItemClicked(-1)
 	Catch
-		MyLog("btnHiddenAppsDelete_Click => " & LastException, Colors.Red, True)
+		MyLog("btnHiddenAppsDelete_Click ERROR = " & LastException, Colors.Red, False)
 	End Try
 End Sub
 
@@ -2313,8 +2397,10 @@ Private Sub btnHiddenAppsClose_Click
 End Sub
 
 Private Sub btnHiddenApps_Click
+	
 	Starter.LogShowToast = False
-	MyLog("Event: btnHiddenApps_Click", LogListColor, True)
+	MyLog("btnHiddenApps_Click", LogListColor, True)
+	
 	panHideManager.RemoveAllViews
 	panHideManager.LoadLayout("HiddenApps")
 	panHideManager.SetVisibleAnimated(300, True)
@@ -2332,8 +2418,10 @@ Private Sub btnHiddenApps_Click
 End Sub
 
 Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
-'	Starter.LogShowToast = False
-'	MyLog("*** Event: panSettings_Touch => Action: " & Action)
+	
+	Starter.LogShowToast = False
+	MyLog("panSettings_Touch = Action: " & Action, LogListColor, True)
+
 	HideKeyboard
 	Select Action
 		Case 0 ' Down
@@ -2431,6 +2519,9 @@ End Sub
 
 Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 	
+	Starter.ShowToastLog = False
+	MyLog("panHomRow_Touch", LogListColor, True)
+	
 	longClickClvIndex = clvHome.GetItemFromView(Sender)
 	longClickClvPNL = clvHome.GetPanel(longClickClvIndex)
 	
@@ -2468,6 +2559,9 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 End Sub
 
 Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
+	
+	MyLog("panAppRow_Touch", LogListColor, True)
+	
 	longClickClvIndex = clvApps.GetItemFromView(Sender)
 	longClickClvPNL = clvApps.GetPanel(longClickClvIndex)
 	
@@ -2503,6 +2597,9 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 End Sub
 
 Private Sub lblClearSearch_Click
+	
+	MyLog("lblClearSearch_Click", LogListColor, True)
+	
 	' It's a lite tricky here to solve UI app listview leg
 	DisableSearch = True
 	txtAppsSearch.Text = ""
@@ -2511,4 +2608,5 @@ Private Sub lblClearSearch_Click
 	Sleep(0)
 	txtAppsSearch.Text = ""
 	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
+	
 End Sub

@@ -43,7 +43,8 @@ Sub Process_Globals
 			 ShowKeyboard As Boolean, _
 			 AutoRunApp As Boolean, _
 			 MyPackage As String, _
-			 ShowIconHomeApp As Boolean)
+			 ShowIconHomeApp As Boolean, _
+			 DebugMode As Boolean)
 
 End Sub
 
@@ -54,7 +55,7 @@ Sub Service_Create
 	LogList.Initialize
 	MyLog("########################### " & CRLF _
 			& "                   Service_Create" _
-			& CRLF & "########################### " & CRLF, Colors.Magenta, True)
+			& CRLF & "########################### " & CRLF, Colors.Magenta, False)
 	
 	CreateDB
 	
@@ -67,7 +68,7 @@ Sub Service_Create
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
-	MyLog("Service_Start", LogListColor, True)
+	MyLog("Service_Start", LogListColor, False)
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -88,8 +89,9 @@ Sub Service_Destroy
 End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
+	
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageRemoved => " & Package, LogListColor, True)
+	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
 	
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
@@ -102,8 +104,9 @@ Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 End Sub
 
 Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
+	
 	LogShowToast = False
-	MyLog("*** Event: PE_PackageAdded => " & Package, LogListColor, True)
+	MyLog("PE_PackageAdded: " & Package, LogListColor, False)
 	
 	SetupAppsList(True)
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
@@ -127,8 +130,9 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	Dim time As String = DateTime.Date(DateTime.Now)
 	
 	If (JustShowInDebugMode) Then
-		LogList.Add(Text & " (" & time & ")")
 		LogColor(Text & " (" & time & ")", color)
+		If (Pref.DebugMode) Then _
+			LogList.Add(Text & " (" & time & ")")
 	Else
 		LogList.Add(Text & " (" & time & ")")
 		LogColor(Text & " (" & time & ")", color)
@@ -143,7 +147,7 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 End Sub
 
 Private Sub CreateDB
-	MyLog("CreateDB", LogListColor, True)
+	MyLog("CreateDB", LogListColor, False)
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
@@ -154,7 +158,8 @@ Private Sub CreateDB
 End Sub
 
 Private Sub SetupSettings
-	MyLog("SetupSettings", LogListColor, True)
+	
+	MyLog("SetupSettings", LogListColor, False)
 	
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
@@ -190,6 +195,9 @@ Private Sub SetupSettings
 				
 			Case "ShowIcon"
 				Pref.ShowIcon = ValToBool(CurSettingSql.GetString("Value"))
+			
+			Case "DebugMode"
+				Pref.DebugMode = ValToBool(CurSettingSql.GetString("Value"))
 				
 		End Select
 	Next
@@ -199,6 +207,7 @@ Private Sub SetupSettings
 End Sub
 
 Public Sub ValToBool(value As Object) As Boolean
+	
 	If (value.As(String).Length <= 0) Then Return False
 	If (value.As(String).ToLowerCase = "false") Then Return False
 	If (value.As(String).ToLowerCase = "true") Then Return True
@@ -219,7 +228,9 @@ Public Sub ValToBool(value As Object) As Boolean
 End Sub
 
 Public Sub SetupAppsList(ForceReload As Boolean)
-	MyLog("SetupAppsList : Reload => " & ForceReload, LogListColor, True)
+	
+	ShowToastLog = False
+	MyLog("SetupAppsList : Reload = " & ForceReload, LogListColor, False)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -360,7 +371,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
-	MyLog("SetupAppsList END : Reload => " & ForceReload, LogListColorEnd, True)
+	MyLog("SetupAppsList END = Reload: " & ForceReload, LogListColorEnd, False)
 	
 End Sub
 
@@ -400,6 +411,7 @@ Private Sub GetBmpFromDrawable(Drawable As Object, Size As Int) As Bitmap
 End Sub
 
 Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
+	
 	MyLog("AddToRecently => " & Text & " - " & Value, LogListColor, True)
 	
 	Value = B4XPages.MainPage.GetPackage(Value)
@@ -458,7 +470,7 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	
 	B4XPages.MainPage.tagApps.mBase.Enabled = True
 	
-	MyLog("AddToRecently END=> " & Text & " - " & Value, LogListColorEnd, True)
+	MyLog("AddToRecently END = " & Text & " - " & Value, LogListColorEnd, True)
 	
 '	tagColors = Colors.DarkGray
 '	If (IsNewInstalledApp) Then
@@ -541,7 +553,7 @@ End Sub
 Public Sub FixWallTrans
 	
 	LogShowToast = False
-	MyLog("FixWallTrans", LogListColor, True)
+	MyLog("FixWallTrans", LogListColor, False)
 	
 '	'###### { ### Set Navigation Bar Transparent
 '	Dim jo As JavaObject
@@ -569,5 +581,5 @@ Public Sub FixWallTrans
 	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
 	'}-----
 	
-	MyLog("FixWallTrans END" & TAB, LogListColor, True)
+	MyLog("FixWallTrans END" & TAB, LogListColor, False)
 End Sub

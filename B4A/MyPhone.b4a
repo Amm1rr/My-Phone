@@ -96,7 +96,7 @@ Sub Globals
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
-	MyLog("Main: Activity_Create => IsFirstTime: " & FirstTime, LogListColor, True)
+	MyLog("Main: Activity_Create = IsFirstTime: " & FirstTime, LogListColor, False)
 	
 	Dim pm As B4XPagesManager
 		pm.Initialize(Activity)
@@ -107,13 +107,13 @@ End Sub
 
 public Sub RestartActivity
 	Starter.LogShowToast = False
-	MyLog("Main: RestartActivity", LogListColor, True)
+	MyLog("Main: RestartActivity", LogListColor, False)
 	Activity.Finish
 	StartActivity(Me)
 End Sub
 
 Sub Activity_ActionBarHomeClick
-	MyLog("Event: Main: Activity_ActionBarHomeClick", LogListColor, True)
+	MyLog("Main: Activity_ActionBarHomeClick", LogListColor, False)
 	ActionBarHomeClicked = True
 	B4XPages.Delegate.Activity_ActionBarHomeClick
 	ActionBarHomeClicked = False
@@ -121,7 +121,7 @@ End Sub
 
 Sub Activity_KeyPress (KeyCode As Int) As Boolean
 	Starter.LogShowToast = False
-	MyLog("Event: Main:Activity_KeyPress => " & KeyCode, LogListColor, True)
+	MyLog("Main:Activity_KeyPress => " & KeyCode, LogListColor, False)
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
@@ -146,7 +146,7 @@ End Sub
 Sub Activity_Resume
 	
 	Starter.LogShowToast = False
-	MyLog("Event: Main: Activity_Resume", LogListColor, True)
+	MyLog("Main: Activity_Resume", LogListColor, True)
 	
 	If (GoHomeAllow) Then
 		B4XPages.MainPage.GoHome(False)
@@ -159,18 +159,19 @@ End Sub
 Sub Activity_Pause (UserClosed As Boolean)
 	
 	Starter.LogShowToast = False
-	MyLog("Event: Main: Activity_Pause => UserClosed: " & UserClosed, LogListColor, True)
+	MyLog("Main: Activity_Pause = UserClosed: " & UserClosed, LogListColor, True)
+	
 	B4XPages.Delegate.Activity_Pause
 	
 End Sub
 
 Sub Activity_PermissionResult (Permission As String, Result As Boolean)
-	MyLog("Event: Main: PermissionResult => " & Permission & ":" & Result, LogListColor, True)
+	MyLog("Main: PermissionResult = " & Permission & ":" & Result, LogListColor, True)
 	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
 End Sub
 
 Sub Create_Menu (Menu As Object)
-	MyLog("Event: Main: Create_Menu", LogListColor, True)
+	MyLog("Main: Create_Menu", LogListColor, True)
 	B4XPages.Delegate.Create_Menu(Menu)
 End Sub
 
@@ -194,10 +195,14 @@ Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
 End Sub
 
 Public Sub Show_HomeScreen
+	
+	MyLog("Show_HomeScreen", LogListColor, True)
+	
 	'// Show Home Screen
 	Dim i As Intent
 		i.Initialize(i.ACTION_MAIN, "")
 		i.AddCategory("android.intent.category.HOME")
 		i.Flags = 0x10000000
 	StartActivity(i)
+	
 End Sub
