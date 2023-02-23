@@ -41,6 +41,7 @@ Sub Class_Globals
 	Private imgIconApp As 				ImageView
 	Private imgIconHome As 				ImageView
 	Private clocktimer 					As Timer
+	Private cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
 	Public 	txtAppsSearch 				As EditText
 	
 	Private lstPackageNames 			As List
@@ -157,6 +158,9 @@ Public Sub Initialize
 	clocktimer.Initialize("clocktimer", 1000)
 	clocktimer.Enabled = True
 	
+	cleanSearchTimer.Initialize("cleanSearchTimer", 7500)
+	cleanSearchTimer.Enabled = False
+	
 	TimerLongClick.Initialize("TimerLongClick", 100)
 	TimerLongClick.Enabled = False
 	
@@ -269,6 +273,13 @@ Private Sub clocktimer_Tick
 	
 	DateTime.DateFormat = "dd.MMM.yyyy"
 	lblDate.Text = DateTime.Date(DateTime.Now)
+End Sub
+
+Private Sub cleanSearchTimer_Tick
+	
+	txtAppsSearch.Text = ""
+	cleanSearchTimer.Enabled = False
+	
 End Sub
 
 Private Sub TimerLongClick_Tick
@@ -526,6 +537,8 @@ Public Sub GoHome(ClearSearch As Boolean)
 
 		HideKeyboard
 		
+		cleanSearchTimer.Enabled = True
+		
 	Catch
 		ToastMessageShow(LastException.Message, True)
 		MyLog("GoHome Error = Clear Search : " & ClearSearch & " - "  & LastException, LogListColor, True)
@@ -540,8 +553,8 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	DisableEdgeEdit
 	
 	If (Position = 1) Then	'// Apps
-		If Starter.Pref.ShowKeyboard Then _
-			ShowKeyboard
+		If Starter.Pref.ShowKeyboard Then ShowKeyboard
+		cleanSearchTimer.Enabled = False
 	Else					'// Home
 		HideAppMenu
 		CloseSetting
