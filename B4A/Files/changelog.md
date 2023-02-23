@@ -1,8 +1,9 @@
 
-# Version: Build 36 Alpha : 22/02/2023
+# Version: Build 36 Alpha : 23/02/2023
 * Change txtSearch library to Native
 * Improve fix statusbar and navbar
 * Improve log DevTools
+* Fix HiddenApp issue
 + Added clear search box button
 + Added Single Task feature
 

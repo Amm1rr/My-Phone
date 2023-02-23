@@ -907,7 +907,10 @@ Public Sub HideApp(pkgName As String)
 	pkgName = GetPackage(pkgName)
 	RemoveAppItem_JustFromAppList(pkgName)
 	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
+<<<<<<< HEAD
 	LogColor(query, Colors.Red)
+=======
+>>>>>>> 6a36db7 (Fix HiddenApp issue)
 	Starter.sql.ExecNonQuery(query)
 	Sleep(50)
 	Starter.SetupAppsList(False)
