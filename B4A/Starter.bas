@@ -230,7 +230,7 @@ End Sub
 Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	ShowToastLog = False
-	MyLog("SetupAppsList : Reload = " & ForceReload, LogListColor, False)
+	MyLog("SetupAppsList = Reload: " & ForceReload, LogListColor, False)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
 	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
@@ -251,9 +251,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	Dim packages As List
 		packages = pm.GetInstalledPackages
 	
+	LogColor("RowCount: " & ResApps.RowCount & " - Package Size: " & packages.Size, Colors.Red)
+	
 	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
 		
-		MyLog("SetupAppsList : Reload = TRUE", LogListColor, True)
+		MyLog("SetupAppsList = Reload: TRUE", LogListColor, True)
 		
 		'# First Time Run after Installation
 		'#
@@ -276,11 +278,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.Icon = GetPackageIcon(p)
 					currentapp.IsHomeApp = False
 					currentapp.IsHidden = False
-					
-				NormalAppsList.Add(currentapp)
+				
 				sql.BeginTransaction
-					sql.ExecNonQuery("INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0);" & _ 
-									 "INSERT Or REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',1,0)")
+				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0);" & _
+								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1)")
+				sql.TransactionSuccessful
 				sql.EndTransaction
 			Else
 				Dim currentapp As App
@@ -291,14 +293,34 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '					currentapp.IsHomeApp = False
 '					currentapp.IsHidden = False
 				
-				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsNormalApp, IsHomeApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "',0,0)")
+				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0)")
 			End If
 			AppsList.Add(currentapp)
 			
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
-		NormalAppsList.SortTypeCaseInsensitive("Name", True)
 		
+		ResApps.Close
+		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")
+		
+		Dim intCount As Int = 0
+		Do While ResApps.NextRow
+			
+			Dim currentapp As App
+				currentapp.PackageName = ResApps.GetString("pkgName")
+				currentapp.Name = ResApps.GetString("Name")
+				currentapp.IsHomeApp = False
+				intCount = intCount + 1
+				currentapp.index = intCount
+				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+				currentapp.IsHomeApp = False
+				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+				
+			NormalAppsList.Add(currentapp)
+			
+		Loop
+		ResApps.Close
+		NormalAppsList.SortTypeCaseInsensitive("Name", True)
 		
 		'//----- Load Home
 		'
@@ -412,14 +434,14 @@ End Sub
 
 Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
 	
-	MyLog("AddToRecently => " & Text & " - " & Value, LogListColor, True)
+	MyLog("AddToRecently = " & Text & " - " & Value, LogListColor, True)
 	
 	Value = B4XPages.MainPage.GetPackage(Value)
 	
-	If Not (B4XPages.MainPage.RecentlyList.IsInitialized) Then B4XPages.MainPage.RecentlyList.Initialize
+	If Not 	(B4XPages.MainPage.RecentlyList.IsInitialized) Then B4XPages.MainPage.RecentlyList.Initialize
 	
-	If (B4XPages.MainPage.FindRecentlyItem(Value)) Then Return
-	If Not (B4XPages.MainPage.Is_NormalApp(Value)) Then Return
+	If 		(B4XPages.MainPage.FindRecentlyItem(Value)) Then Return
+	If Not 	(B4XPages.MainPage.Is_NormalApp(Value)) 	Then Return
 	
 	If Text = "" Then _
 		Text = B4XPages.MainPage.GetAppNamebyPackage(Value)
@@ -472,81 +494,9 @@ Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As B
 	
 	MyLog("AddToRecently END = " & Text & " - " & Value, LogListColorEnd, True)
 	
-'	tagColors = Colors.DarkGray
-'	If (IsNewInstalledApp) Then
-'		tagApps.LabelProperties.TextColor = Colors.Yellow
-'	Else
-'		tagApps.LabelProperties.TextColor = Colors.LightGray
-'	End If
-'	
-'	If (RecentlyList.Size < 5) And (RecentlyList.Size > 0) Then
-'		
-'		tagApps.AddTag(Text, tagColors, Value)
-'		
-'		RecentlyList.Add(Value)
-'		
-'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-	''		LogColor(q, Colors.Green)
-'		
-'		Starter.sql.ExecNonQuery(q)
-'		
-	''		Dim lstReverse As List = ReverseList(RecentlyList)
-	''		RecentlyList = lstReverse
-	''		tagApps.CLV.Clear
-	''		For Each item In lstReverse
-	''			tagApps.AddTag(GetAppNamebyPackage(item), Colors.DarkGray, item)
-	''		Next
-'		
-'	Else If (RecentlyList.Size >= 5) Then
-'		Try
-'			'		If (Value = tagApps.CLV.GetValue(tagApps.CLV.Size - 1)) Then Return
-'			'		If (Value = RecentlyList.Get(RecentlyList.Size - 1)) Then Return
-	'
-'			tagApps.mBase.Enabled = False
-'			
-'			tagApps.CLV.Clear
-'			tagApps.AddTag(Text, tagColors, Value)
-'			tagApps.LabelProperties.TextColor = Colors.LightGray
-'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(0)), tagColors, RecentlyList.Get(0))
-'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(1)), tagColors, RecentlyList.Get(1))
-'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(2)), tagColors, RecentlyList.Get(2))
-'			tagApps.AddTag(GetAppNamebyPackage(RecentlyList.Get(3)), tagColors, RecentlyList.Get(3))
-'			
-'			Dim i0 As Object = RecentlyList.Get(0)
-'			Dim i1 As Object = RecentlyList.Get(1)
-'			Dim i2 As Object = RecentlyList.Get(2)
-'			Dim i3 As Object = RecentlyList.Get(3)
-'			
-'			RecentlyList.Clear
-'			RecentlyList.Add(Value)
-'			RecentlyList.Add(i0)
-'			RecentlyList.Add(i1)
-'			RecentlyList.Add(i2)
-'			RecentlyList.Add(i3)
-'			
-'			Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-'			Starter.sql.ExecNonQuery(q)
-'			
-'		Catch
-'			MyLog("++++++++++++ Func: AddToRecently => " & LastException)
-'		End Try
-'		
-'		tagApps.mBase.Enabled = True
-'		
-'	Else
-'		
-'		tagApps.AddTag(Text, tagColors, Value)
-'		RecentlyList.Add(Value)
-'		Dim q As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES ('" & Text & "','" & Value & "')"
-'		Starter.sql.ExecNonQuery(q)
-'		
-'	End If
-'	
-'	'//----- Reset RecentlyBar Color to Default
+'	'//----- Reset RecentlyBar Color to Default for OLD Method used
 '	tagColors = Colors.DarkGray
 '	tagApps.LabelProperties.TextColor = Colors.LightGray
-'	
-	''	SaveRecentlyList
 	
 End Sub
 

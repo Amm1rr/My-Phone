@@ -222,11 +222,12 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			R.Target = clvHome.AsView
 			R.SetOnTouchListener("clvHome_Touch")
 		
-		panHomRow.Tag = panHomRow.Color
-		panAppRow.Tag = panAppRow.Color
+		If (panHomRow.IsInitialized) Then panHomRow.Tag = panHomRow.Color
+		If (panAppRow.IsInitialized) Then panAppRow.Tag = panAppRow.Color
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
+			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
 			If Starter.Pref.ShowIcon Then
 				imgIconApp.Visible = True
 				lblAppTitle.Left = 35dip
@@ -905,8 +906,10 @@ Public Sub HideApp(pkgName As String)
 	MyLog("HideApp: " & pkgName, LogListColor, False)
 	pkgName = GetPackage(pkgName)
 	RemoveAppItem_JustFromAppList(pkgName)
-	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "',0,1)"
+	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
+	LogColor(query, Colors.Red)
 	Starter.sql.ExecNonQuery(query)
+	Sleep(50)
 	Starter.SetupAppsList(False)
 	RemoveAsRecently(pkgName)
 	RemoveHomeItem(pkgName)
