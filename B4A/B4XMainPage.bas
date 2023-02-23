@@ -907,16 +907,12 @@ Public Sub HideApp(pkgName As String)
 	pkgName = GetPackage(pkgName)
 	RemoveAppItem_JustFromAppList(pkgName)
 	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
-<<<<<<< HEAD
-	LogColor(query, Colors.Red)
-=======
->>>>>>> 6a36db7 (Fix HiddenApp issue)
 	Starter.sql.ExecNonQuery(query)
-	Sleep(50)
 	Starter.SetupAppsList(False)
 	RemoveAsRecently(pkgName)
 	RemoveHomeItem(pkgName)
 '	ResetHomeList
+	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 	MyLog("HideApp END: " & pkgName, LogListColorEnd, True)
 End Sub
 
@@ -2367,7 +2363,7 @@ End Sub
 
 Private Sub AddtoAlphabetlist(AppName As String, Index As Int)
 	
-	MyLog("AddtoAlphabetlist = " & AppName & " Index: " & Index, LogListColor, True)
+	MyLog("AddtoAlphabetlist = " & AppName & " Index: " & Index, LogListColorEnd, True)
 	
 	Dim FirstChars As String = AppName.Trim.CharAt(0).As(String).ToUpperCase
 	If (FirstChars = B4XPages.MainPage.AlphabetLastChars) Then Return
@@ -2383,8 +2379,6 @@ Private Sub AddtoAlphabetlist(AppName As String, Index As Int)
 '	If Not (Alphabet.ContainsKey(Index)) Then
 '		Alphabet.Put(FirstChars, Index)
 '	End If
-	
-	MyLog("AddtoAlphabetlist END = " & AppName & " Index: " & Index, LogListColorEnd, True)
 	
 End Sub
 
