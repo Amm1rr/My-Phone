@@ -108,7 +108,7 @@ Sub Class_Globals
 	Public Alphabet As Map
 	Private panHomRow As B4XView
 	
-	'panHomeRow_LongClick
+	'//-- panHomeRow_LongClick
 	Private TimerLongClick As Timer
 	Dim longCLickFirstimeTouched As Long
 	Dim longClickX As Float = 0
@@ -119,10 +119,13 @@ Sub Class_Globals
 	Dim ClickPanCLV As Boolean
 	Dim clvLongClick As Int	' 0 = clvHome
 							' 1 = clvApps
+	'//-- panHomeRow_LongClick END
+	
 	Private panAppRow As B4XView
 	Private panPhone As B4XView
 	Private panCamera As Panel
 	Private DisableSearch As Boolean
+	Private HiddenListChanged As Boolean = False
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -1452,8 +1455,15 @@ Private Sub btnSave_Click
 	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
 		ResetHomeList
 	
-	If (chkShowIcons.Tag <> chkShowIcons.Checked) Then _
+	If (chkShowIcons.Tag <> chkShowIcons.Checked) Or _
+	   (HiddenListChanged = True) Then
+	   
 		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+		HiddenListChanged = False
+		
+	End If
+	
+	
 	
 	MyLog("btnSave_Click END", LogListColorEnd, False)
 	
@@ -2412,6 +2422,7 @@ Private Sub btnHiddenAppsDelete_Click
 		clvHiddenApp.RemoveAt(selected.As(Int))
 		Starter.sql.ExecNonQuery("UPDATE Apps SET IsHidden=0 WHERE pkgName='" & value & "'")
 '		CLVSelection.ItemClicked(-1)
+		HiddenListChanged = True
 	Catch
 		MyLog("btnHiddenAppsDelete_Click ERROR = " & LastException, Colors.Red, False)
 	End Try
@@ -2439,6 +2450,8 @@ Private Sub btnHiddenApps_Click
 	panHideManager.Height = panSetting.Height
 	
 	LoadHiddenManager
+	
+	HiddenListChanged = False
 	
 End Sub
 
