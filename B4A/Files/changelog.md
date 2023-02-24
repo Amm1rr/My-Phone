@@ -1,6 +1,7 @@
 
 # Version: Build 37 Alpha : 2/02/2023
 + Added Log file
++ Added Touch Event for Menus
 
 # Version: Build 36 Alpha : 23/02/2023
 * Change txtSearch library to Native

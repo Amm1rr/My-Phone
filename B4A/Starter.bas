@@ -85,7 +85,11 @@ Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 End Sub
 
 Sub Service_Destroy
-
+	
+	Dim ls As List
+		ls.Initialize
+	File.WriteList(File.DirInternal, "MyLog.log", LogList)
+	
 End Sub
 
 Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)

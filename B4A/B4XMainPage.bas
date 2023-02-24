@@ -100,6 +100,8 @@ Sub Class_Globals
 	
 	Private x_dblClick 					As Int
 	Private y_dblClick 					As Int
+	Private XclvMenu As Float
+	Private YclvMenu As Float
 	Private lblCameraSetting 			As Label
 	Private lblClockSetting 			As Label
 	
@@ -119,6 +121,8 @@ Sub Class_Globals
 	Dim ClickPanCLV As Boolean
 	Dim clvLongClick As Int	' 0 = clvHome
 							' 1 = clvApps
+							' 2 = clvHomeMenu
+							' 3 = clvAppMenu
 	'//-- panHomeRow_LongClick END
 	
 	Private panAppRow As B4XView
@@ -126,6 +130,8 @@ Sub Class_Globals
 	Private panCamera As Panel
 	Private DisableSearch As Boolean
 	Private HiddenListChanged As Boolean = False
+	Private panHomeRowMenu As B4XView
+	Private panAppRowMenu As B4XView
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -231,6 +237,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		If (panHomRow.IsInitialized) Then panHomRow.Tag = panHomRow.Color
 		If (panAppRow.IsInitialized) Then panAppRow.Tag = panAppRow.Color
+		If (panHomeRowMenu.IsInitialized) Then panHomeRowMenu.Tag = panHomeRowMenu.Color
+		If (panAppRowMenu.IsInitialized) Then panAppRowMenu.Tag = panAppRowMenu.Color
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
@@ -303,8 +311,6 @@ Private Sub TimerLongClick_Tick
 				clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
 				clvLongClick = -1
 		End Select
-				
-				
 	End If
 End Sub
 
@@ -952,17 +958,20 @@ Private Sub CreateListItemApp(Text As String, _
 	Starter.LogShowToast = False
 	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
 	
-	Dim p As B4XView = xui.CreatePanel("")
-		p.SetLayoutAnimated(0, 0, 0, Width, Height)
-		p.LoadLayout("AppRow")
-	
-	'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
-	dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
-	dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
-'	lblAppTitle.Text = Text
 
-	Try
 		
+		Dim p As B4XView = xui.CreatePanel("")
+			p.SetLayoutAnimated(0, 0, 0, Width, Height)
+			p.LoadLayout("AppRow")
+		
+		'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
+		dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
+		dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
+'		lblAppTitle.Text = Text.Trim
+'		lblAppTitle.Tag = Value.Trim
+	
+	Try
+
 		If Starter.Pref.ShowIcon Then
 			Dim ico As Bitmap = Starter.GetPackageIcon(Value)
 			If (ico.IsInitialized) Then
@@ -1462,8 +1471,6 @@ Private Sub btnSave_Click
 		HiddenListChanged = False
 		
 	End If
-	
-	
 	
 	MyLog("btnSave_Click END", LogListColorEnd, False)
 	
@@ -2041,21 +2048,14 @@ Private Sub btnLogClose_LongClick
 	
 	If (List1.Size > 200) Then
 		
-'		For i = List1.Size - 200 To 0 Step - 1
 		For i = List1.Size - 200 To List1.Size - 1
 			
-			LogColor(i, Colors.Red)
 			clvLog.AddTextItem(List1.Get(i), "")
-		
 		Next
-		
 	Else
-		
 		For i = 0 To List1.Size - 1
 			
-			LogColor(i, Colors.Red)
 			clvLog.AddTextItem(List1.Get(i), "")
-		
 		Next
 		
 	End If
@@ -2599,6 +2599,10 @@ Private Sub btnSetAsDefault_Click
 End Sub
 
 Private Sub btnClose_Click
+	If (HiddenListChanged = True) Then
+		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+		HiddenListChanged = False
+	End If
 	CloseSetting
 End Sub
 
@@ -2643,7 +2647,7 @@ Private Sub panHomRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			
 	End Select
 	
-	Return True
+	Return False
 	
 End Sub
 
@@ -2686,7 +2690,105 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			
 	End Select
 	
+	Return False
+End Sub
+
+Private Sub panHomeRowMenu_Touch (Action As Int, X As Float, Y As Float) As Boolean
+	
+'	Starter.ShowToastLog = False
+'	MyLog("panHomeRowMenu_Touch", LogListColor, True)
+	
+	longClickClvIndex = clvHRowMenu.GetItemFromView(Sender)
+	longClickClvPNL = clvHRowMenu.GetPanel(longClickClvIndex)
+	
+	Select Action
+		Case 0 ' Down
+			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
+			
+			MyLog("panHomeRowMenu_Touch Down", LogListColor, True)
+			
+			HideKeyboard
+			
+			XclvMenu = X
+			YclvMenu = Y
+			
+		Case 1 ' Up
+			MyLog("panHomeRowMenu_Touch Up", LogListColor, True)
+			
+			If panHomeRowMenu.Tag = "" Then panHomeRowMenu.Tag = 0
+			longClickClvPNL.SetColorAndBorder(panHomeRowMenu.Tag, 0, Colors.Blue, 15dip)
+			
+			HideHomeMenu(True)
+			
+			Dim ix 			As Int = x
+			Dim iy 			As Int = y
+			Dim Tolerance 	As Int = 80
+			
+			Dim res_x 		As Int = XclvMenu - ix
+			If (res_x < 0) Then res_x = res_x * - 1
+			
+			Dim res_y 		As Int = YclvMenu - iy
+			If (res_y < 0) Then res_y = res_y * -1
+			
+			If (Tolerance >= res_x) And (Tolerance >= res_y) Then _
+				clvHRowMenu_ItemClick(longClickClvIndex, clvHRowMenu.GetValue(longClickClvIndex))
+			
+		Case 3 ' Move
+			TimerLongClick.Enabled = False
+			If panHomeRowMenu.Tag = "" Then panHomeRowMenu.Tag = 0
+			longClickClvPNL.SetColorAndBorder(panHomeRowMenu.Tag, 0, Colors.Blue, 15dip)
+			
+	End Select
+	
 	Return True
+	
+End Sub
+
+Private Sub panAppRowMenu_Touch (Action As Int, X As Float, Y As Float) As Boolean
+	
+'	Starter.ShowToastLog = False
+'	MyLog("panAppRowMenu_Touch", LogListColor, True)
+	
+	longClickClvIndex = clvAppRowMenu.GetItemFromView(Sender)
+	longClickClvPNL = clvAppRowMenu.GetPanel(longClickClvIndex)
+	
+	Select Action
+		Case 0 ' Down
+			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
+			MyLog("panAppRowMenu_Touch Down", LogListColor, True)
+			
+			HideKeyboard
+			
+		Case 1 ' Up
+			MyLog("panAppRowMenu_Touch Up", LogListColor, True)
+			
+			If panAppRowMenu.Tag = "" Then panAppRowMenu.Tag = 0
+			longClickClvPNL.SetColorAndBorder(panAppRowMenu.Tag, 0, Colors.Blue, 15dip)
+			
+			HideAppMenu
+			
+			Dim ix 			As Int = x
+			Dim iy 			As Int = y
+			Dim Tolerance 	As Int = 80
+			
+			Dim res_x 		As Int = XclvMenu - ix
+			If (res_x < 0) Then res_x = res_x * - 1
+			
+			Dim res_y 		As Int = YclvMenu - iy
+			If (res_y < 0) Then res_y = res_y * -1
+			
+			If (Tolerance >= res_x) And (Tolerance >= res_y) Then _
+				clvAppRowMenu_ItemClick(longClickClvIndex, clvAppRowMenu.GetValue(longClickClvIndex))
+			
+		Case 3 ' Move
+			TimerLongClick.Enabled = False
+			If panAppRowMenu.Tag = "" Then panAppRowMenu.Tag = 0
+			longClickClvPNL.SetColorAndBorder(panAppRowMenu.Tag, 0, Colors.Blue, 15dip)
+			
+	End Select
+	
+	Return False
+	
 End Sub
 
 Private Sub lblClearSearch_Click
