@@ -120,12 +120,6 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	
 	If Not (LogMode) Then Return
 	
-'	Dim txtWriter As TextWriter
-'		txtWriter.Initialize(File.OpenOutput(File.DirInternalCache, "MyLog.log", True))
-'		txtWriter.WriteList(LogList)
-'		txtWriter.Close
-'	File.WriteString(File.DirInternalCache, "MyLog.log", Text)
-
 	DateTime.DateFormat="HH:mm:ss.SSS"
 	Dim time As String = DateTime.Date(DateTime.Now)
 	
@@ -141,6 +135,7 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 				ToastMessageShow(Text, False)
 			End If
 		End If
+		
 	End If
 	
 	LogShowToast = True

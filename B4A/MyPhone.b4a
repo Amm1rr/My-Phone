@@ -67,7 +67,7 @@ Version=12.2
 @EndOfDesignText@
 #Region Project Attributes
 	#ApplicationLabel: My Phone
-	#VersionCode: 36
+	#VersionCode: 37
 	#VersionName: Alpha
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
@@ -206,3 +206,22 @@ Public Sub Show_HomeScreen
 	StartActivity(i)
 	
 End Sub
+
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	
+	Dim ls As List
+		ls.Initialize
+	
+	For i = 0 To Starter.LogList.Size - 1
+		
+		LogColor(Starter.LogList.Get(i), Colors.Green)
+		ls.Add(Starter.LogList.Get(i))
+		
+	Next
+	
+	File.WriteList(File.DirInternalCache, "MyLog.log", ls)
+	
+	Return False
+	
+End Sub
+

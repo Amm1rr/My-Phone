@@ -550,7 +550,7 @@ End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
 	
-	MyLog("TabStrip1_pageSelected = Position: " & Position, LogListColor, True)
+	MyLog("TabStrip1_pageSelected = Position: " & Position, LogListColor, False)
 
 	HideHomeMenu(True)
 	DisableEdgeEdit
@@ -2021,6 +2021,48 @@ Private Sub btnLogClose_Click
 	panSetting.Visible = True
 End Sub
 
+Private Sub btnLogClose_LongClick
+	
+	MyLog("btnLogClose_LongClick", LogListColor, False)
+	
+	clvLog.Clear
+	
+	Dim ls As List
+		ls.Initialize
+	
+	Dim List1 As List
+		List1.Initialize
+		List1 = File.ReadList(File.DirInternal, "MyLog.log")
+	
+	If (List1.Size <= 0) Then
+		File.WriteList(File.DirInternal, "MyLog.log", Starter.LogList)
+		List1 = Starter.LogList
+	End If
+	
+	If (List1.Size > 200) Then
+		
+'		For i = List1.Size - 200 To 0 Step - 1
+		For i = List1.Size - 200 To List1.Size - 1
+			
+			LogColor(i, Colors.Red)
+			clvLog.AddTextItem(List1.Get(i), "")
+		
+		Next
+		
+	Else
+		
+		For i = 0 To List1.Size - 1
+			
+			LogColor(i, Colors.Red)
+			clvLog.AddTextItem(List1.Get(i), "")
+		
+		Next
+		
+	End If
+	
+	ToastMessageShow("Logs Loaded... " & List1.Size, False)
+End Sub
+
 Private Sub clvLog_ItemClick (Index As Int, Value As Object)
 	Dim cb As BClipboard
 	ToastMessageShow(Value.As(String), True)
@@ -2028,6 +2070,9 @@ Private Sub clvLog_ItemClick (Index As Int, Value As Object)
 End Sub
 
 Private Sub lblVersion_Click
+	
+	MyLog("lblVersion_Click", LogListColor, False)
+	
 	panLog.SetVisibleAnimated(150, True)
 '	panSetting.Visible = False
 	
@@ -2047,10 +2092,11 @@ Private Sub lblVersion_Click
 End Sub
 
 Private Sub lblVersion_LongClick
+	MyLog("lblVersion_LongClick", LogListColor, False)
 	ToastMessageShow("Log list reset successfull.", False)
-	Starter.LogList.Clear
 	clvLog.Clear
-	File.WriteList(File.DirInternalCache, "MyLog.log", Starter.LogList)
+	Starter.LogList.Clear
+'	File.WriteList(File.DirInternal, "MyLog.log", Starter.LogList)
 	
 	btnLogClose_Click
 End Sub
