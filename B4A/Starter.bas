@@ -532,3 +532,20 @@ Public Sub FixWallTrans
 	
 	MyLog("FixWallTrans END" & TAB, LogListColor, False)
 End Sub
+
+'Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+'	
+'	Dim ls As List
+'		ls.Initialize
+'	
+'	For i = 0 To Starter.LogList.Size - 1
+'		
+'		LogColor(Starter.LogList.Get(i), Colors.Green)
+'		ls.Add(Starter.LogList.Get(i))
+'	Next
+'	
+'	File.WriteList(File.DirInternal, "MyLog.log", ls)
+'	
+'	Return False
+'	
+'End Sub
