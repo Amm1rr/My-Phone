@@ -288,8 +288,9 @@ End Sub
 
 Private Sub cleanSearchTimer_Tick
 	
-	txtAppsSearch.Text = ""
 	cleanSearchTimer.Enabled = False
+	txtAppsSearch.Text = ""
+	clvApps.ScrollToItem(0)
 	
 End Sub
 
@@ -836,7 +837,7 @@ End Sub
 
 Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
-	MyLog("clvApps_ItemLongClick - HideKeyboard", LogListColor, False)
+	MyLog("clvApps_ItemLongClick", LogListColor, False)
 	HideKeyboard
 	ConfigCurrentAppApp(Position, Value.As(String))
 	CreateAppMenu(Value)
@@ -955,20 +956,18 @@ Private Sub CreateListItemApp(Text As String, _
 							  Width As Int, _
 							  Height As Int) As Panel
 	
-	Starter.LogShowToast = False
-	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
-	
-
+'	Starter.LogShowToast = False
+'	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
 		
-		Dim p As B4XView = xui.CreatePanel("")
-			p.SetLayoutAnimated(0, 0, 0, Width, Height)
-			p.LoadLayout("AppRow")
+	Dim p As B4XView = xui.CreatePanel("")
+		p.SetLayoutAnimated(0, 0, 0, Width, Height)
+		p.LoadLayout("AppRow")
 		
-		'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
-		dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
-		dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
-'		lblAppTitle.Text = Text.Trim
-'		lblAppTitle.Tag = Value.Trim
+	'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
+	dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
+	dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
+'	lblAppTitle.Text = Text.Trim
+'	lblAppTitle.Tag = Value.Trim
 	
 	Try
 
@@ -1274,6 +1273,7 @@ Public Sub ShowKeyboard
 End Sub
 
 Public Sub HideKeyboard
+	MyLog("HideKeyboard", LogListColorEnd, True)
 	IMElib.HideKeyboard
 End Sub
 
@@ -2367,7 +2367,8 @@ End Sub
 
 Private Sub txtAppsSearch_EnterPressed
 	HideAppMenu
-	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+	If Not (txtAppsSearch.Text = "") Then _
+		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 End Sub
 
 
@@ -2432,7 +2433,7 @@ End Sub
 
 Private Sub AddtoAlphabetlist(AppName As String, Index As Int)
 	
-	MyLog("AddtoAlphabetlist = " & AppName & " Index: " & Index, LogListColorEnd, True)
+'	MyLog("AddtoAlphabetlist = " & AppName & " Index: " & Index, LogListColorEnd, True)
 	
 	Dim FirstChars As String = AppName.Trim.CharAt(0).As(String).ToUpperCase
 	If (FirstChars = B4XPages.MainPage.AlphabetLastChars) Then Return

@@ -78,9 +78,23 @@ End Sub
 
 'Return true to allow the OS default exceptions handler to handle the uncaught exception.
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	
+	Dim ls As List
+	ls.Initialize
+	
+	For i = 0 To LogList.Size - 1
+		
+		LogColor(LogList.Get(i), Colors.Green)
+		ls.Add(LogList.Get(i))
+	Next
+	
+	File.WriteList(File.DirInternal, "MyLog.log", ls)
+	
+'	Return False
+	
 	LogColor(StackTrace, Colors.Red)
 	LogColor(Error.Message, Colors.Red)
-	MyLog("Application_Error: " & Error & ":" & StackTrace, LogListColor, True)
+'	MyLog("Application_Error: " & Error & ":" & StackTrace, LogListColor, True)
 	Return True
 End Sub
 
@@ -532,20 +546,3 @@ Public Sub FixWallTrans
 	
 	MyLog("FixWallTrans END" & TAB, LogListColor, False)
 End Sub
-
-'Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
-'	
-'	Dim ls As List
-'		ls.Initialize
-'	
-'	For i = 0 To Starter.LogList.Size - 1
-'		
-'		LogColor(Starter.LogList.Get(i), Colors.Green)
-'		ls.Add(Starter.LogList.Get(i))
-'	Next
-'	
-'	File.WriteList(File.DirInternal, "MyLog.log", ls)
-'	
-'	Return False
-'	
-'End Sub
