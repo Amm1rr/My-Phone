@@ -56,7 +56,7 @@ Sub Class_Globals
 	Private LogListColor				As Int		= Colors.DarkGray
 	Private LogListColorEnd				As Int 		= Colors.Gray
 	
-	Public StartTimeClick 				As Boolean 	= True
+'	Public 	StartTimeClick 				As Boolean 	= True
 	Private dragAllow 					As Boolean 	= False
 	Private dragAllowEdge 				As Boolean 	= False
 	
@@ -128,7 +128,6 @@ Sub Class_Globals
 	Private panAppRow As B4XView
 	Private panPhone As B4XView
 	Private panCamera As Panel
-	Private DisableSearch As Boolean
 	Private HiddenListChanged As Boolean = False
 	Private panHomeRowMenu As B4XView
 	Private panAppRowMenu As B4XView
@@ -144,7 +143,7 @@ Public Sub Initialize
 	MyLog("###### Initialize", 0xFFC95E08, False)
 	
 	StartService(Starter)
-	StartTimeClick = True
+'	StartTimeClick = True
 	
 	dd.Initialize
 	'The designer script calls the DDD class. A new class instance will be created if needed.
@@ -264,7 +263,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			MyLog("B4XPage_Created ERROR : " & LastException, LogListColor, True)
 		End Try
 		
-		StartTimeClick = False
+'		StartTimeClick = False
 		
 '		EdgeLoad
 '		Open_Edgebar
@@ -288,9 +287,11 @@ End Sub
 
 Private Sub cleanSearchTimer_Tick
 	
+	MyLog("cleanSearchTimer_Tick", LogListColor, True)
+	
 	cleanSearchTimer.Enabled = False
 	txtAppsSearch.Text = ""
-	clvApps.ScrollToItem(0)
+	If (clvApps.Size > 0) Then clvApps.ScrollToItem(0)
 	
 End Sub
 
@@ -2387,20 +2388,52 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	HideAppMenu
 	
-	If (DisableSearch) Then Return
+	Sleep(0) '// Just For Refresh UI
 	
 	Dim i, AppCount As Int = 0
 	
 	clvApps.Clear
 	Alphabet.Clear
-	For Each App As App In Starter.NormalAppsList
-		If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
+	
+	#Region Database Mode Region
+'	Dim rsApps As ResultSet
+'	
+'	If (New = "") Then
+'		rsApps = Starter.sql.ExecQuery("SELECT * FROM Apps ORDER By 'Name' ASC")
+'	Else
+'		rsApps = Starter.sql.ExecQuery("SELECT * FROM Apps WHERE Name='%" & New & "%' ORDER By 'Name' ASC")
+'	End If
+'	Sleep(0)
+'	
+'	Do While rsApps.NextRow
+'		Dim package As String = rsApps.GetString("pkgName")
+'		Dim appName 	As String = rsApps.GetString("Name")
+'		
+'		clvApps.Add(CreateListItemApp(appName, package, clvApps.AsView.Width, AppRowHeigh), package)
+'		AppCount = AppCount + 1
+'		AddtoAlphabetlist(appName, i)
+'	Loop
+	#End Region
+	
+	
+	If (New = "") Then
+		For Each App As App In Starter.NormalAppsList
 			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
 			AppCount = AppCount + 1
 			AddtoAlphabetlist(App.Name, i)
 			i = i + 1
-		End If
-	Next
+		Next
+	Else
+		For Each App As App In Starter.NormalAppsList
+			If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
+				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
+				AppCount = AppCount + 1
+				AddtoAlphabetlist(App.Name, i)
+				i = i + 1
+			End If
+		Next
+	End If
+	
 	
 	If (AppCount > 20) Then
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
@@ -2726,7 +2759,7 @@ Private Sub panHomeRowMenu_Touch (Action As Int, X As Float, Y As Float) As Bool
 			Dim Tolerance 	As Int = 80
 			
 			Dim res_x 		As Int = XclvMenu - ix
-			If (res_x < 0) Then res_x = res_x * - 1
+			If (res_x < 0) Then res_x = res_x * -1
 			
 			Dim res_y 		As Int = YclvMenu - iy
 			If (res_y < 0) Then res_y = res_y * -1
@@ -2760,6 +2793,9 @@ Private Sub panAppRowMenu_Touch (Action As Int, X As Float, Y As Float) As Boole
 			
 			HideKeyboard
 			
+			XclvMenu = X
+			YclvMenu = Y
+			
 		Case 1 ' Up
 			MyLog("panAppRowMenu_Touch Up", LogListColor, True)
 			
@@ -2773,7 +2809,7 @@ Private Sub panAppRowMenu_Touch (Action As Int, X As Float, Y As Float) As Boole
 			Dim Tolerance 	As Int = 80
 			
 			Dim res_x 		As Int = XclvMenu - ix
-			If (res_x < 0) Then res_x = res_x * - 1
+			If (res_x < 0) Then res_x = res_x * -1
 			
 			Dim res_y 		As Int = YclvMenu - iy
 			If (res_y < 0) Then res_y = res_y * -1
@@ -2796,13 +2832,8 @@ Private Sub lblClearSearch_Click
 	
 	MyLog("lblClearSearch_Click", LogListColor, True)
 	
-	' It's a lite tricky here to solve UI app listview leg
-	DisableSearch = True
 	txtAppsSearch.Text = ""
 	HideAppMenu
-	DisableSearch = False
-	Sleep(0)
-	txtAppsSearch.Text = ""
 	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
 	
 End Sub
