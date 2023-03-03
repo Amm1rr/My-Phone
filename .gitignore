@@ -1,5 +1,5 @@
 **/AutoBackups
 **/Objects
 *.meta
+*.db-journal
 "Auto Git MyPhone.bat"
-MyPhone.db-journal

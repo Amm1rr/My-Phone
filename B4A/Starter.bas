@@ -22,7 +22,7 @@ Sub Process_Globals
 	Public HomeApps 				As List		'-- Home Screen Apps
 	Public ShowToastLog 			As Boolean  = True
 	Public LogMode 					As Boolean  = True
-	Public LogShowToast				As Boolean  = True 
+	Public LogShowToast				As Boolean  = True
 	Public LogList 					As List
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF

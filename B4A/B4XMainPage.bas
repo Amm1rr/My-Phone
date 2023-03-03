@@ -38,8 +38,8 @@ Sub Class_Globals
 	Private cmbPhoneSetting 			As B4XComboBox
 	Private cmbCameraSetting 			As B4XComboBox
 	Private cmbClockSetting 			As B4XComboBox
-	Private imgIconApp As 				ImageView
-	Private imgIconHome As 				ImageView
+	Private imgIconApp 					As ImageView
+	Private imgIconHome 				As ImageView
 	Private clocktimer 					As Timer
 	Private cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
 	Public 	txtAppsSearch 				As EditText
@@ -131,6 +131,7 @@ Sub Class_Globals
 	Private HiddenListChanged As Boolean = False
 	Private panHomeRowMenu As B4XView
 	Private panAppRowMenu As B4XView
+	Private chkLogAllowed As B4XView
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -505,10 +506,11 @@ Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consum
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
-			GoHome(False)
+			GoHome(False, False)
+			If (txtAppsSearch.Text <> "") Then txtAppsSearch.Text = ""
 '			Return True
 		Case KeyCodes.KEYCODE_HOME
-			GoHome(True)
+			GoHome(True, False)
 '			Return True
 	End Select
 	Return True
@@ -537,16 +539,15 @@ Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As
 	Return b
 End Sub
 
-Public Sub GoHome(ClearSearch As Boolean)
+Public Sub GoHome(ClearSearch As Boolean, HideKeybord As Boolean)
 	MyLog("GoHome = Clear Search: " & ClearSearch, LogListColor, False)
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		HideHomeMenu(True)
-'		If (HomeMenu.IsInitialized) Then HomeMenu.Visible = False
-'		If (AppMenu.IsInitialized) Then AppMenu.Visible = False
+		HideAppMenu
 '		If ClearSearch Then txtAppsSearch.Text = ""
 
-		HideKeyboard
+		If HideKeybord Then HideKeyboard
 		
 		cleanSearchTimer.Enabled = True
 		
@@ -1380,6 +1381,7 @@ Private Sub btnSetting_Click
 	chkShowIconsHome.Tag = chkShowIconsHome.Checked
 	chkAutoRun.Checked = Starter.Pref.AutoRunApp
 	chklogDebugMode.Checked = Starter.Pref.DebugMode
+	chkLogAllowed.Checked = Starter.LogMode
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
@@ -1556,6 +1558,7 @@ Public Sub SaveSettings
 	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
 	Starter.Pref.AutoRunApp = chkAutoRun.Checked
 	Starter.Pref.DebugMode = chklogDebugMode.Checked
+	Starter.LogMode = chkLogAllowed.Checked
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
@@ -1888,9 +1891,10 @@ Private Sub clvHome_ScrollChanged (Offset As Int)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
-	panAppMenuApp.SetVisibleAnimated(130, False)
-	HideKeyboard
-	HideAppMenu
+	If (Offset < 450) Then
+		HideKeyboard
+		HideAppMenu
+	End If
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)

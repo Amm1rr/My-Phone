@@ -2,6 +2,8 @@
 # Version: Build 37 Alpha : 2/02/2023
 + Added Log file
 + Added Touch Event for Menus
++ Added Enable/Disable LogMode in log setting page
+* Fix issue Show/Hide keyboard while scrolling
 
 # Version: Build 36 Alpha : 23/02/2023
 * Change txtSearch library to Native

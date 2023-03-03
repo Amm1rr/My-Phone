@@ -79,7 +79,7 @@ Version=12.2
 	#IncludeTitle: False
 #End Region
 
-#BridgeLogger: True
+'#BridgeLogger: True
 #AdditionalJar: com.android.support:support-v4
 ' Change Background Color EditText
 #AdditionalJar: com.android.support:support-compat
@@ -125,11 +125,11 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 	
 	Select KeyCode
 		Case KeyCodes.KEYCODE_BACK
-			B4XPages.MainPage.GoHome(True)
+			B4XPages.MainPage.GoHome(True, False)
 			If (B4XPages.MainPage.txtAppsSearch.Text <> "") Then B4XPages.MainPage.txtAppsSearch.Text = ""
 			Return True
 		Case KeyCodes.KEYCODE_HOME
-			B4XPages.MainPage.GoHome(True)
+			B4XPages.MainPage.GoHome(True, False)
 			Return True
 	End Select
 	
@@ -149,7 +149,7 @@ Sub Activity_Resume
 	MyLog("Main: Activity_Resume", LogListColor, True)
 	
 	If (GoHomeAllow) Then
-		B4XPages.MainPage.GoHome(False)
+		B4XPages.MainPage.GoHome(False, True)
 	Else
 		GoHomeAllow = True
 	End If
