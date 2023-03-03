@@ -242,7 +242,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
-			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
+			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("lblAppTitle")
 			If Starter.Pref.ShowIcon Then
 				imgIconApp.Visible = True
 				lblAppTitle.Left = 35dip
@@ -291,7 +291,7 @@ Public Sub cleanSearchTimer_Tick
 	MyLog("cleanSearchTimer_Tick", LogListColor, True)
 	
 	cleanSearchTimer.Enabled = False
-	txtAppsSearch.Text = ""
+	If (txtAppsSearch.Text <> "") Then txtAppsSearch.Text = ""
 	If (clvApps.Size > 0) Then clvApps.ScrollToItem(0)
 	
 End Sub
@@ -957,7 +957,7 @@ Private Sub CreateListItemApp(Text As String, _
 	
 '	Starter.LogShowToast = False
 '	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
-		
+	
 	Dim p As B4XView = xui.CreatePanel("")
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
 		p.LoadLayout("AppRow")
@@ -971,6 +971,7 @@ Private Sub CreateListItemApp(Text As String, _
 	Try
 
 		If Starter.Pref.ShowIcon Then
+			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("lblAppTitle")
 			Dim ico As Bitmap = Starter.GetPackageIcon(Value)
 			If (ico.IsInitialized) Then
 				imgIconApp.Bitmap = ico
@@ -2371,7 +2372,7 @@ End Sub
 
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 	MyLog("txtAppsSearch_FocusChanged = HasFocus: " & HasFocus, LogListColor, True)
-	HideAppMenu(HasFocus)
+	HideAppMenu(Not(HasFocus))
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
@@ -2409,9 +2410,10 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	#End Region
 	
 	
+	
 	If (New = "") Then
 		For Each App As App In Starter.NormalAppsList
-			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
+			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
 			AppCount = AppCount + 1
 			AddtoAlphabetlist(App.Name, i)
 			i = i + 1
@@ -2419,7 +2421,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	Else
 		For Each App As App In Starter.NormalAppsList
 			If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
-				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName.As(String))
+				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
 				AppCount = AppCount + 1
 				AddtoAlphabetlist(App.Name, i)
 				i = i + 1
@@ -2436,6 +2438,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, True, clvApps.AsView.Top)
 	End If
 	AlphabetLastChars = ""
+	
 	
 	If (Old <> New) Then
 		If (txtAppsSearch.Text = New) And (AppCount = 1) Then
@@ -2834,4 +2837,12 @@ End Sub
 
 Private Sub panLog_Touch (Action As Int, X As Float, Y As Float)
 	
+End Sub
+
+Private Sub lblAppTitle_Click
+	Dim lbl As B4XView = Sender
+	LogColor("lblAppit", Colors.Red)
+	
+'	Dim p 		As Panel 	= clvApps.GetRawListItem(Position).Panel.GetView(0)
+'	Log(dd.GetViewByName(p, "lblAppTitle").Text)
 End Sub

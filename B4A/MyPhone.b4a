@@ -127,10 +127,10 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 		Case KeyCodes.KEYCODE_BACK
 			B4XPages.MainPage.GoHome(True, False)
 			If (B4XPages.MainPage.txtAppsSearch.Text <> "") Then B4XPages.MainPage.txtAppsSearch.Text = ""
-			Return True
+'			Return True
 		Case KeyCodes.KEYCODE_HOME
 			B4XPages.MainPage.GoHome(True, False)
-			Return True
+'			Return True
 	End Select
 	
 	Return False

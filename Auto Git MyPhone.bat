@@ -15,8 +15,8 @@ ECHO.##### Git Commit:
 ECHO.
 ECHO.	%MSG%:
 ECHO.
-rem git commit -m %MSG%
-git commit
+git commit -m %MSG%
+rem git commit
 ECHO.
 ECHO.
 ECHO.##### Git Push:
