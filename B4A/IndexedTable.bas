@@ -76,6 +76,7 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 		Starter.MyLog("****** IndexedTable: pnlIndex_Touch Down= Action: " & Action, 0, True)
 	
 	hoverLabel.Visible = False
+	B4XPages.MainPage.HideAppMenu(True)
 	
 	Dim item As Int = Y / (pnlIndex.Height - 250) * pnlIndex.NumberOfViews
 		item = Min(item, pnlIndex.NumberOfViews - 1)

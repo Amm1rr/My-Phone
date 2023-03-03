@@ -79,7 +79,7 @@ Version=12.2
 	#IncludeTitle: False
 #End Region
 
-'#BridgeLogger: True
+#BridgeLogger: True
 #AdditionalJar: com.android.support:support-v4
 ' Change Background Color EditText
 #AdditionalJar: com.android.support:support-compat
@@ -150,11 +150,14 @@ Sub Activity_Resume
 	
 	If (GoHomeAllow) Then
 		B4XPages.MainPage.GoHome(False, True)
+		B4XPages.MainPage.cleanSearchTimer.Enabled = True
+		B4XPages.MainPage.HideAppMenu(True)
 	Else
 		GoHomeAllow = True
 	End If
 	B4XPages.Delegate.Activity_Resume
 End Sub
+
 
 Sub Activity_Pause (UserClosed As Boolean)
 	

@@ -41,7 +41,7 @@ Sub Class_Globals
 	Private imgIconApp 					As ImageView
 	Private imgIconHome 				As ImageView
 	Private clocktimer 					As Timer
-	Private cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
+	Public 	cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
 	Public 	txtAppsSearch 				As EditText
 	
 	Private lstPackageNames 			As List
@@ -195,7 +195,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	SetBackgroundTintList(txtAppsSearch, Colors.Transparent, Colors.Transparent)
 	
-	HideAppMenu
+	HideAppMenu(True)
 	
 	If (FirstStart) Then
 		
@@ -286,7 +286,7 @@ Private Sub clocktimer_Tick
 	lblDate.Text = DateTime.Date(DateTime.Now)
 End Sub
 
-Private Sub cleanSearchTimer_Tick
+Public Sub cleanSearchTimer_Tick
 	
 	MyLog("cleanSearchTimer_Tick", LogListColor, True)
 	
@@ -500,22 +500,22 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 	Return False
 End Sub
 
-Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
-	
-	MyLog("B4XMainPage: Activity_KeyPress = " & KeyCode, LogListColor, False)
-	
-	Select KeyCode
-		Case KeyCodes.KEYCODE_BACK
-			GoHome(False, False)
-			If (txtAppsSearch.Text <> "") Then txtAppsSearch.Text = ""
-'			Return True
-		Case KeyCodes.KEYCODE_HOME
-			GoHome(True, False)
-'			Return True
-	End Select
-	Return True
-	
-End Sub
+'Private Sub Activity_KeyPress (KeyCode As Int) As Boolean 'Return True to consume the event
+'	
+'	MyLog("B4XMainPage: Activity_KeyPress = " & KeyCode, LogListColor, False)
+'	
+'	Select KeyCode
+'		Case KeyCodes.KEYCODE_BACK
+'			GoHome(False, False)
+'			If (txtAppsSearch.Text <> "") Then txtAppsSearch.Text = ""
+''			Return True
+'		Case KeyCodes.KEYCODE_HOME
+'			GoHome(True, False)
+''			Return True
+'	End Select
+'	Return False
+'	
+'End Sub
 
 'You can see the list of page related events in the B4XPagesManager object. The event name is B4XPage.
 
@@ -544,11 +544,9 @@ Public Sub GoHome(ClearSearch As Boolean, HideKeybord As Boolean)
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		HideHomeMenu(True)
-		HideAppMenu
+		HideAppMenu(False)
 '		If ClearSearch Then txtAppsSearch.Text = ""
-
 		If HideKeybord Then HideKeyboard
-		
 		cleanSearchTimer.Enabled = True
 		
 	Catch
@@ -565,12 +563,11 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	DisableEdgeEdit
 	
 	If (Position = 1) Then	'// Apps
-		If Starter.Pref.ShowKeyboard Then ShowKeyboard
 		cleanSearchTimer.Enabled = False
+		If Starter.Pref.ShowKeyboard Then ShowKeyboard
 	Else					'// Home
-		HideAppMenu
+		HideAppMenu(True)
 		CloseSetting
-		HideKeyboard
 	End If
 End Sub
 
@@ -827,7 +824,7 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	ConfigCurrentAppApp(Position, Value)
 	
 	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
-		HideAppMenu
+		HideAppMenu(True)
 	Else
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
 		Starter.AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
@@ -848,7 +845,7 @@ End Sub
 Private Sub CreateAppMenu(Value As Object)
 	Starter.ShowToastLog = False
 	MyLog("CreateAppMenu = " & Value.As(String), LogListColor, False)
-	HideAppMenu
+	HideAppMenu(True)
 	
 	panAppMenuApp.RemoveAllViews
 	panAppMenuApp.LoadLayout("AppRowMenu")
@@ -1299,13 +1296,14 @@ Public Sub HideHomeMenu (DisHomeDrag As Boolean)
 End Sub
 
 ' Hide Apps Popup Menu
-Public Sub HideAppMenu
+Public Sub HideAppMenu(hideKeybord As Boolean)
 	
 '	Starter.LogShowToast = False
 '	MyLog("HideAppMenu", LogListColor, True)
 	
 	panAppMenuApp.SetVisibleAnimated(100, False)
 	AlphabetTable.HideHoverLabel
+	If (hideKeybord) Then HideKeyboard
 	
 End Sub
 
@@ -1334,8 +1332,7 @@ Private Sub panApps_Click
 	Starter.LogShowToast = False
 	MyLog("panApps_Click", LogListColor, True)
 	
-	HideKeyboard
-	HideAppMenu
+	HideAppMenu(True)
 	
 End Sub
 
@@ -1360,8 +1357,7 @@ Private Sub btnSetting_Click
 	Starter.LogShowToast = False
 	MyLog("btnSetting_Click", LogListColor, False)
 	
-	HideKeyboard
-	HideAppMenu
+	HideAppMenu(True)
 	
 	btnSetting.Enabled = False
 	panSetting.RemoveAllViews
@@ -1464,6 +1460,7 @@ Private Sub btnSave_Click
 	
 	SaveSettings
 	SaveHomeList
+	
 	If (chkShowIconsHome.Tag <> chkShowIconsHome.Checked) Then _
 		ResetHomeList
 	
@@ -1758,8 +1755,8 @@ Private Sub panSettings_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("panSettings_Touch = Action: " & Action, Colors.LightGray, True)
 	
-	HideAppMenu
-	HideKeyboard
+	HideAppMenu(True)
+	
 	Select Action
 		Case 0 ' Down
 			If (DblClick(x, y)) Then CloseSetting
@@ -1875,7 +1872,6 @@ Private Sub panSettings_LongClick
 	
 	MyLog("panSettings_LongClick", LogListColor, True)
 	
-	HideKeyboard
 	CloseSetting
 	
 End Sub
@@ -1891,10 +1887,7 @@ Private Sub clvHome_ScrollChanged (Offset As Int)
 End Sub
 
 Private Sub clvApps_ScrollChanged (Offset As Int)
-	If (Offset < 450) Then
-		HideKeyboard
-		HideAppMenu
-	End If
+	If (Offset < 450) Then HideAppMenu(False)
 End Sub
 
 Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
@@ -1906,18 +1899,17 @@ Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 		Starter.LogShowToast = False
 		MyLog("panApps_Touch = Action: " & Action, LogListColor, True)
 
-		HideKeyboard
-		HideAppMenu
+		HideAppMenu(True)
 	End If
 End Sub
 
 Private Sub tagApps_ItemClick (Index As Int, Value As Object)
-	HideAppMenu
+	HideAppMenu(True)
 	RunApp(Value.As(String))
 End Sub
 
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
-	HideAppMenu
+	HideAppMenu(False)
 	RemoveAsRecently(Value.As(String))
 End Sub
 
@@ -2323,7 +2315,7 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	Dim pkgName As String = CurrentAppApp.PackageName
 	Dim Name 	As String = CurrentAppApp.Name
 	
-	HideAppMenu
+	HideAppMenu(True)
 	dragAllow = False
 	
 	Select Value
@@ -2371,7 +2363,7 @@ Private Sub SetBackgroundTintList(View As View,Active As Int, Enabled As Int)
 End Sub
 
 Private Sub txtAppsSearch_EnterPressed
-	HideAppMenu
+	HideAppMenu(False)
 	If Not (txtAppsSearch.Text = "") Then _
 		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 End Sub
@@ -2379,10 +2371,7 @@ End Sub
 
 Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 	MyLog("txtAppsSearch_FocusChanged = HasFocus: " & HasFocus, LogListColor, True)
-	HideAppMenu
-'	If HasFocus = False Then
-'	ShowHideKeyboard(False)
-'	End If
+	HideAppMenu(HasFocus)
 End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
@@ -2390,7 +2379,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	Starter.LogShowToast = False
 	MyLog("txtAppsSearch_TextChanged = " & Old & " : " & New, LogListColor, True)
 	
-	HideAppMenu
+	HideAppMenu(False)
 	
 	Sleep(0) '// Just For Refresh UI
 	
@@ -2703,7 +2692,7 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			
 			MyLog("panAppRow_Touch Down", LogListColor, True)
 			
-			HideAppMenu
+			HideAppMenu(True)
 			
 				' Long Click
 				longCLickFirstimeTouched = DateTime.Now
@@ -2806,7 +2795,7 @@ Private Sub panAppRowMenu_Touch (Action As Int, X As Float, Y As Float) As Boole
 			If panAppRowMenu.Tag = "" Then panAppRowMenu.Tag = 0
 			longClickClvPNL.SetColorAndBorder(panAppRowMenu.Tag, 0, Colors.Blue, 15dip)
 			
-			HideAppMenu
+			HideAppMenu(True)
 			
 			Dim ix 			As Int = x
 			Dim iy 			As Int = y
@@ -2837,7 +2826,12 @@ Private Sub lblClearSearch_Click
 	MyLog("lblClearSearch_Click", LogListColor, True)
 	
 	txtAppsSearch.Text = ""
-	HideAppMenu
 	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
+	HideAppMenu(False)
+	
+End Sub
+
+
+Private Sub panLog_Touch (Action As Int, X As Float, Y As Float)
 	
 End Sub
