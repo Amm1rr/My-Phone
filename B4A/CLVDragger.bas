@@ -55,7 +55,7 @@ End Sub
 
 Public Sub AddDragButtons
 	list.PressedColor = xui.Color_Transparent
-	Dim fnt As B4XFont = xui.CreateMaterialIcons(20)
+	Dim fnt As B4XFont = xui.CreateMaterialIcons(25)
 	For i = 0 To list.Size - 1
 		Dim p As B4XView = list.GetPanel(i)
 		If IsLastViewADragLabel(p) = False Then
@@ -66,11 +66,11 @@ Public Sub AddDragButtons
 				xlbl.Text = Chr(0xE25D)
 				xlbl.TextColor = dTextColor
 				
-			xlbl.SetColorAndBorder(dBackground, 0, 0, 7dip)
+			xlbl.SetColorAndBorder(dBackground, 0, 0, 6dip)
 '				xlbl.Color = dBackground
 				xlbl.SetTextAlignment("CENTER", "CENTER")
 				xlbl.Tag = list
-			p.AddView(xlbl, p.Width - dWidth - 2dip, p.Height / 2 - 15dip, dWidth, 20dip)
+			p.AddView(xlbl, (p.Width - dWidth - 2dip), (p.Height / 2), dWidth, 40dip)
 			Dim r As Reflector
 				r.Target = lbl
 				r.SetOnTouchListener("lbl_Touch")

@@ -65,6 +65,7 @@ Sub Class_Globals
 	Private movecount 					As Int
 	Private LastClick 					As Long
 	Private gestHome 					As Gestures
+	Private gestApps 					As Gestures
 	Private dragger 					As CLVDragger
 	Private draggerEdge 				As CLVDragger
 	Private IMElib 						As IME
@@ -220,6 +221,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		imgCamera.Load(File.DirAssets, "Camera.png")
 		
 		gestHome.SetOnTouchListener(panHome, "gestHome_gesture")
+'		gestApps.SetOnTouchListener(panApps, "gestApps_gesture")
 		
 		'//-- After Screen On, set as top on other apps
 '		Dim jo As JavaObject = Root
@@ -242,7 +244,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
-			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("lblAppTitle")
+			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
 			If Starter.Pref.ShowIcon Then
 				imgIconApp.Visible = True
 				lblAppTitle.Left = 35dip
@@ -437,6 +439,54 @@ Private Sub DisableEdgeEdit
 		draggerEdge.RemoveDragButtons
 		dragAllowEdge = False
 	End If
+End Sub
+
+Private Sub gestApps_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
+	
+'	Starter.LogShowToast = False
+'	MyLog("gestApps_gesture", LogListColor, True)
+	
+	If action = gestApps.ACTION_MOVE Then
+		movecount = movecount + 1
+		' noise on the touch screen electroincs can cause lots of apparent move events
+		' this loop slows the rate down to one comfortable for LogCat
+		' adjust the value for your device if necessary
+		If movecount < 10 Then
+			LogColor("movecount Apps: " & movecount, Colors.Red)
+			HideAppMenu(True)
+			Return True ' need to return true otherwise we don't get any other events in the gesture
+		End If
+		movecount = 0
+	End If
+	
+	Select action
+		Case gestApps.ACTION_DOWN 				' Down
+			
+			MyLog("gestApps_gesture Down", LogListColor, True)
+			
+			HideAppMenu(True)
+			
+			If (DblClick(x, y)) Then DoubleTap
+			
+		Case gestApps.ACTION_UP					' Up
+			'// Double Tap Time Variable
+			LastClick = DateTime.Now
+			
+			MyLog("gestApps_gesture Up", LogListColor, True)
+			
+		Case gestApps.ACTION_POINTER_DOWN		' PtrDown
+			MyLog("gestApps_gesture PtrDown", LogListColor, True)
+			
+		Case gestApps.ACTION_POINTER_UP			' PtrUp
+			MyLog("gestApps_gesture PtrUp", LogListColor, True)
+			
+		Case gestApps.ACTION_MOVE				' Action Move
+			LogColor("gestApps_gesture MOVE", Colors.Red)
+			
+	End Select
+	
+	Return False
+	
 End Sub
 
 Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Float, y As Float) As Boolean
@@ -971,7 +1021,7 @@ Private Sub CreateListItemApp(Text As String, _
 	Try
 
 		If Starter.Pref.ShowIcon Then
-			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("lblAppTitle")
+			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
 			Dim ico As Bitmap = Starter.GetPackageIcon(Value)
 			If (ico.IsInitialized) Then
 				imgIconApp.Bitmap = ico
@@ -1896,7 +1946,7 @@ Private Sub panApps_Touch (Action As Int, X As Float, Y As Float)
 '	Starter.LogShowToast = False
 '	MyLog("panApps_Touch => A: " & Action & " : HideKeyboard", LogListColor, True)
 	
-	If (Action = 0) Then
+	If (Action = panApps.TOUCH_ACTION_DOWN) Then
 		Starter.LogShowToast = False
 		MyLog("panApps_Touch = Action: " & Action, LogListColor, True)
 
@@ -2837,12 +2887,4 @@ End Sub
 
 Private Sub panLog_Touch (Action As Int, X As Float, Y As Float)
 	
-End Sub
-
-Private Sub lblAppTitle_Click
-	Dim lbl As B4XView = Sender
-	LogColor("lblAppit", Colors.Red)
-	
-'	Dim p 		As Panel 	= clvApps.GetRawListItem(Position).Panel.GetView(0)
-'	Log(dd.GetViewByName(p, "lblAppTitle").Text)
 End Sub
