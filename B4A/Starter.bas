@@ -24,17 +24,18 @@ Sub Process_Globals
 	Public LogMode 					As Boolean  = True
 	Public LogShowToast				As Boolean  = True
 	Public LogList 					As List
+	Public Pref 					As Settings
+	Public const NAVBARHEIGHT		As Int 		= 24
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF
-	Public Pref 					As Settings
-	Public const NAVBARHEIGHT		As Int = 24
 	
 	Type App(Name As String, _
 			PackageName As String, _
 			index As Int, _
 			IsHomeApp As Boolean, _
 			Icon As Bitmap, _
-			IsHidden As Boolean)
+			IsHidden As Boolean, _
+			VersionCode As Int)
 	
 	Type Settings(CameraApp As String, _
 			 PhoneApp As String, _
@@ -278,7 +279,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '		sql.ExecNonQuery("DELETE FROM Apps")
 		For i = 0 To packages.Size - 1
 			Dim p As String = packages.Get(i)
-				
+			
 			'//-- This will test whether the app is a 'regular' app that
 			'//-- can be launched and if so you can then show it in your app drawer.
 			'//-- If the app has been uninstalled, or if it isn't for normal use,
@@ -291,10 +292,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.Icon = GetPackageIcon(p)
 					currentapp.IsHomeApp = False
 					currentapp.IsHidden = False
+					currentapp.VersionCode = pm.GetVersionCode(p)
 				
 				sql.BeginTransaction
-				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0);" & _
-								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1)")
+				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
+								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
 				sql.TransactionSuccessful
 				sql.EndTransaction
 			Else
@@ -305,8 +307,9 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '					currentapp.Icon = GetPackageIcon(p)
 '					currentapp.IsHomeApp = False
 '					currentapp.IsHidden = False
+					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0)")
+				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
 			End If
 			AppsList.Add(currentapp)
 			
@@ -328,6 +331,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+				currentapp.VersionCode = ResApps.GetInt("VersionCode")
 				
 			NormalAppsList.Add(currentapp)
 			
@@ -349,6 +353,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
 				currentHomeapp.IsHomeApp = True
 '				currentHomeapp.IsHidden = False
+'				currentHomeapp.VersionCode = ResHome.GetInt("VersionCode")
 					
 			HomeApps.Add(currentHomeapp)
 		Next
@@ -374,6 +379,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+				currentapp.VersionCode = ResApps.GetInt("VersionCode")
 			
 			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
@@ -397,6 +403,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
 				currentHomeapp.IsHomeApp = True
 '				currentHomeapp.IsHidden = False
+'				currentapp.VersionCode = ResApps.GetInt("VersionCode")
 				
 			HomeApps.Add(currentHomeapp)
 			

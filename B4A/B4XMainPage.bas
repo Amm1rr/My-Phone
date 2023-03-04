@@ -965,7 +965,6 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 			If (ico.IsInitialized) Then app.Icon = ico
 			app.index = clvHome.Size + 1
 			app.IsHomeApp = True
-'			ap.IsHidden = False
 			
 		Starter.HomeApps.Add(app)
 	End If
@@ -1547,7 +1546,6 @@ Public Sub ResetHomeList
 			app.index = i + 1
 			app.Icon = Starter.GetPackageIcon(pkg)
 			app.IsHomeApp = True
-'			app.IsHidden = False
 		
 		clvHome.Add(CreateListItemHome(app.Name, pkg, clvHome.sv.Width, HomeRowHeigh), pkg)
 		Starter.HomeApps.Add(app)
