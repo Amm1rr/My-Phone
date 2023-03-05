@@ -247,7 +247,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
 			If Starter.Pref.ShowIcon Then
 				imgIconApp.Visible = True
-				lblAppTitle.Left = 35dip
+'				lblAppTitle.Left = 35dip
+				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
 			Else
 				imgIconApp.Visible = False
 				lblAppTitle.Left = 5dip
@@ -256,7 +257,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 			If Starter.Pref.ShowIconHomeApp Then
 				imgIconHome.Visible = True
-				lblAppTitle.Left = 35dip
+'				lblAppTitle.Left = 35dip
+				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
 			Else
 				imgIconHome.Visible = False
 				lblAppTitle.Left = 5dip
@@ -1025,7 +1027,8 @@ Private Sub CreateListItemApp(Text As String, _
 			If (ico.IsInitialized) Then
 				imgIconApp.Bitmap = ico
 				imgIconApp.Visible = True
-				lblAppTitle.Left = 35dip
+'				lblAppTitle.Left = 35dip
+				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
 			Else
 				lblAppTitle.Left = 5dip
 				imgIconApp.Visible = False
@@ -1097,7 +1100,8 @@ Private Sub CreateListItemHome(Text As String, _
 		Dim ico As Bitmap = Starter.GetPackageIcon(Value)
 		If (ico.IsInitialized) Then
 			imgIconHome.Visible = True
-			lblHomeAppTitle.Left = 35dip
+'			lblHomeAppTitle.Left = 35dip
+			lblHomeAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
 			imgIconHome.Bitmap = ico
 		Else
 			imgIconHome.Visible = False
