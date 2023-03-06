@@ -1101,7 +1101,7 @@ Private Sub CreateListItemHome(Text As String, _
 		If (ico.IsInitialized) Then
 			imgIconHome.Visible = True
 '			lblHomeAppTitle.Left = 35dip
-			lblHomeAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
+			lblHomeAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 22dip
 			imgIconHome.Bitmap = ico
 		Else
 			imgIconHome.Visible = False
