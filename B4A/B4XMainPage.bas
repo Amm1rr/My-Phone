@@ -48,7 +48,7 @@ Sub Class_Globals
 	Public 	RecentlyList 				As List
 	Public 	AppRowHeigh 				As Int 		= 50dip
 	Public 	AppRowHeighMenu 			As Int 		= 50dip
-	Public 	HomeRowHeigh 				As Int 		= 60dip
+	Public 	HomeRowHeigh 				As Int 		= 65dip
 	Public 	HomeRowHeighMenu 			As Int 		= HomeRowHeigh * 2
 	Public 	AutoRunOnFind 				As Boolean
 	Public 	FirstStart 					As Boolean 	= True
