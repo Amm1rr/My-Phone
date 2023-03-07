@@ -1029,7 +1029,7 @@ Private Sub CreateListItemApp(Text As String, _
 				imgIconApp.Bitmap = ico
 				imgIconApp.Visible = True
 '				lblAppTitle.Left = 35dip
-				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
+				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 12dip
 			Else
 				lblAppTitle.Left = 5dip
 				imgIconApp.Visible = False
