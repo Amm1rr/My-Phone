@@ -267,7 +267,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	LogColor("RowCount: " & ResApps.RowCount & " - Package Size: " & packages.Size, Colors.Red)
 	
-	If (ForceReload = True) Or (ResApps.RowCount <> packages.Size) Then
+	If (ForceReload = True) Or (ResApps.RowCount <> (packages.Size - 1)) Then
 		
 		MyLog("SetupAppsList = Reload: TRUE", LogListColor, True)
 		

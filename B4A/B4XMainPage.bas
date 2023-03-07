@@ -2652,6 +2652,7 @@ Private Sub LoadHiddenManager
 End Sub
 
 Private Sub btnHiddenApps_LongClick
+	
 	Starter.SetupAppsList(True)
 	ResetHomeList
 	LoadRecentlyList
