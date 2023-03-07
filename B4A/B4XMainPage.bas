@@ -1065,7 +1065,7 @@ Private Sub CreateListItemAppMenu(Text As String, _
 	
 	If Starter.Pref.ShowIconHomeApp Then
 		imgAppRowMenuRowIconHome.Visible = True
-		lblAppRowMenuRowAppTitle.Left = 35dip
+		lblAppRowMenuRowAppTitle.Left = 12dip
 	Else
 		imgAppRowMenuRowIconHome.Visible = False
 		lblAppRowMenuRowAppTitle.Left = 5dip
@@ -2371,6 +2371,9 @@ Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	
 	HideAppMenu(True)
 	dragAllow = False
+	
+	
+	Main.GoHomeAllow = False
 	
 	Select Value
 		
