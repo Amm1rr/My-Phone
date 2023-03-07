@@ -58,6 +58,7 @@ Sub Class_Globals
 	
 '	Public 	StartTimeClick 				As Boolean 	= True
 	Private dragAllow 					As Boolean 	= False
+	
 	Private dragAllowEdge 				As Boolean 	= False
 	
 	Public 	Manager 					As AdminManager
@@ -1105,11 +1106,11 @@ Private Sub CreateListItemHome(Text As String, _
 			imgIconHome.Bitmap = ico
 		Else
 			imgIconHome.Visible = False
-			lblAppTitle.Left = 5dip
+			lblAppTitle.Left = 18dip
 		End If
 	Else
 		imgIconHome.Visible = False
-		lblHomeAppTitle.Left = 5dip
+		lblHomeAppTitle.Left = 18dip
 	End If
 	
 '	MyLog("CreateListItemHome END => " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColorEnd, False)

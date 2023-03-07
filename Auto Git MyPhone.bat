@@ -4,7 +4,6 @@ COLOR 8
 TITLE=Auto Git MyPhone
 ECHO.
 SET MSG="Update (auto commit)"
-SET MSG="Improve home list UI"
 ECHO.##### Git Status
 git status
 ECHO.
