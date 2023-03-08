@@ -51,7 +51,7 @@ Public Sub LoadAlphabetlist (base 			As Panel, _
 	
 	hoverLabelTopMargin = top
 	
-	base.AddView(pnlIndex, base.Width - PANEL_INDEX_WIDTH, top, PANEL_INDEX_WIDTH, base.Height)
+	base.AddView(pnlIndex, base.Width - PANEL_INDEX_WIDTH, top, PANEL_INDEX_WIDTH, base.Height - Starter.NAVBARHEIGHT)
 	base.AddView(hoverLabel, base.Width - 100dip, top, 40dip, 40dip)
 	Dim lblHeight As Float = (pnlIndex.Height - 2dip) / 26 'Alphalist.Size
 	

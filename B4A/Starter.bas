@@ -13,8 +13,8 @@ Sub Process_Globals
 	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
 	
-	Dim PhoneEvent As PhoneEvents
-	Dim PhID As PhoneId
+	Private PhoneEvent 	As PhoneEvents
+	Private PhID 		As PhoneId
 	
 	Public sql 						As SQL
 	Public AppsList 				As List		'-- All Installed Apps
@@ -25,7 +25,7 @@ Sub Process_Globals
 	Public LogShowToast				As Boolean  = True
 	Public LogList 					As List
 	Public Pref 					As Settings
-	Public const NAVBARHEIGHT		As Int 		= 24
+	Public const NAVBARHEIGHT		As Int 		= 80dip
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF
 	
@@ -58,18 +58,18 @@ Sub Service_Create
 			& "                   Service_Create" _
 			& CRLF & "########################### " & CRLF, Colors.Magenta, False)
 	
-	CreateDB
-	
-	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	CreateDB	
 	
 	FixWallTrans
 	
 	SetupSettings
+	
+	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
 
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
-	MyLog("Service_Start", LogListColor, False)
+	MyLog("Service_Start", LogListColor, True)
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -161,19 +161,20 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 End Sub
 
 Private Sub CreateDB
-	MyLog("CreateDB", LogListColor, False)
+	MyLog("CreateDB", LogListColor, True)
 	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
+		MyLog("CreateDB >>> Database Replaced", LogListColor, False)
 	End If
 	
 	sql.Initialize(File.DirInternal, "MyPhone.db", False)
-	MyLog("CreateDB END", LogListColorEnd, False)
+	MyLog("CreateDB END", LogListColorEnd, True)
 End Sub
 
 Private Sub SetupSettings
 	
-	MyLog("SetupSettings", LogListColor, False)
+	MyLog("SetupSettings", LogListColor, True)
 	
 	Dim tmpResult As String
 	Dim CurSettingSql As ResultSet
@@ -217,7 +218,7 @@ Private Sub SetupSettings
 	Next
 	CurSettingSql.Close
 	
-	MyLog("SetupSettings END", LogListColorEnd, False)
+	MyLog("SetupSettings END", LogListColorEnd, True)
 End Sub
 
 Public Sub ValToBool(value As Object) As Boolean
@@ -413,6 +414,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 	End If
 	
+	ShowToastLog = False
 	MyLog("SetupAppsList END = Reload: " & ForceReload, LogListColorEnd, False)
 	
 End Sub
@@ -551,5 +553,5 @@ Public Sub FixWallTrans
 	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
 	'}-----
 	
-	MyLog("FixWallTrans END" & TAB, LogListColor, False)
+	MyLog("FixWallTrans END" & TAB, LogListColor, True)
 End Sub

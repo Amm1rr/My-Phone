@@ -26,6 +26,7 @@ COLOR 2
 ECHO.
 ECHO.
 ECHO.##### Git Status
+git branch
 git status
 ECHO.
 ECHO.

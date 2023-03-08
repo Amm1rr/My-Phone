@@ -1,5 +1,8 @@
 
-# Version: Build 37 Alpha : 2/02/2023
+# Version: Build 38 Alpha : 00/03/2023
++ Added battery widget
+
+# Version: Build 37 Alpha : 06/03/2023
 + Added Log file
 + Added Touch Event for Menus
 + Added Enable/Disable LogMode in log setting page

@@ -134,6 +134,11 @@ Sub Class_Globals
 	Private panHomeRowMenu As B4XView
 	Private panAppRowMenu As B4XView
 	Private chkLogAllowed As B4XView
+	Public 	panBattery As B4XView
+	Private flagPlugged 			As Boolean
+	Private PhoneEvent 	As PhoneEvents
+	Private PhID 		As PhoneId
+	Private cprBattery As CircularProgressBar
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -279,8 +284,48 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
+	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	
 	MyLog("B4XPage_Created END", LogListColorEnd, False)
 	
+End Sub
+
+Public Sub BatteryVisiblity(show As Boolean, level As Int)
+	panBattery.Visible = show
+	If cprBattery.IsInitialized Then cprBattery.Value = level
+End Sub
+
+Private Sub PhoneEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
+	
+	MyLog("PhoneEvent_BatteryChanged: Attached: " & Plugged, LogListColor, True)
+	
+	If Plugged <> flagPlugged Then ' = True Then
+		flagPlugged = Plugged
+		If Plugged = True Then
+			
+'			ToastMessageShow("Plugin", False)
+			BatteryVisiblity(True, Level)
+			
+			Dim chargeMethod As Int
+			chargeMethod = Intent.GetExtra("plugged")
+'				chargeMethod for AC = 1, USB = 2, wireless charging = 4
+			Select chargeMethod
+				Case 1:
+					Log("Pluged in...")
+				Case 2:
+					Log("USB Charing...")
+				Case 4:
+					Log("Wireless Charing...")
+				Case Else:
+					LogColor("PhoneEvent_BatteryChanged, Something detected!", Colors.Red)
+			End Select
+			
+		Else
+			
+'			ToastMessageShow("Plug-out", False)
+			BatteryVisiblity(False, 0)
+		End If
+	End If
 End Sub
 
 Private Sub clocktimer_Tick
@@ -299,6 +344,10 @@ Public Sub cleanSearchTimer_Tick
 	If (txtAppsSearch.Text <> "") Then txtAppsSearch.Text = ""
 	If (clvApps.Size > 0) Then clvApps.ScrollToItem(0)
 	
+End Sub
+
+Public Sub ClickSimulation
+	XUIViewsUtils.PerformHapticFeedback(Sender)
 End Sub
 
 Private Sub TimerLongClick_Tick
@@ -1527,7 +1576,7 @@ Private Sub btnSave_Click
 		
 	End If
 	
-	MyLog("btnSave_Click END", LogListColorEnd, False)
+	MyLog("btnSave_Click END", LogListColorEnd, True)
 	
 End Sub
 
@@ -1692,10 +1741,10 @@ End Sub
 Public Sub Run_Calendar
 	Try
 		Dim i As Intent
-		Dim phid As String = "phid"
+		Dim PhIIID As String = "phid"
 		i.Initialize("android.intent.action.VIEW", "content://com.android.calendar/time/" & DateTime.Now)
 		i.AddCategory("android.intent.category.DEFAULT")'add cat launcher
-		i.PutExtra("id", phid)
+		i.PutExtra("id", PhIIID)
 		StartActivity(i)'start the activity
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -2466,7 +2515,6 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	#End Region
 	
 	
-	
 	If (New = "") Then
 		For Each App As App In Starter.NormalAppsList
 			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
@@ -2894,4 +2942,9 @@ End Sub
 
 Private Sub panLog_Touch (Action As Int, X As Float, Y As Float)
 	
+End Sub
+
+Private Sub panBattery_Click
+	Dim target As Int = Rnd(0, 101)
+	cprBattery.Value = target
 End Sub
