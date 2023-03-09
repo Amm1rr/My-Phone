@@ -136,8 +136,8 @@ Sub Class_Globals
 	Private chkLogAllowed As B4XView
 	Public 	panBattery As B4XView
 	Private flagPlugged 			As Boolean
-	Private PhoneEvent 	As PhoneEvents
-	Private PhID 		As PhoneId
+	Private PhoneEvt 	As PhoneEvents
+	Private PhD 		As PhoneId
 	Private cprBattery As CircularProgressBar
 End Sub
 
@@ -284,18 +284,18 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
-	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	PhoneEvt.InitializeWithPhoneState("PhoneEvt", PhD)
 	
 	MyLog("B4XPage_Created END", LogListColorEnd, False)
 	
 End Sub
 
 Public Sub BatteryVisiblity(show As Boolean, level As Int)
-	panBattery.Visible = show
+	panBattery.SetVisibleAnimated(500, show)
 	If cprBattery.IsInitialized Then cprBattery.Value = level
 End Sub
 
-Private Sub PhoneEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
+Private Sub PhoneEvt_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
 	
 	MyLog("PhoneEvent_BatteryChanged: Attached: " & Plugged, LogListColor, True)
 	
