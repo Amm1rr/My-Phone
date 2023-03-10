@@ -527,16 +527,7 @@ Public Sub FixWallTrans
 	LogShowToast = False
 	MyLog("FixWallTrans", LogListColor, False)
 	
-'	'###### { ### Set Navigation Bar Transparent
-'	Dim jo As JavaObject
-'		jo.InitializeContext
-'	Dim window As JavaObject
-'	window = jo.RunMethod("getWindow", Null)
-'	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
-''	root.Height = root.Height + NAVBARHEIGHT
-	'}-----
-	
-	'{###### ### Fix Wallpaper
+'	'{###### ### Fix Wallpaper
 	Dim r As Reflector
 		r.Target = r.GetContext
 		r.Target = r.RunStaticMethod("android.app.WallpaperManager", "getInstance", Array As Object(r.GetContext), Array As String("android.content.Context"))
@@ -545,13 +536,55 @@ Public Sub FixWallTrans
 	r.RunMethod4("suggestDesiredDimensions", Array As Object(GetDeviceLayoutValues.Width * 2, GetDeviceLayoutValues.Height), Array As String("java.lang.int", "java.lang.int"))
 	
 	Dim pagesx As Float
-		pagesx = 1.00 / 5
+		pagesx = (1.00 / 5) '5: Page Screen Count
 	
 	Dim pagesy As Float
 		pagesy = 1.00
 	
 	r.RunMethod4("setWallpaperOffsetSteps", Array As Object(pagesx, pagesy), Array As String("java.lang.float", "java.lang.float"))
-	'}-----
+'	'}-----
+	
+'	'###### { ### Set Navigation Bar Transparent
+'	Dim jo As JavaObject
+'		jo.InitializeContext
+'	Dim window As JavaObject
+'		window = jo.RunMethod("getWindow", Null)
+'		window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+'		'root.Height = root.Height + NAVBARHEIGHT
+'	'}-----
 	
 	MyLog("FixWallTrans END" & TAB, LogListColor, True)
 End Sub
+
+'XpageSize: 1/(numberofpages-1), YpageSize=1 usually
+Private Sub LWP_SetDesiredDimensions(VirtualWidth As Int, VirtualHeight As Int, XpageSize As Float, YpageSize As Float)
+	Dim r As Reflector'Must add this permission to the manifest: AddPermission("android.permission.SET_WALLPAPER_HINTS") and possibly android.permission.SET_WALLPAPER
+		r.Target = r.RunStaticMethod("android.app.WallpaperManager", _
+					"getInstance", _
+					Array As Object(r.GetContext), _
+					Array As String("android.content.Context"))
+		r.RunMethod4("suggestDesiredDimensions", _
+					Array As Object(VirtualWidth, VirtualHeight), _
+					Array As String("java.lang.int", _
+					"java.lang.int"))
+		r.RunMethod4("setWallpaperOffsetSteps", _
+					Array As Object(XpageSize, YpageSize), _
+					Array As String("java.lang.float", _
+					"java.lang.float"))
+End Sub
+
+'Dest: The object that will be hosting the wallpaper (ie: the activity)
+Private Sub LWP_SetLocation(Dest As Object, X As Float, Y As Float)
+	Dim r As Reflector, o As Reflector
+		r.Target = r.RunStaticMethod("android.app.WallpaperManager", _
+								 "getInstance", _
+								 Array As Object(r.GetContext), _
+								 Array As String("android.content.Context"))
+	o.Target = Dest
+	r.RunMethod4("setWallpaperOffsets", Array As Object(o.RunMethod("getWindowToken"), X, Y), _
+										Array As String("android.os.IBinder", _
+										"java.lang.float", _
+										"java.lang.float"))
+	
+End Sub
+
