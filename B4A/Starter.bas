@@ -28,6 +28,9 @@ Sub Process_Globals
 	Public const NAVBARHEIGHT		As Int 		= 80dip
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF
+	Private flagPlugged 	As Boolean
+	Private PhoneEvt 		As PhoneEvents
+	Private PhD 			As PhoneId
 	
 	Type App(Name As String, _
 			PackageName As String, _
@@ -65,6 +68,7 @@ Sub Service_Create
 	SetupSettings
 	
 	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
+	PhoneEvt.InitializeWithPhoneState("PhoneEvt", PhD)
 
 End Sub
 
@@ -134,6 +138,42 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 	B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
 	ToastMessageShow(name & " Installed!", True)
 End Sub
+
+'Never call this Event Manual
+Private Sub PhoneEvt_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
+	
+	MyLog("PhoneEvent_BatteryChanged: Attached: " & Plugged, LogListColor, True)
+	
+	If Plugged <> flagPlugged Then ' = True Then
+		flagPlugged = Plugged
+		If Plugged = True Then
+			
+'			ToastMessageShow("Plugin", False)
+			B4XPages.MainPage.BatteryVisiblity(True, Level)
+			
+			Dim chargeMethod As Int
+			chargeMethod = Intent.GetExtra("plugged")
+'				chargeMethod for AC = 1, USB = 2, wireless charging = 4
+			Select chargeMethod
+				Case 1:
+					MyLog("Pluged in...", LogListColor, False)
+				Case 2:
+					MyLog("USB Charing...", LogListColor, False)
+				Case 4:
+					MyLog("Wireless Charing...", LogListColor, False)
+				Case Else:
+					MyLog("PhoneEvent_BatteryChanged, Something detected!", Colors.Red, False)
+			End Select
+			
+		Else
+'			ToastMessageShow("Plug-out", False)
+			B4XPages.MainPage.BatteryVisiblity(False, 0)
+		End If
+	Else
+		B4XPages.MainPage.BatterySetValue(Level)
+	End If
+End Sub
+
 
 Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	

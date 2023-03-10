@@ -135,9 +135,6 @@ Sub Class_Globals
 	Private panAppRowMenu As B4XView
 	Private chkLogAllowed As B4XView
 	Public 	panBattery As B4XView
-	Private flagPlugged 			As Boolean
-	Private PhoneEvt 	As PhoneEvents
-	Private PhD 		As PhoneId
 	Private cprBattery As CircularProgressBar
 End Sub
 
@@ -284,8 +281,6 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		FirstStart = False
 	End If
 	
-	PhoneEvt.InitializeWithPhoneState("PhoneEvt", PhD)
-	
 	MyLog("B4XPage_Created END", LogListColorEnd, False)
 	
 End Sub
@@ -295,37 +290,8 @@ Public Sub BatteryVisiblity(show As Boolean, level As Int)
 	If cprBattery.IsInitialized Then cprBattery.Value = level
 End Sub
 
-Private Sub PhoneEvt_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
-	
-	MyLog("PhoneEvent_BatteryChanged: Attached: " & Plugged, LogListColor, True)
-	
-	If Plugged <> flagPlugged Then ' = True Then
-		flagPlugged = Plugged
-		If Plugged = True Then
-			
-'			ToastMessageShow("Plugin", False)
-			BatteryVisiblity(True, Level)
-			
-			Dim chargeMethod As Int
-			chargeMethod = Intent.GetExtra("plugged")
-'				chargeMethod for AC = 1, USB = 2, wireless charging = 4
-			Select chargeMethod
-				Case 1:
-					Log("Pluged in...")
-				Case 2:
-					Log("USB Charing...")
-				Case 4:
-					Log("Wireless Charing...")
-				Case Else:
-					LogColor("PhoneEvent_BatteryChanged, Something detected!", Colors.Red)
-			End Select
-			
-		Else
-			
-'			ToastMessageShow("Plug-out", False)
-			BatteryVisiblity(False, 0)
-		End If
-	End If
+Public Sub BatterySetValue(val As Float)
+	cprBattery.Value = val
 End Sub
 
 Private Sub clocktimer_Tick
