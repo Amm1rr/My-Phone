@@ -7,14 +7,15 @@ Version=9.85
 #Region  Service Attributes 
 	#StartAtBoot: False
 	#ExcludeFromLibrary: True
+'	#StartCommandReturnValue: android.app.Service.START_STICKY
 #End Region
 
 Sub Process_Globals
 	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
 	
-	Private PhoneEvent 	As PhoneEvents
-	Private PhID 		As PhoneId
+	Private PhonEvent 				As PhoneEvents
+	Private PhID 					As PhoneId
 	
 	Public sql 						As SQL
 	Public AppsList 				As List		'-- All Installed Apps
@@ -29,8 +30,6 @@ Sub Process_Globals
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF
 	Private flagPlugged 	As Boolean
-	Private PhoneEvt 		As PhoneEvents
-	Private PhD 			As PhoneId
 	
 	Type App(Name As String, _
 			PackageName As String, _
@@ -67,13 +66,12 @@ Sub Service_Create
 	
 	SetupSettings
 	
-	PhoneEvent.InitializeWithPhoneState("PhoneEvent", PhID)
-	PhoneEvt.InitializeWithPhoneState("PhoneEvt", PhD)
+	PhonEvent.InitializeWithPhoneState("PhonEvent", PhID)
 
 End Sub
 
 Sub Service_Start (StartingIntent As Intent)
-	MyLog("Service_Start", LogListColor, True)
+	MyLog("Service_Start: " & StartingIntent.ExtrasToString, LogListColor, True)
 	Service.StopAutomaticForeground 'Starter service can start in the foreground state in some edge cases.
 End Sub
 
@@ -111,7 +109,7 @@ Sub Service_Destroy
 	
 End Sub
 
-Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
+Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	
 	LogShowToast = False
 	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
@@ -126,7 +124,7 @@ Sub PhoneEvent_PackageRemoved (Package As String, Intent As Intent)
 	ToastMessageShow(name & " Removed!", True)
 End Sub
 
-Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
+Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
 	
 	LogShowToast = False
 	MyLog("PE_PackageAdded: " & Package, LogListColor, False)
@@ -140,40 +138,61 @@ Sub PhoneEvent_PackageAdded (Package As String, Intent As Intent)
 End Sub
 
 'Never call this Event Manual
-Private Sub PhoneEvt_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
-	
-	MyLog("PhoneEvent_BatteryChanged: Attached: " & Plugged, LogListColor, True)
-	
-	If Plugged <> flagPlugged Then ' = True Then
-		flagPlugged = Plugged
-		If Plugged = True Then
+Sub PhonEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
+	Try
+		MyLog("PhonEvent_BatteryChanged= Plugged: " & Plugged & " - " & Level & "%", LogListColor, True)
+		
+		If Plugged <> flagPlugged Then ' = True Then
+			flagPlugged = Plugged
+			If Plugged = True Then
+				
+'				ToastMessageShow("Plugin", False)
+				B4XPages.MainPage.BatteryVisiblity(True, Level)
+				
+				Dim chargeMethod As Int 					'chargeMethod:
+				chargeMethod = Intent.GetExtra("plugged")	'	AC = 1
+															'	USB = 2
+															'	Wireless = 4
+				Select chargeMethod
+					Case 1:
+						MyLog("Plugged in...: " & Level & "%", LogListColor, False)
+					Case 2:
+						MyLog("USB Charing...: " & Level & "%", LogListColor, False)
+					Case 4:
+						MyLog("Wireless Charing...: " & Level & "%", LogListColor, False)
+					Case Else:
+						MyLog("PhonEvent_BatteryChanged, Something Detected!: " & Level & "%", Colors.Red, False)
+				End Select
+				
+			Else
+'				ToastMessageShow("Plug-out", False)
+				MyLog("Unpluged", LogListColor, False)
+				B4XPages.MainPage.BatteryVisiblity(False, Level)
+			End If
 			
-'			ToastMessageShow("Plugin", False)
+		Else If (Plugged = True) Then
+			MyLog("Pluged: " & Level & "%", LogListColor, False)
 			B4XPages.MainPage.BatteryVisiblity(True, Level)
-			
-			Dim chargeMethod As Int
-			chargeMethod = Intent.GetExtra("plugged")
-'				chargeMethod for AC = 1, USB = 2, wireless charging = 4
-			Select chargeMethod
-				Case 1:
-					MyLog("Pluged in...", LogListColor, False)
-				Case 2:
-					MyLog("USB Charing...", LogListColor, False)
-				Case 4:
-					MyLog("Wireless Charing...", LogListColor, False)
-				Case Else:
-					MyLog("PhoneEvent_BatteryChanged, Something detected!", Colors.Red, False)
-			End Select
-			
-		Else
-'			ToastMessageShow("Plug-out", False)
-			B4XPages.MainPage.BatteryVisiblity(False, 0)
+'			B4XPages.MainPage.BatterySetValue(Level)
 		End If
-	Else
-		B4XPages.MainPage.BatterySetValue(Level)
-	End If
+	Catch
+		MyLog(LastException & " - BatteryChanged: " & Level & "%", Colors.Red, False)
+	End Try
 End Sub
 
+'Private Sub BatteryDetect
+'	Dim filter As IntentFilter
+'	Dim battery As Intent
+'	filter.Initialize("android.intent.action.BATTERY_CHANGED", "")
+'	battery = GetApplicationContext.RegisterReceiver("", filter)
+'	Dim status As Int = battery.GetExtra("status")
+'	Dim isCharging As Boolean = (status = 2) Or (status = 5)
+'	If isCharging Then
+'		Log("Device is Charging")
+'	Else
+'		Log("Device is NOT Charging")
+'	End If
+'End Sub
 
 Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	
@@ -181,6 +200,8 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	
 	DateTime.DateFormat="HH:mm:ss.SSS"
 	Dim time As String = DateTime.Date(DateTime.Now)
+	
+	If Not (LogList.IsInitialized) Then LogList.Initialize
 	
 	If (JustShowInDebugMode) Then
 		LogColor(Text & " (" & time & ")", color)
@@ -585,12 +606,14 @@ Public Sub FixWallTrans
 '	'}-----
 	
 '	'###### { ### Set Navigation Bar Transparent
-'	Dim jo As JavaObject
-'		jo.InitializeContext
-'	Dim window As JavaObject
-'		window = jo.RunMethod("getWindow", Null)
-'		window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+'	If (window <> Null) Then
+'		Dim jo 		As JavaObject
+'			jo.InitializeContext
+'		Dim window 	As JavaObject
+'			window = jo.RunMethod("getWindow", Null)
+'			window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
 '		'root.Height = root.Height + NAVBARHEIGHT
+'	End If
 '	'}-----
 	
 	MyLog("FixWallTrans END" & TAB, LogListColor, True)

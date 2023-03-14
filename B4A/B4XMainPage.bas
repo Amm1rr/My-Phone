@@ -7,6 +7,7 @@ Version=9.85
 #Region Shared Files
 #CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
+#IgnoreWarnings: 20, 12
 #End Region
 
 'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=Project.zip
@@ -203,13 +204,13 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	If (FirstStart) Then
 		
-		'###### { ### Set Statusbar Colour
-		Dim jo As JavaObject
-		Dim window As JavaObject
-		window = jo.InitializeContext.RunMethod("getWindow", Null)
-		window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
-		Root.Height = Root.Height + Starter.NAVBARHEIGHT
-		'}-----
+'		'###### { ### Set Statusbar Colour
+		Dim jo 		As JavaObject
+		Dim window 	As JavaObject
+			window = jo.InitializeContext.RunMethod("getWindow", Null)
+			window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+'		Root.Height = Root.Height + Starter.NAVBARHEIGHT
+'		'}-----
 		
 		Starter.SetupAppsList(False)
 		
@@ -286,12 +287,14 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 End Sub
 
 Public Sub BatteryVisiblity(show As Boolean, level As Int)
+	MyLog("BatteryVisiblity: " & show & " - " & level & "%", LogListColor, True)
 	panBattery.SetVisibleAnimated(500, show)
 	If cprBattery.IsInitialized Then cprBattery.Value = level
 End Sub
 
-Public Sub BatterySetValue(val As Float)
-	cprBattery.Value = val
+Public Sub BatterySetValue(level As Float)
+	MyLog("BatterySetValue: " & level & "%", LogListColor, True)
+	If cprBattery.IsInitialized Then cprBattery.Value = level
 End Sub
 
 Private Sub clocktimer_Tick
