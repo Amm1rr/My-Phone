@@ -20,7 +20,6 @@ Sub Process_Globals
 	Public sql 						As SQL
 	Public AppsList 				As List		'-- All Installed Apps
 	Public NormalAppsList 			As List		'-- Normal Apps to show
-	Public HomeApps 				As List		'-- Home Screen Apps
 	Public ShowToastLog 			As Boolean  = True
 	Public LogMode 					As Boolean  = True
 	Public LogShowToast				As Boolean  = True
@@ -114,8 +113,9 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
 	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
 	
-	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	SetupAppsList(True)
+	B4XPages.MainPage.SetupHomeList
+	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	
 	B4XPages.MainPage.RemoveAppItem_JustFromAppList(Package)
 	B4XPages.MainPage.RemoveAsRecently(Package)
@@ -130,6 +130,7 @@ Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
 	MyLog("PE_PackageAdded: " & Package, LogListColor, False)
 	
 	SetupAppsList(True)
+	B4XPages.MainPage.SetupHomeList
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	
 	AddToRecently(name, Package, True)
@@ -309,15 +310,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	MyLog("SetupAppsList = Reload: " & ForceReload, LogListColor, False)
 	
 	If Not (AppsList.IsInitialized) Then AppsList.Initialize
-	If Not (HomeApps.IsInitialized) Then HomeApps.Initialize
 	If Not (NormalAppsList.IsInitialized) Then NormalAppsList.Initialize
 	
 	AppsList.Clear
-	HomeApps.Clear
 	NormalAppsList.Clear
-'	Dim Count As Int = sql.ExecQuerySingleResult("SELECT count(ID) FROM Apps")
-
-
+	
 	'// All Apps in Database
 	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name ASC")
 	
@@ -388,7 +385,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.PackageName = ResApps.GetString("pkgName")
 				currentapp.Name = ResApps.GetString("Name")
 				currentapp.IsHomeApp = False
-				intCount = intCount + 1
+			intCount = intCount + 1
 				currentapp.index = intCount
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				currentapp.IsHomeApp = False
@@ -401,47 +398,26 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		ResApps.Close
 		NormalAppsList.SortTypeCaseInsensitive("Name", True)
 		
-		'//----- Load Home
-		'
-		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
-		
-		For i = 0 To ResHome.RowCount - 1
-			ResHome.Position = i
-			
-			Dim currentHomeapp As App
-				currentHomeapp.PackageName = ResHome.GetString("pkgName")
-				currentHomeapp.Name = ResHome.GetString("Name")
-				currentHomeapp.index = i + 1
-				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
-				currentHomeapp.IsHomeApp = True
-'				currentHomeapp.IsHidden = False
-'				currentHomeapp.VersionCode = ResHome.GetInt("VersionCode")
-					
-			HomeApps.Add(currentHomeapp)
-		Next
-		ResHome.Close
-'		HomeApps.SortTypeCaseInsensitive("index", True)
-	
 	Else
 		
 		'//----- Config Apps List
 		'
 		ResApps.Close
-		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")		
+		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")
 		
 		Dim intCount As Int = 0
 		Do While ResApps.NextRow
 			
 			Dim currentapp As App
-				currentapp.PackageName = ResApps.GetString("pkgName")
-				currentapp.Name = ResApps.GetString("Name")
-				currentapp.IsHomeApp = False
-				intCount = intCount + 1
-				currentapp.index = intCount
-				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
-				currentapp.IsHomeApp = False
-				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
-				currentapp.VersionCode = ResApps.GetInt("VersionCode")
+			currentapp.PackageName = ResApps.GetString("pkgName")
+			currentapp.Name = ResApps.GetString("Name")
+			currentapp.IsHomeApp = False
+			intCount = intCount + 1
+			currentapp.index = intCount
+			currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+			currentapp.IsHomeApp = False
+			currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+			currentapp.VersionCode = ResApps.GetInt("VersionCode")
 			
 			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
@@ -450,28 +426,6 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		ResApps.Close
 		AppsList.SortTypeCaseInsensitive("Name", True)
 		NormalAppsList.SortTypeCaseInsensitive("Name", True)
-		
-		'//----- Home Apps
-		'
-		Dim ResHome As ResultSet = sql.ExecQuery("SELECT * FROM Home ORDER BY ID ASC")
-		
-		For i = 0 To ResHome.RowCount - 1
-			ResHome.Position = i
-			
-			Dim currentHomeapp As App
-				currentHomeapp.PackageName = ResHome.GetString("pkgName")
-				currentHomeapp.Name = ResHome.GetString("Name")
-				currentHomeapp.index = i + 1
-				currentHomeapp.Icon = GetPackageIcon(currentHomeapp.PackageName)
-				currentHomeapp.IsHomeApp = True
-'				currentHomeapp.IsHidden = False
-'				currentapp.VersionCode = ResApps.GetInt("VersionCode")
-				
-			HomeApps.Add(currentHomeapp)
-			
-		Next
-		ResHome.Close
-'		HomeApps.SortTypeCaseInsensitive("index", True)
 		
 	End If
 	
