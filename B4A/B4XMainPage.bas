@@ -370,6 +370,7 @@ Public Sub SetupHomeList
 '			CurrentHomeApp.VersionCode = ResHome.GetInt("VersionCode")
 			
 		HomeApps.Add(CurrentHomeApp)
+		AddToHomeList(CurrentHomeApp.Name, CurrentHomeApp.PackageName, clvHome.sv.Width, True)
 	Next
 	ResHome.Close
 '	HomeApps.SortTypeCaseInsensitive("index", True)
@@ -1062,10 +1063,10 @@ Public Sub UninstallApp(pkgName As String)
 	
 End Sub
 
-Private Sub CreateListItemApp(Text As String, _
-							  Value As String, _
-							  Width As Int, _
-							  Height As Int) As Panel
+Private Sub CreateListItemApp(Text 		As String, _
+							  Value 	As String, _
+							  Width 	As Int, _
+							  Height 	As Int) As Panel
 	
 '	Starter.LogShowToast = False
 '	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
@@ -1232,12 +1233,12 @@ Public Sub Setup
 	
 	MyLog("Setup", LogListColor, False)
 	
-	'-- Add Apps to Home ListView
-	clvHome.Clear
-	For Each app As App In HomeApps
-'		LogColor(app, Colors.Green)
-		AddToHomeList(app.Name, app.PackageName, clvHome.sv.Width, False)
-	Next
+'	'-- Add Apps to Home ListView
+'	clvHome.Clear
+'	For Each app As App In HomeApps
+''		LogColor(app, Colors.Green)
+'		AddToHomeList(app.Name, app.PackageName, clvHome.sv.Width, False)
+'	Next
 	
 	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
 	Starter.NormalAppsList.SortTypeCaseInsensitive("Name", True)
@@ -1299,7 +1300,7 @@ public Sub RemoveHomeItem(pkgName As String)
 '		End If
 '	Next
 	
-	SetupHomeList
+'	SetupHomeList
 	
 	MyLog("RemoveHomeItem END => " & pkgName, LogListColorEnd, True)
 	
@@ -1341,13 +1342,19 @@ Public Sub FindHomeItem(pkgName As String) As Boolean
 		Return False
 	End If
 	
-'	For i = 0 To HomeApps.Size - 1
+'	For Each ap As App In HomeApps
+'		If (ap.PackageName = pkgName) Then
+''			MyLog("FindHomeItem => " & pkgName & " - True", LogListColor)
+'			Return True
+'		End If
+'	Next
+	
 	For i = 0 To clvHome.Size - 1
-	If (clvHome.GetValue(i) = pkgName) Then
-'	If (HomeApps.Get(i) = pkgName) Then
+		If (clvHome.GetValue(i) = pkgName) Then
+			LogColor(HomeApps.Get(i).As(String), Colors.Red)
 '			MyLog("FindHomeItem => " & pkgName & " - True", LogListColor)
 			Return True
-	End If
+		End If
 	Next
 	
 	MyLog("FindHomeItem END = Return: False - " & pkgName, LogListColorEnd, True)
@@ -1633,11 +1640,11 @@ Public Sub SaveSettings
 		Starter.Pref.PhoneApp = cmbPhoneSetting.Tag.As(String)
 	End If
 	
-	Starter.Pref.ShowIcon = chkShowIcons.Checked
+	Starter.Pref.ShowIcon 		 = chkShowIcons.Checked
 	Starter.Pref.ShowIconHomeApp = chkShowIconsHome.Checked
-	Starter.Pref.AutoRunApp = chkAutoRun.Checked
-	Starter.Pref.DebugMode = chklogDebugMode.Checked
-	Starter.LogMode = chkLogAllowed.Checked
+	Starter.Pref.AutoRunApp 	 = chkAutoRun.Checked
+	Starter.Pref.DebugMode 		 = chklogDebugMode.Checked
+	Starter.LogMode 			 = chkLogAllowed.Checked
 	
 '	LogColor(Starter.Pref, Colors.Red)
 	
@@ -1665,11 +1672,11 @@ Public Sub SaveHomeList
 	Starter.sql.ExecNonQuery("DELETE FROM Home")
 	HomeApps.Clear
 	
+	Dim query As String
 	For i = 0 To clvHome.Size - 1
-		Dim pkg As String = clvHome.GetValue(i)
-		Dim name As String = GetAppNamebyPackage(pkg)
-		Dim query As String = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "')"
-		Starter.sql.ExecNonQuery(query)
+		Dim pkg 	As String = clvHome.GetValue(i)
+		Dim name 	As String = GetAppNamebyPackage(pkg)
+			query = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "');" & query
 '		LogColor(query, Colors.Red)
 		
 		Dim app As App
@@ -1678,10 +1685,13 @@ Public Sub SaveHomeList
 			app.index = i + 1
 			app.Icon = Starter.GetPackageIcon(pkg)
 			app.IsHomeApp = True
-'			app.IsHidden = False
+'			app.IsHidden = False`
 		
 		HomeApps.Add(app)
 	Next
+	
+	LogColor("SaveHomeList = " & query, Colors.Red)
+	Starter.sql.ExecNonQuery(query)
 '	HomeApps.SortTypeCaseInsensitive("ID", True)
 	
 	MyLog("SaveHomeList END", LogListColorEnd, True)
@@ -2571,13 +2581,13 @@ Private Sub btnHiddenAppsDelete_Click
 		MyLog("btnHiddenAppsDelete_Click", LogListColor, True)
 		
 		If clvHiddenApp.Size = 0 Then Return
-		If CLVSelection.SelectedItems.AsList.Size = 0 Then Return
+		If CLVSelection.SelectedItems.AsList.Size < 1 Then Return
 		
 '		Dim index As Int = clvHiddenApp.GetItemFromView(Sender)
 '		Dim value As String = clvHiddenApp.GetValue(index)
 		
-		Dim selected As Object = CLVSelection.SelectedItems.AsList.Get(0)
-		Dim value As 	String = clvHiddenApp.GetValue(selected)
+		Dim selected 	As Object = CLVSelection.SelectedItems.AsList.Get(0)
+		Dim value 		As String = clvHiddenApp.GetValue(selected)
 		clvHiddenApp.RemoveAt(selected.As(Int))
 		Starter.sql.ExecNonQuery("UPDATE Apps SET IsHidden=0 WHERE pkgName='" & value & "'")
 '		CLVSelection.ItemClicked(-1)
@@ -2616,7 +2626,6 @@ End Sub
 
 Private Sub panHiddenApps_Touch (Action As Int, X As Float, Y As Float)
 	
-
 	HideKeyboard
 	Select Action
 		Case 0 ' Down
@@ -2642,7 +2651,7 @@ Private Sub CloseHiddenManager
 	Sleep(300)
 	panHideManager.RemoveAllViews
 	Starter.SetupAppsList(False)
-	SetupHomeList
+'	SetupHomeList
 End Sub
 
 Private Sub clvHiddenApp_ItemClick (Index As Int, Value As Object)

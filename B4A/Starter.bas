@@ -334,6 +334,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'#
 		'#------------------------------------
 		
+		Dim queryApps, queryAllApps As String
 		sql.ExecNonQuery("DELETE FROM AllApps")
 '		sql.ExecNonQuery("DELETE FROM Apps")
 		For i = 0 To packages.Size - 1
@@ -353,11 +354,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.IsHidden = False
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				sql.BeginTransaction
-				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
-								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
-				sql.TransactionSuccessful
-				sql.EndTransaction
+				queryApps = "INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
+							"INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");" & queryApps
 			Else
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
@@ -368,11 +366,13 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '					currentapp.IsHidden = False
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
+				queryAllApps = "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & queryAllApps
 			End If
 			AppsList.Add(currentapp)
 			
 		Next
+		sql.ExecNonQuery(queryApps)
+		sql.ExecNonQuery(queryAllApps)
 		AppsList.SortTypeCaseInsensitive("Name", True)
 		
 		ResApps.Close
@@ -409,15 +409,15 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		Do While ResApps.NextRow
 			
 			Dim currentapp As App
-			currentapp.PackageName = ResApps.GetString("pkgName")
-			currentapp.Name = ResApps.GetString("Name")
-			currentapp.IsHomeApp = False
+				currentapp.PackageName = ResApps.GetString("pkgName")
+				currentapp.Name = ResApps.GetString("Name")
+				currentapp.IsHomeApp = False
 			intCount = intCount + 1
-			currentapp.index = intCount
-			currentapp.Icon = GetPackageIcon(currentapp.PackageName)
-			currentapp.IsHomeApp = False
-			currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
-			currentapp.VersionCode = ResApps.GetInt("VersionCode")
+				currentapp.index = intCount
+				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+				currentapp.IsHomeApp = False
+				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+				currentapp.VersionCode = ResApps.GetInt("VersionCode")
 			
 			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
