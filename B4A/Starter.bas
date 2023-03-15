@@ -167,12 +167,12 @@ Sub PhonEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, In
 				
 			Else
 '				ToastMessageShow("Plug-out", False)
-				MyLog("Unpluged", LogListColor, False)
+'				MyLog("Unpluged", LogListColor, False)
 				B4XPages.MainPage.BatteryVisiblity(False, Level)
 			End If
 			
 		Else If (Plugged = True) Then
-			MyLog("Pluged: " & Level & "%", LogListColor, False)
+'			MyLog("Pluged: " & Level & "%", LogListColor, False)
 			B4XPages.MainPage.BatteryVisiblity(True, Level)
 '			B4XPages.MainPage.BatterySetValue(Level)
 		End If

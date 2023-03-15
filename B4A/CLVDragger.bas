@@ -66,11 +66,12 @@ Public Sub AddDragButtons
 				xlbl.Text = Chr(0xE25D)
 				xlbl.TextColor = dTextColor
 				
-			xlbl.SetColorAndBorder(dBackground, 0, 0, 6dip)
+			xlbl.SetColorAndBorder(dBackground, 0, 0, 2dip)
 '				xlbl.Color = dBackground
 				xlbl.SetTextAlignment("CENTER", "CENTER")
 				xlbl.Tag = list
-			p.AddView(xlbl, (p.Width - dWidth - 2dip), (p.Height / 2), dWidth, 40dip)
+				dWidth = 30dip
+			p.AddView(xlbl, (p.Width - dWidth - 2dip), 8dip, dWidth, 50dip)
 			Dim r As Reflector
 				r.Target = lbl
 				r.SetOnTouchListener("lbl_Touch")
