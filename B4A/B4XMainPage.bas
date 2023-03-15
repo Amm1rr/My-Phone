@@ -7,7 +7,7 @@ Version=9.85
 #Region Shared Files
 #CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
-#IgnoreWarnings: 20, 12
+#IgnoreWarnings: 20, 12, 11
 #End Region
 
 'Ctrl + click to export as zip: ide://run?File=%B4X%\Zipper.jar&Args=Project.zip
@@ -138,6 +138,7 @@ Sub Class_Globals
 	Private chkLogAllowed As B4XView
 	Public 	panBattery As B4XView
 	Private cprBattery As CircularProgressBar
+	Private thread As Thread
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -183,6 +184,19 @@ Public Sub Initialize
 	
 End Sub
 
+'The thread has terminated. If endedOK is False error holds the reason for failure
+Private Sub thread_Ended(endedOK As Boolean, error As String)
+	If Not (endedOK) Then
+		MyLog("Loading Apps Thread Error: "  & error, Colors.Red, False)
+	End If
+End Sub
+
+Private Sub RunSetupThread
+	Starter.SetupAppsList(False)
+	Setup
+	LoadRecentlyList
+End Sub
+
 'This event will be called once, before the page becomes visible.
 Private Sub B4XPage_Created (Root1 As B4XView)
 	MyLog("B4XPage_Created", LogListColor, False)
@@ -213,12 +227,11 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 '		Root.Height = Root.Height + Starter.NAVBARHEIGHT
 '		'}-----
 		
-		Starter.SetupAppsList(False)
 		SetupHomeList
 		
-		Setup
-		
-		LoadRecentlyList
+'		Starter.SetupAppsList(False)
+'		Setup
+'		LoadRecentlyList
 		
 		If Not (imgPhone.IsInitialized) Then imgPhone.Initialize("", "")
 		imgPhone.Load(File.DirAssets, "Phone.png")
@@ -273,6 +286,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		Catch
 			MyLog("B4XPage_Created ERROR : " & LastException, LogListColor, True)
 		End Try
+		
+		thread.Initialise("thread")
+		thread.Start(Me, "RunSetupThread", Null)
 		
 '		StartTimeClick = False
 		
@@ -1686,7 +1702,7 @@ Public Sub SaveHomeList
 	For i = 0 To clvHome.Size - 1
 		Dim pkg 	As String = clvHome.GetValue(i)
 		Dim name 	As String = GetAppNamebyPackage(pkg)
-'			query = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "');" & query
+		query = "INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "');" & query
 			Starter.sql.ExecNonQuery("INSERT OR REPLACE INTO Home(ID, Name, pkgName) VALUES(" & i & ",'" & GetAppNamebyPackage(pkg) & "', '" & pkg & "');")
 '		LogColor(query, Colors.Red)
 		
@@ -1701,7 +1717,7 @@ Public Sub SaveHomeList
 		HomeApps.Add(app)
 	Next
 	
-	LogColor("SaveHomeList = " & query, Colors.Red)
+	LogColor("Query SaveHomeList => " & query, Colors.Red)
 '	If (query <> "") Then Starter.sql.ExecNonQuery(query)
 '	HomeApps.SortTypeCaseInsensitive("ID", True)
 	
@@ -2023,7 +2039,7 @@ Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
 	
 	Dim Result As Int
 	
-	Msgbox2Async("Do you want to delete '" & GetAppNamebyPackage(Value) & "' ?", "Delete", "No", "", "No", Null, True)
+	Msgbox2Async("Do you want to delete this app?", GetAppNamebyPackage(Value), "Yes", "", "No", Null, True)
 	Wait For Msgbox_Result(Result As Int)
 
 	Select Result

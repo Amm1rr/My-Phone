@@ -1,6 +1,12 @@
 
 # Version: Build 38 Alpha : 00/03/2023
-+ Added battery widget
++ Added thread to SuperFaster loading
+* A big Improve Engine to pre-load SuperFast
++ Added battery widget on deskhome
+* Fix HidenApp issue
+* Fix Alphabet issue
+* Improve tagAppbar
+* Improve UI Design for Views and Buttons
 
 # Version: Build 37 Alpha : 06/03/2023
 + Added Log file
