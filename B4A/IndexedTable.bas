@@ -78,26 +78,30 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	hoverLabel.Visible = False
 	B4XPages.MainPage.HideAppMenu(True)
 	
-	Dim item As Int = Y / (pnlIndex.Height - 250) * pnlIndex.NumberOfViews
+	Try
+		Dim item As Int = Y / (pnlIndex.Height - 250) * pnlIndex.NumberOfViews
 		item = Min(item, pnlIndex.NumberOfViews - 1)
 	
-	If (item < 0) Then Return
+		If (item < 0) Then Return
 	
-	Dim lbl As Label = pnlIndex.GetView(item)
-	If Action = pnlIndex.ACTION_UP Then
-		hoverLabel.Visible = False
-'		LogColor(lbl.Tag, Colors.Red)
-		B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
-	Else
-		If (lbl <> lblLast) Then _
-			XUIViewsUtils.PerformHapticFeedback(Sender)
-		
-		hoverLabel.Top = (lbl.Top - 15dip) + hoverLabelTopMargin
-		hoverLabel.Text = lbl.Text
-		hoverLabel.Visible = True
-		B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
-		lblLast = lbl
-	End If
+		Dim lbl As Label = pnlIndex.GetView(item)
+		If Action = pnlIndex.ACTION_UP Then
+			hoverLabel.Visible = False
+'			LogColor(lbl.Tag, Colors.Red)
+			B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
+		Else
+			If (lbl <> lblLast) And (lbl.Text <> "") Then _
+				XUIViewsUtils.PerformHapticFeedback(Sender)
+			
+			hoverLabel.Top = (lbl.Top - 15dip) + hoverLabelTopMargin
+			hoverLabel.Text = lbl.Text
+			hoverLabel.Visible = True
+			B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
+			lblLast = lbl
+		End If
+	Catch
+		Log("pnlIndex_Touch: " & LastException)
+	End Try
 End Sub
 
 Public Sub HideHoverLabel

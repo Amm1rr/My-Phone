@@ -2351,8 +2351,6 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	If Not (Starter.NormalAppsList.IsInitialized) Then Return
 	
-	Dim i, AppCount As Int = 0
-	
 	clvApps.Clear
 	Alphabet.Clear
 	
@@ -2376,27 +2374,39 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 '	Loop
 	#End Region
 	
+	Dim appsList 		As List = Starter.NormalAppsList
+	Dim numApps 		As Int 	= appsList.Size - 1
+	Dim width 			As Int = clvApps.AsView.Width
+	Dim AppCountFound 	As Int = 0
 	
 	If (New = "") Then
-		For Each App As App In Starter.NormalAppsList
-			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
+		
+		lblInfo.Text = (numApps + 1) & " apps"
+		AppCountFound = numApps
+		For i = 0 To numApps
+			Dim App As App = appsList.Get(i)
+			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh), App.PackageName)
 			AddtoAlphabetlist(App.Name, i)
-			AppCount = AppCount + 1
-			i = i + 1
+			Sleep(0)
 		Next
 	Else
-		For Each App As App In Starter.NormalAppsList
-			If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
-				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
+		
+		Dim searchTextLower As String = New.ToLowerCase
+		For i = 0 To numApps
+			Dim App As App = appsList.Get(i)
+			If App.Name.ToLowerCase.Contains(searchTextLower) Then
+				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh), App.PackageName)
 				AddtoAlphabetlist(App.Name, i)
-				AppCount = AppCount + 1
-				i = i + 1
+				AppCountFound = AppCountFound + 1
+'				Sleep(0)
 			End If
 		Next
+		
+		lblInfo.Text = AppCountFound & " matching apps"
+		
 	End If
 	
-	
-	If (AppCount > 20) Then
+	If (AppCountFound > 20) Then
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
 	Else
 		' This line code is mean,
@@ -2405,9 +2415,8 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	End If
 	AlphabetLastChars = ""
 	
-	
 	If (Old <> New) Then
-		If (txtAppsSearch.Text = New) And (AppCount = 1) Then
+		If (txtAppsSearch.Text = New) And (AppCountFound = 1) Then
 			If (Starter.Pref.AutoRunApp = True) Then
 				Dim pkg As String = clvApps.GetValue(0).As(String)
 				If (LastRunApp <> pkg) Then
@@ -2419,8 +2428,6 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 			End If
 		End If
 	End If
-	
-	lblInfo.Text = AppCount & " apps"
 	
 	MyLog("txtAppsSearch_TextChanged END = " & Old & " : " & New, LogListColorEnd, True)
 	
@@ -2569,13 +2576,24 @@ End Sub
 
 Private Sub btnHiddenApps_LongClick
 	
-	ClickSimulation
-	Starter.SetupAppsList(True)
-	SetupHomeList
-	LoadRecentlyList
-	txtAppsSearch.Text = txtAppsSearch.Text
-	CloseSetting
-	ToastMessageShow("Apps Rebuild Successfull!", False)
+	Msgbox2Async("Rebuild Applications ?", "Notice", "Yes", "", "No", Null, True)
+	Wait For Msgbox_Result(Result As Int)
+	
+	Select Result
+		Case DialogResponse.POSITIVE
+			' User clicked "Yes"
+			Starter.SetupAppsList(True)
+			SetupHomeList
+			LoadRecentlyList
+			txtAppsSearch.Text = txtAppsSearch.Text
+			CloseSetting
+			ToastMessageShow("Apps Rebuild Successfully!", False)
+			
+		Case DialogResponse.NEGATIVE
+			' User clicked "No"
+			' Do nothing
+	End Select
+	
 End Sub
 
 Private Sub clvEdge_ItemClick (Index As Int, Value As Object)
@@ -2602,6 +2620,29 @@ End Sub
 Private Sub btnSetAsDefault_Click
 	ClickSimulation
 	SetDefaultLauncher
+End Sub
+
+Private Sub btnSetAsDefault_LongClick
+	
+	Msgbox2Async("Replace Database ?", "Notice", "Yes", "", "No", Null, True)
+	Wait For Msgbox_Result(Result As Int)
+	
+	Select Result
+		Case DialogResponse.POSITIVE
+			' User clicked "Yes"
+			Starter.CreateDB(True)
+			Starter.SetupAppsList(True)
+			SetupHomeList
+			LoadRecentlyList
+			txtAppsSearch.Text = txtAppsSearch.Text
+			CloseSetting
+			
+			ToastMessageShow("Database Replaced and Apps Rebuild Successfully!", False)
+		Case DialogResponse.NEGATIVE
+			' User clicked "No"
+			' Do nothing
+	End Select
+	
 End Sub
 
 Private Sub btnClose_Click

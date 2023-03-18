@@ -59,7 +59,7 @@ Sub Service_Create
 			& "                   Service_Create" _
 			& CRLF & "########################### " & CRLF, Colors.Magenta, False)
 	
-	CreateDB	
+	CreateDB(False)
 	
 	FixWallTrans
 	
@@ -221,9 +221,9 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	LogShowToast = True
 End Sub
 
-Private Sub CreateDB
+Public Sub CreateDB(replace As Boolean)
 	MyLog("CreateDB", LogListColor, True)
-	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Then
+	If Not (File.Exists(File.DirInternal, "MyPhone.db")) Or replace = True Then
 		File.Copy(File.DirAssets, "MyPhone.db", File.DirInternal, "MyPhone.db")
 		LogColor(">>>>> - Database Replaced ! - <<<<<", Colors.Red)
 		MyLog("CreateDB >>> Database Replaced", LogListColor, False)
@@ -335,7 +335,6 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'#
 		'#------------------------------------
 		
-		Dim queryApps, queryAllApps As String
 		sql.ExecNonQuery("DELETE FROM AllApps")
 '		sql.ExecNonQuery("DELETE FROM Apps")
 		For i = 0 To packages.Size - 1
@@ -355,8 +354,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.IsHidden = False
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				queryApps = "INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
-							"INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");" & queryApps
+				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
+								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
 			Else
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
@@ -367,13 +366,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '					currentapp.IsHidden = False
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				queryAllApps = "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & queryAllApps
+				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
 			End If
 			AppsList.Add(currentapp)
 			
 		Next
-		sql.ExecNonQuery(queryApps)
-		sql.ExecNonQuery(queryAllApps)
 		AppsList.SortTypeCaseInsensitive("Name", True)
 		
 		ResApps.Close
