@@ -41,6 +41,7 @@ Sub Class_Globals
 	Private cmbClockSetting 			As B4XComboBox
 	Private imgIconApp 					As ImageView
 	Private imgIconHome 				As ImageView
+'	Private textAboutInfo 				As TextCrumbs
 	Private clocktimer 					As Timer
 	Public 	cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
 	Public 	txtAppsSearch 				As EditText
@@ -334,7 +335,12 @@ Public Sub cleanSearchTimer_Tick
 End Sub
 
 Public Sub ClickSimulation
-	XUIViewsUtils.PerformHapticFeedback(Sender)
+	Try
+		XUIViewsUtils.PerformHapticFeedback(Sender)
+	Catch
+		XUIViewsUtils.PerformHapticFeedback(panApps)
+		LogColor("ClickSimulation: " & LastException, Colors.Magenta)
+	End Try
 End Sub
 
 Private Sub TimerLongClick_Tick
@@ -1527,6 +1533,11 @@ Private Sub btnSetting_Click
 	lblAbout.Text = "Made with Love, by Amir (C) 2023"
 	lblVersion.Text = Application.LabelName & ", Build " & Application.VersionCode & " " & Application.VersionName
 	
+'	Dim crumblist As List
+'		crumblist.Initialize
+'		crumblist.AddAll(Array As String("About","Support","Made by Love","Display","Amir","Update"))
+'	textAboutInfo.Initialize("", "", crumblist, lblAbout, " | ")
+
 '	If (cmbPhone.IsInitialized <> False) Then
 	If Starter.NormalAppsList.IsInitialized Then
 		Dim i As Int = 0
@@ -2205,7 +2216,6 @@ End Sub
 
 Private Sub clvLog_ItemClick (Index As Int, Value As Object)
 	Dim cb As BClipboard
-	ClickSimulation
 	ToastMessageShow(Value.As(String), True)
 	cb.setText(Value)
 End Sub
@@ -2339,6 +2349,8 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	Sleep(0) '// Just For Refresh UI
 	
+	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+	
 	Dim i, AppCount As Int = 0
 	
 	clvApps.Clear
@@ -2368,16 +2380,16 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	If (New = "") Then
 		For Each App As App In Starter.NormalAppsList
 			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
-			AppCount = AppCount + 1
 			AddtoAlphabetlist(App.Name, i)
+			AppCount = AppCount + 1
 			i = i + 1
 		Next
 	Else
 		For Each App As App In Starter.NormalAppsList
 			If App.Name.ToLowerCase.Contains(txtAppsSearch.Text.ToLowerCase) = True Then
 				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, clvApps.AsView.Width, AppRowHeigh), App.PackageName)
-				AppCount = AppCount + 1
 				AddtoAlphabetlist(App.Name, i)
+				AppCount = AppCount + 1
 				i = i + 1
 			End If
 		Next
@@ -2594,7 +2606,6 @@ End Sub
 
 Private Sub btnClose_Click
 	ClickSimulation
-	LogColor(HiddenListChanged, Colors.Red)
 	If (HiddenListChanged = True) Then
 		txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 		HiddenListChanged = False
@@ -2796,10 +2807,11 @@ Private Sub lblClearSearch_Click
 	
 	ClickSimulation
 	
-	txtAppsSearch.Text = ""
 	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
+	txtAppsSearch.Text = ""
 	HideAppMenu(False)
 	
+	MyLog("lblClearSearch_Click END", LogListColorEnd, True)
 End Sub
 
 

@@ -102,9 +102,8 @@ End Sub
 
 Sub Service_Destroy
 	
-	Dim ls As List
-		ls.Initialize
 	File.WriteList(File.DirInternal, "MyLog.log", LogList)
+	sql.Close
 	
 End Sub
 
@@ -315,6 +314,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	AppsList.Clear
 	NormalAppsList.Clear
 	
+	sql.BeginTransaction
+	
 	'// All Apps in Database
 	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name ASC")
 	
@@ -428,6 +429,10 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		NormalAppsList.SortTypeCaseInsensitive("Name", True)
 		
 	End If
+	
+	'Commit the database transaction
+	sql.TransactionSuccessful
+	sql.EndTransaction
 	
 	ShowToastLog = False
 	MyLog("SetupAppsList END = Reload: " & ForceReload, LogListColorEnd, False)
