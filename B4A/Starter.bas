@@ -140,7 +140,7 @@ End Sub
 'Never call this Event Manual
 Sub PhonEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, Intent As Intent)
 	Try
-		MyLog("PhonEvent_BatteryChanged= Plugged: " & Plugged & " - " & Level & "%", LogListColor, True)
+'		MyLog("PhonEvent_BatteryChanged= Plugged: " & Plugged & " - " & Level & "%", LogListColor, True)
 		
 		If Plugged <> flagPlugged Then ' = True Then
 			flagPlugged = Plugged

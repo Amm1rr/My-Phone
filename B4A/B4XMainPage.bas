@@ -140,6 +140,7 @@ Sub Class_Globals
 	Public 	panBattery As B4XView
 	Private cprBattery As CircularProgressBar
 	Private thread As Thread
+	Private lblClearSearch As B4XView
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -265,20 +266,21 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		Try
 			If Not (imgIconApp.IsInitialized) Then imgIconApp.Initialize("")
 			If Not (lblAppTitle.IsInitialized) Then lblAppTitle.Initialize("")
-			If Starter.Pref.ShowIcon Then
-				imgIconApp.Visible = True
-'				lblAppTitle.Left = 35dip
-				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
-			Else
-				imgIconApp.Visible = False
-				lblAppTitle.Left = 5dip
-			End If
+			imgIconApp.Visible = False
+'			If Starter.Pref.ShowIcon Then
+'				imgIconApp.Visible = True
+''				lblAppTitle.Left = 35dip
+'				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 12dip
+'			Else
+'				imgIconApp.Visible = False
+'				lblAppTitle.Left = 5dip
+'			End If
 			
 			If Not (imgIconHome.IsInitialized) Then imgIconHome.Initialize("")
 			If Starter.Pref.ShowIconHomeApp Then
 				imgIconHome.Visible = True
 '				lblAppTitle.Left = 35dip
-				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 15dip
+				lblAppTitle.Left = imgIconHome.Left + imgIconHome.Width + 12dip
 			Else
 				imgIconHome.Visible = False
 				lblAppTitle.Left = 5dip
@@ -2429,6 +2431,8 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		End If
 	End If
 	
+	lblClearSearch.Enabled = True
+	
 	MyLog("txtAppsSearch_TextChanged END = " & Old & " : " & New, LogListColorEnd, True)
 	
 End Sub
@@ -2845,6 +2849,8 @@ End Sub
 Private Sub lblClearSearch_Click
 	
 	MyLog("lblClearSearch_Click", LogListColor, True)
+	
+	lblClearSearch.Enabled = False
 	
 	ClickSimulation
 	
