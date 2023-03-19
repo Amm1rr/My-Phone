@@ -2871,3 +2871,8 @@ Private Sub panBattery_Click
 	Dim target As Int = Rnd(0, 101)
 	cprBattery.Value = target
 End Sub
+
+
+Private Sub textAboutInfo_CrumbClick (Crumbs As List)
+	Log(Crumbs.Get(Crumbs.Size - 1))
+End Sub

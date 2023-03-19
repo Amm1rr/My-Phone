@@ -6,7 +6,7 @@ Version=5.5
 @EndOfDesignText@
 'Class module
 Sub Class_Globals
-	Public 	tv 									As List
+	Public 			tv 							As List
 	Private 		pnlIndex 					As Panel
 	Private 		hoverLabel 					As Label
 	Private const 	PANEL_INDEX_WIDTH 			As Float = 40dip
