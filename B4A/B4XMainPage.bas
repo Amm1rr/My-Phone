@@ -137,14 +137,14 @@ Sub Class_Globals
 	Private panHomeRowMenu As B4XView
 	Private panAppRowMenu As B4XView
 	Private chkLogAllowed As B4XView
-	Public 	panBattery As B4XView
-	Private cprBattery As CircularProgressBar
-	Private thread As Thread
-	Private threadSearchApp As Thread
-	Private lblClearSearch As B4XView
-	
-	Private OldTextSearch As String
-	Private NewTextSearch As String
+	Public 	panBattery 		As B4XView
+	Private cprBattery 		As CircularProgressBar
+	Private thread 					As Thread
+	Private threadSearchApp 		As Thread
+	Private threadSearchAppLock		As Lock
+	Private lblClearSearch 	As B4XView
+	Private OldSearchText As String
+	Private NewSearchText As String
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -299,6 +299,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		Catch
 			MyLog("B4XPage_Created ERROR : " & LastException, LogListColor, True)
 		End Try
+		
+		
 		
 		thread.Initialise("thread")
 		thread.Start(Me, "RunSetupThread", Null)
@@ -1549,7 +1551,7 @@ Private Sub btnSetting_Click
 	
 '	Dim crumblist As List
 '		crumblist.Initialize
-'		crumblist.AddAll(Array As String("About","Support","Made by Love","Display","Amir","Update"))
+'		crumblist.AddAll(Array As String("About","Support","Made with Love","Display","Amir","Update"))
 '	textAboutInfo.Initialize("", "", crumblist, lblAbout, " | ")
 
 '	If (cmbPhone.IsInitialized <> False) Then
@@ -2356,27 +2358,36 @@ End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
-	
-	OldTextSearch = Old
-	NewTextSearch = New
-	
-'	Sleep(0) '// Just For Refresh UI
-	
-'	threadSearchApp.Start(Me, "SearchInApp", Null)
-	threadSearchApp.RunOnGuiThread("SearchInApp", Null)
-	
-End Sub
-
-Private Sub SearchInApp
-	
-	Starter.LogShowToast = False
-	MyLog("SearchApp = " & OldTextSearch & " : " & NewTextSearch, LogListColor, True)
+	OldSearchText = Old
+	NewSearchText = New
 	
 	HideAppMenu(False)
 	
-	Sleep(0) '// Just For Refresh UI
-	
 	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+	If Not (threadSearchAppLock.IsInitialized) Then threadSearchAppLock.Initialize(False)
+	
+'	If (threadSearchAppIsAlive) Then
+''		threadSearchApp.Sleep(1000)
+'		Return
+'	End If
+
+	If (threadSearchAppLock.LockState) Then
+		Return
+	End If
+	
+	threadSearchAppLock.Lock
+	threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+'	threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+	threadSearchAppLock.WaitFor(0)
+	
+End Sub
+
+Private Sub SearchInApp(Old As String, New As String)
+	
+'	Starter.LogShowToast = False
+'	MyLog("SearchApp = " & OldTextSearch & " : " & NewTextSearch, LogListColor, True)
+	
+'	Sleep(0) '// Just For Refresh UI
 	
 	clvApps.Clear
 	Alphabet.Clear
@@ -2406,7 +2417,7 @@ Private Sub SearchInApp
 	Dim width 			As Int = clvApps.AsView.Width
 	Dim AppCountFound 	As Int = 0
 	
-	If (NewTextSearch = "") Then
+	If (New = "") Then
 		
 		lblInfo.Text = (numApps + 1) & " apps"
 		AppCountFound = numApps
@@ -2415,10 +2426,11 @@ Private Sub SearchInApp
 			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh), App.PackageName)
 			AddtoAlphabetlist(App.Name, i)
 			Sleep(0)
+			If (New <> NewSearchText) Then Exit
 		Next
 	Else
 		
-		Dim searchTextLower As String = NewTextSearch.ToLowerCase
+		Dim searchTextLower As String = New.ToLowerCase
 		For i = 0 To numApps
 			Dim App As App = appsList.Get(i)
 			If App.Name.ToLowerCase.Contains(searchTextLower) Then
@@ -2426,11 +2438,18 @@ Private Sub SearchInApp
 				AddtoAlphabetlist(App.Name, i)
 				AppCountFound = AppCountFound + 1
 '				Sleep(0)
+				If (New <> NewSearchText) Then Exit
 			End If
 		Next
 		
 		lblInfo.Text = AppCountFound & " matching apps"
 		
+	End If
+	
+	If (New <> NewSearchText) Then 
+		lblClearSearch.Enabled = True
+		threadSearchAppLock.Unlock
+		Return
 	End If
 	
 	If (AppCountFound > 20) Then
@@ -2442,8 +2461,8 @@ Private Sub SearchInApp
 	End If
 	AlphabetLastChars = ""
 	
-	If (OldTextSearch <> NewTextSearch) Then
-		If (txtAppsSearch.Text = NewTextSearch) And (AppCountFound = 1) Then
+	If (Old <> New) Then
+		If (txtAppsSearch.Text = New) And (AppCountFound = 1) Then
 			If (Starter.Pref.AutoRunApp = True) Then
 				Dim pkg As String = clvApps.GetValue(0).As(String)
 				If (LastRunApp <> pkg) Then
@@ -2457,8 +2476,9 @@ Private Sub SearchInApp
 	End If
 	
 	lblClearSearch.Enabled = True
+	threadSearchAppLock.Unlock
 	
-	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
+'	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
 	
 End Sub
 
