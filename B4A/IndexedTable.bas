@@ -92,12 +92,12 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 		Else
 			If (lbl <> lblLast) And (lbl.Text <> "") Then _
 				XUIViewsUtils.PerformHapticFeedback(Sender)
+			lblLast = lbl
 			
 			hoverLabel.Top = (lbl.Top - 15dip) + hoverLabelTopMargin
 			hoverLabel.Text = lbl.Text
 			hoverLabel.Visible = True
 			B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
-			lblLast = lbl
 		End If
 	Catch
 		Log("pnlIndex_Touch: " & LastException)

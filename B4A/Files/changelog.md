@@ -1,6 +1,7 @@
 
 # Version: Build 38 Alpha : 00/03/2023
-+ Added thread to SuperFaster loading
++ Added a new feature with thread that allow super faster startup loading
++ Added a new feature with thread that allows for faster searching within apps by adding a dedicated search thread
 * A big Improve Engine to pre-load SuperFast
 + Added battery widget on deskhome
 * Fix HidenApp issue

@@ -140,7 +140,11 @@ Sub Class_Globals
 	Public 	panBattery As B4XView
 	Private cprBattery As CircularProgressBar
 	Private thread As Thread
+	Private threadSearchApp As Thread
 	Private lblClearSearch As B4XView
+	
+	Private OldTextSearch As String
+	Private NewTextSearch As String
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -190,6 +194,12 @@ End Sub
 Private Sub thread_Ended(endedOK As Boolean, error As String)
 	If Not (endedOK) Then
 		MyLog("Loading Apps Thread Error: "  & error, Colors.Red, False)
+	End If
+End Sub
+
+Private Sub threadSearchApp_Ended(endedOK As Boolean, error As String)
+	If Not (endedOK) Then
+		MyLog("Search In Apps Thread Error: "  & error, Colors.Red, False)
 	End If
 End Sub
 
@@ -292,6 +302,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		thread.Initialise("thread")
 		thread.Start(Me, "RunSetupThread", Null)
+		
+		threadSearchApp.Initialise("threadSearchApp")
 		
 '		StartTimeClick = False
 		
@@ -2344,8 +2356,21 @@ End Sub
 
 Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
+	
+	OldTextSearch = Old
+	NewTextSearch = New
+	
+'	Sleep(0) '// Just For Refresh UI
+	
+'	threadSearchApp.Start(Me, "SearchInApp", Null)
+	threadSearchApp.RunOnGuiThread("SearchInApp", Null)
+	
+End Sub
+
+Private Sub SearchInApp
+	
 	Starter.LogShowToast = False
-	MyLog("txtAppsSearch_TextChanged = " & Old & " : " & New, LogListColor, True)
+	MyLog("SearchApp = " & OldTextSearch & " : " & NewTextSearch, LogListColor, True)
 	
 	HideAppMenu(False)
 	
@@ -2381,7 +2406,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	Dim width 			As Int = clvApps.AsView.Width
 	Dim AppCountFound 	As Int = 0
 	
-	If (New = "") Then
+	If (NewTextSearch = "") Then
 		
 		lblInfo.Text = (numApps + 1) & " apps"
 		AppCountFound = numApps
@@ -2393,7 +2418,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		Next
 	Else
 		
-		Dim searchTextLower As String = New.ToLowerCase
+		Dim searchTextLower As String = NewTextSearch.ToLowerCase
 		For i = 0 To numApps
 			Dim App As App = appsList.Get(i)
 			If App.Name.ToLowerCase.Contains(searchTextLower) Then
@@ -2417,8 +2442,8 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	End If
 	AlphabetLastChars = ""
 	
-	If (Old <> New) Then
-		If (txtAppsSearch.Text = New) And (AppCountFound = 1) Then
+	If (OldTextSearch <> NewTextSearch) Then
+		If (txtAppsSearch.Text = NewTextSearch) And (AppCountFound = 1) Then
 			If (Starter.Pref.AutoRunApp = True) Then
 				Dim pkg As String = clvApps.GetValue(0).As(String)
 				If (LastRunApp <> pkg) Then
@@ -2433,7 +2458,7 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	lblClearSearch.Enabled = True
 	
-	MyLog("txtAppsSearch_TextChanged END = " & Old & " : " & New, LogListColorEnd, True)
+	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
 	
 End Sub
 

@@ -38,6 +38,15 @@ Sub Process_Globals
 			IsHidden As Boolean, _
 			VersionCode As Int)
 	
+'	Dim AppMap As Map = CreateMap("pkg": CreateMap( _
+'										"Name": "", _
+'						                "IsHomeApp": "", _
+'						                "Index": "", _
+'						                "VersionCode": "", _
+'						                "Icon": "", _
+'						                "IsHidden": "" _
+'				                      ))
+	
 	Type Settings(CameraApp As String, _
 			 PhoneApp As String, _
 			 ClockApp As String, _
@@ -86,7 +95,7 @@ Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	
 	For i = 0 To LogList.Size - 1
 		
-		LogColor(LogList.Get(i), Colors.Green)
+		LogColor("Application_Error: " & LogList.Get(i), Colors.Green)
 		ls.Add(LogList.Get(i))
 	Next
 	
@@ -313,6 +322,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	AppsList.Clear
 	NormalAppsList.Clear
+'	If Not (AppMap.IsInitialized) Then AppMap.Initialize
 	
 	sql.BeginTransaction
 	
@@ -356,6 +366,16 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				
 				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
 								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
+				
+'				AppMap.Put(p, currentapp.Name)
+'				AppMap.Put(p, CreateMap(p: CreateMap( _
+'										"Name": pm.GetApplicationLabel(p), _
+'						                "IsHomeApp": False, _
+'						                "Index": i + 1, _
+'										"Icon":GetPackageIcon(p), _
+'						                "VersionCode": pm.GetVersionCode(p), _
+'						                "IsHidden": False _
+'				                      )))
 			Else
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
@@ -367,6 +387,14 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
 				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
+				
+'				AppMap.Put(p, currentapp.Name)
+'				AppMap.Put(p, CreateMap(p: CreateMap( _
+'										"Name": pm.GetApplicationLabel(p), _
+'						                "IsHomeApp": False, _
+'										"Icon":GetPackageIcon(p), _
+'						                "VersionCode": pm.GetVersionCode(p) _
+'				                      )))
 			End If
 			AppsList.Add(currentapp)
 			
@@ -416,6 +444,15 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				currentapp.IsHomeApp = False
 				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
 				currentapp.VersionCode = ResApps.GetInt("VersionCode")
+			
+'			Dim pkg As String = ResApps.GetString("pkgName")
+'			AppMap.Put(pkg, CreateMap("Name": pm.GetApplicationLabel(p), _
+'						              "IsHomeApp": False, _
+'						              "Index": intCount, _
+'									  "Icon":GetPackageIcon(pkg), _
+'						              "VersionCode": ResApps.GetInt("VersionCode"), _
+'						              "IsHidden": False _
+'				                      ))
 			
 			NormalAppsList.Add(currentapp)
 			AppsList.Add(currentapp)
