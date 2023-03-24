@@ -2365,20 +2365,13 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	If Not (Starter.NormalAppsList.IsInitialized) Then Return
 	If Not (threadSearchAppLock.IsInitialized) Then threadSearchAppLock.Initialize(False)
-	
-'	If (threadSearchAppIsAlive) Then
-''		threadSearchApp.Sleep(1000)
-'		Return
-'	End If
 
-	If (threadSearchAppLock.LockState) Then
-		Return
-	End If
+	If (threadSearchAppLock.LockState) Then Return
 	
 	threadSearchAppLock.Lock
-	threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
-'	threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
-	threadSearchAppLock.WaitFor(0)
+'	threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+	threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+'	threadSearchAppLock.WaitFor(0)
 	
 End Sub
 
@@ -2387,7 +2380,7 @@ Private Sub SearchInApp(Old As String, New As String)
 '	Starter.LogShowToast = False
 '	MyLog("SearchApp = " & OldTextSearch & " : " & NewTextSearch, LogListColor, True)
 	
-'	Sleep(0) '// Just For Refresh UI
+	Sleep(0) '// Just For Refresh UI
 	
 	clvApps.Clear
 	Alphabet.Clear
