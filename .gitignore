@@ -3,3 +3,6 @@
 *.meta
 *.db-journal
 "Auto Git MyPhone.bat"
+Background\Dark\*
+Background\Light\*
+Background\Url.txt
