@@ -173,8 +173,8 @@ Public Sub Initialize
 	lblClock.Initialize("")
 	lblClock.Text = DateTime.Time(DateTime.Now)
 	
-	lblDate.Initialize("")
 	DateTime.DateFormat = "dd.MMM.yyyy"
+	lblDate.Initialize("")
 	lblDate.Text = DateTime.Time(DateTime.Now)
 	
 	clocktimer.Initialize("clocktimer", 1000)
@@ -201,6 +201,14 @@ Private Sub threadSearchApp_Ended(endedOK As Boolean, error As String)
 	If Not (endedOK) Then
 		MyLog("Search In Apps Thread Error: "  & error, Colors.Red, False)
 	End If
+	
+	SearchDone
+	
+End Sub
+
+Private Sub SearchDone
+	lblClearSearch.Enabled = True
+	threadSearchAppLock.Unlock
 End Sub
 
 Private Sub RunSetupThread
@@ -2364,14 +2372,10 @@ Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	HideAppMenu(False)
 	
 	If Not (Starter.NormalAppsList.IsInitialized) Then Return
-	If Not (threadSearchAppLock.IsInitialized) Then threadSearchAppLock.Initialize(False)
-
-	If (threadSearchAppLock.LockState) Then Return
 	
-	threadSearchAppLock.Lock
+	threadSearchAppLock.Initialize(True)
 '	threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
 	threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
-'	threadSearchAppLock.WaitFor(0)
 	
 End Sub
 
@@ -2439,11 +2443,7 @@ Private Sub SearchInApp(Old As String, New As String)
 		
 	End If
 	
-	If (New <> NewSearchText) Then 
-		lblClearSearch.Enabled = True
-		threadSearchAppLock.Unlock
-		Return
-	End If
+	If (New <> NewSearchText) Then Return
 	
 	If (AppCountFound > 20) Then
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
@@ -2468,8 +2468,7 @@ Private Sub SearchInApp(Old As String, New As String)
 		End If
 	End If
 	
-	lblClearSearch.Enabled = True
-	threadSearchAppLock.Unlock
+'	SearchDone
 	
 '	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
 	
@@ -2888,15 +2887,14 @@ Private Sub lblClearSearch_Click
 	
 	MyLog("lblClearSearch_Click", LogListColor, True)
 	
-	lblClearSearch.Enabled = False
-	
 	ClickSimulation
-	
+	lblClearSearch.Enabled = False
 	If (Starter.Pref.ShowKeyboard) Then ShowKeyboard
 	txtAppsSearch.Text = ""
 	HideAppMenu(False)
 	
 	MyLog("lblClearSearch_Click END", LogListColorEnd, True)
+	
 End Sub
 
 
