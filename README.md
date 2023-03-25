@@ -5,4 +5,4 @@ This app is constantly evolving...
 
 nJoy! ;)
 
-Start Day: Around 10/01/2023 - 10 Jan 23
+Start Day: Around 26/12/2022 - 26 Des 22
