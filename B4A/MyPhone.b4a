@@ -156,6 +156,7 @@ Sub Activity_Resume
 		B4XPages.MainPage.GoHome(False, True)
 		B4XPages.MainPage.cleanSearchTimer.Enabled = True
 		B4XPages.MainPage.HideAppMenu(True)
+		B4XPages.MainPage.txtAppsSearch_TextChanged("", B4XPages.MainPage.txtAppsSearch.Text)
 	Else
 		GoHomeAllow = True
 	End If

@@ -828,6 +828,8 @@ Public Sub RemoveAsRecently (Value As String)
 	MyLog("RemoveAsRecently = " & Value, LogListColor, True)
 	Value = GetPackage(Value.As(String))
 	
+	If Not (RecentlyList.IsInitialized) Then Return
+	
 	Dim i As Int
 '	For i = 0 To tagApps.CLV.Size - 1
 	For i = 0 To RecentlyList.Size - 1
@@ -2364,7 +2366,7 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 	HideAppMenu(Not(HasFocus))
 End Sub
 
-Private Sub txtAppsSearch_TextChanged(Old As String, New As String)
+Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	OldSearchText = Old
 	NewSearchText = New
@@ -2886,6 +2888,14 @@ End Sub
 Private Sub lblClearSearch_Click
 	
 	MyLog("lblClearSearch_Click", LogListColor, True)
+	
+	'###
+	'	 This Sleep(0) make allowed to see if other thread is still
+	'	 running and loading clvApps listview
+	Dim count As Int = clvApps.Size
+	Sleep(0)
+	If (clvApps.Size <> count) Then Return
+	'###
 	
 	ClickSimulation
 	lblClearSearch.Enabled = False
