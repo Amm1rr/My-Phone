@@ -724,6 +724,10 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	If (Position = 1) Then	'// Apps
 		cleanSearchTimer.Enabled = False
 		If Starter.Pref.ShowKeyboard Then ShowKeyboard
+		
+		' This IF conditation maybe is not need, Because on the module Main.bas
+		' event Activity_Resume, We have another IF condition that make sure to
+		' check if clvApps listview is empty or not, like IF condition below
 		If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then txtAppsSearch.Text = ""
 	Else					'// Home
 		HideAppMenu(True)
