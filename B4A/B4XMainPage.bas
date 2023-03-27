@@ -724,6 +724,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	If (Position = 1) Then	'// Apps
 		cleanSearchTimer.Enabled = False
 		If Starter.Pref.ShowKeyboard Then ShowKeyboard
+		If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then txtAppsSearch.Text = ""
 	Else					'// Home
 		HideAppMenu(True)
 		CloseSetting
