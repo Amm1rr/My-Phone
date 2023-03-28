@@ -43,7 +43,7 @@ Sub Class_Globals
 	Private imgIconHome 				As ImageView
 '	Private textAboutInfo 				As TextCrumbs
 	Private clocktimer 					As Timer
-	Public 	cleanSearchTimer			As Timer			'5 sec after GoHome func, txtSearch should be clean with this timer
+	Public 	cleanSearchTimer			As Timer			'7.5 sec after GoHome func, txtSearch should be clean with this timer
 	Public 	txtAppsSearch 				As EditText
 	
 	Private lstPackageNames 			As List
@@ -153,8 +153,9 @@ End Sub
 
 Public Sub Initialize
 '	B4XPages.GetManager.LogEvents = True
-	
+	Starter.ShowToastLog = False
 	MyLog("###### Initialize", 0xFFC95E08, False)
+	ToastMessageShow_Custom("Initialize", False, Colors.RGB(18, 118, 0))
 	
 	StartService(Starter)
 '	StartTimeClick = True
@@ -346,6 +347,7 @@ Private Sub clocktimer_Tick
 	
 	DateTime.DateFormat = "dd.MMM.yyyy"
 	lblDate.Text = DateTime.Date(DateTime.Now)
+	
 End Sub
 
 Public Sub cleanSearchTimer_Tick
@@ -363,7 +365,7 @@ Public Sub ClickSimulation
 		XUIViewsUtils.PerformHapticFeedback(Sender)
 	Catch
 		XUIViewsUtils.PerformHapticFeedback(panApps)
-		LogColor("ClickSimulation: " & LastException, Colors.Magenta)
+		LogColor("ClickSimulation: It's a Handaled Runtime Exeption. It's Ok, Leave It." & CRLF & TAB & TAB & LastException, Colors.LightGray)
 	End Try
 End Sub
 
@@ -730,6 +732,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 		' check if clvApps listview is empty or not, like IF condition below
 		If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then txtAppsSearch.Text = ""
 	Else					'// Home
+		cleanSearchTimer.Enabled = True
 		HideAppMenu(True)
 		CloseSetting
 	End If
@@ -1449,11 +1452,14 @@ Public Sub GetAppNamebyPackage(pkgName As String) As String
 End Sub
 
 Public Sub ShowKeyboard
+'	MyLog("ShowKeyboard", LogListColorEnd, True)
+	txtAppsSearch.RequestFocus
 	IMElib.ShowKeyboard(txtAppsSearch)
 End Sub
 
 Public Sub HideKeyboard
-	MyLog("HideKeyboard", LogListColorEnd, True)
+'	MyLog("HideKeyboard", LogListColorEnd, True)
+	clvHome.AsView.RequestFocus
 	IMElib.HideKeyboard
 End Sub
 

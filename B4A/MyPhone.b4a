@@ -153,22 +153,23 @@ Sub Activity_Resume
 	MyLog("Main: Activity_Resume", LogListColor, True)
 	
 	If (GoHomeAllow) Then
-		B4XPages.MainPage.GoHome(False, True)
+'		B4XPages.MainPage.GoHome(False, True)
 		B4XPages.MainPage.cleanSearchTimer.Enabled = True
 		B4XPages.MainPage.HideAppMenu(True)
 		B4XPages.MainPage.txtAppsSearch_TextChanged("", B4XPages.MainPage.txtAppsSearch.Text)
+		B4XPages.MainPage.HideKeyboard
 	Else
 		GoHomeAllow = True
 	End If
 	B4XPages.Delegate.Activity_Resume
 End Sub
 
-
 Sub Activity_Pause (UserClosed As Boolean)
 	
 	Starter.LogShowToast = False
 	MyLog("Main: Activity_Pause = UserClosed: " & UserClosed, LogListColor, True)
 	
+	B4XPages.MainPage.HideKeyboard
 	B4XPages.Delegate.Activity_Pause
 	
 End Sub

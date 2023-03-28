@@ -64,6 +64,7 @@ Sub Service_Create
 	'This is a good place to load resources that are not specific to a single activity.
 	
 	LogList.Initialize
+	ShowToastLog = False
 	MyLog("########################### " & CRLF _
 			& "                   Service_Create" _
 			& CRLF & "########################### " & CRLF, Colors.Magenta, False)
