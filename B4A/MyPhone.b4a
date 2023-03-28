@@ -169,7 +169,6 @@ Sub Activity_Pause (UserClosed As Boolean)
 	Starter.LogShowToast = False
 	MyLog("Main: Activity_Pause = UserClosed: " & UserClosed, LogListColor, True)
 	
-	B4XPages.MainPage.HideKeyboard
 	B4XPages.Delegate.Activity_Pause
 	
 End Sub
