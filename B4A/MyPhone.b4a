@@ -134,7 +134,7 @@ Sub Activity_KeyPress (KeyCode As Int) As Boolean
 			Return True
 		Case KeyCodes.KEYCODE_HOME
 			B4XPages.MainPage.GoHome(True, False)
-'			Return True
+			Return True
 	End Select
 	
 	Return False

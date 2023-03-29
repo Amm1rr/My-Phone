@@ -736,6 +736,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 		HideAppMenu(True)
 		CloseSetting
 	End If
+	
 End Sub
 
 Private Sub SaveRecentlyList
