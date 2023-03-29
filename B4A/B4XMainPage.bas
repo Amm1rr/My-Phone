@@ -261,7 +261,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		imgCamera.Load(File.DirAssets, "Camera.png")
 		
 		gestHome.SetOnTouchListener(panHome, "gestHome_gesture")
-'		gestApps.SetOnTouchListener(panApps, "gestApps_gesture")
+		gestApps.SetOnTouchListener(panApps, "gestApps_gesture")
 		
 		'//-- After Screen On, set as top on other apps
 '		Dim jo As JavaObject = Root
@@ -563,8 +563,7 @@ Private Sub gestApps_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 		' this loop slows the rate down to one comfortable for LogCat
 		' adjust the value for your device if necessary
 		If movecount < 10 Then
-			LogColor("movecount Apps: " & movecount, Colors.Red)
-			HideAppMenu(True)
+'			LogColor("movecount Apps: " & movecount, Colors.Red)
 			Return True ' need to return true otherwise we don't get any other events in the gesture
 		End If
 		movecount = 0
@@ -574,6 +573,8 @@ Private Sub gestApps_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 		Case gestApps.ACTION_DOWN 				' Down
 			
 			MyLog("gestApps_gesture Down", LogListColor, True)
+			
+			cleanSearchTimer.Enabled = False
 			
 			HideAppMenu(True)
 			
