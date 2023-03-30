@@ -139,8 +139,9 @@ Sub Class_Globals
 	Private chkLogAllowed As B4XView
 	Public 	panBattery 		As B4XView
 	Private cprBattery 		As CircularProgressBar
-	Private thread 					As Thread
-	Private threadSearchApp 		As Thread
+	Private thread 						As Thread
+	Private threadSearchApp 			As Thread
+	Private threadRunDefaultClockApp	As Thread
 	Private threadSearchAppLock		As Lock
 	Private lblClearSearch 	As B4XView
 	Private OldSearchText As String
@@ -315,6 +316,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		thread.Start(Me, "RunSetupThread", Null)
 		
 		threadSearchApp.Initialise("threadSearchApp")
+		threadRunDefaultClockApp.Initialise("threadOpenDefaultClockApp")
 		
 '		StartTimeClick = False
 		
@@ -1821,13 +1823,19 @@ Public Sub Run_Alarm
 		MyLog("Run_Alarm", LogListColor, True)
 		
 		HideHomeMenu(True)
-		Dim i As Intent
-		i.Initialize("android.intent.action.SET_ALARM", "")
-		StartActivity(i)
+		
+		threadSearchApp.Start(Me, "threadOpenDefaultClockApp", Null)
+		
 	Catch
 		ToastMessageShow(LastException.Message, True)
 		Log("Error Caught: " & LastException)
 	End Try
+End Sub
+
+Private Sub threadOpenDefaultClockApp
+	Dim i As Intent
+		i.Initialize("android.intent.action.SET_ALARM", "")
+	StartActivity(i)
 End Sub
 
 Private Sub panPhone_Click

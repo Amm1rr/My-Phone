@@ -42,6 +42,7 @@ Library13=tabstripviewpager
 Library14=threading
 Library15=xcustomlistview
 Library16=xui views
+Library17=md2html4a.11
 Library2=asscrollingtags
 Library3=b4xpages
 Library4=clipboard
@@ -64,7 +65,7 @@ Module7=RequestDrawOverPermission
 Module8=Starter
 Module9=SvcEdgebar
 NumberOfFiles=17
-NumberOfLibraries=16
+NumberOfLibraries=17
 NumberOfModules=12
 Version=12.2
 @EndOfDesignText@
