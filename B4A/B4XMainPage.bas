@@ -216,7 +216,7 @@ End Sub
 Private Sub RunSetupThread
 	Starter.SetupAppsList(False)
 	Setup
-	LoadRecentlyList
+'	LoadRecentlyList
 End Sub
 
 'This event will be called once, before the page becomes visible.
@@ -727,7 +727,11 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 	DisableEdgeEdit
 	
 	If (Position = 1) Then	'// Apps
+		
 		cleanSearchTimer.Enabled = False
+		
+		If (tagApps.CLV.Size < 1) Then LoadRecentlyList
+		
 		If Starter.Pref.ShowKeyboard Then ShowKeyboard
 		
 		' This IF conditation maybe is not need, Because on the module Main.bas
@@ -772,16 +776,17 @@ Private Sub LoadRecentlyList
 	If Not (RecentlyList.IsInitialized) Then RecentlyList.Initialize
 	
 	Dim ResRecentApps As ResultSet
-	ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps WHERE ID IN (SELECT ID FROM RecentlyApps ORDER By ID DESC NULLS FIRST LIMIT 5)")
+'	ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps WHERE ID IN (SELECT ID FROM RecentlyApps ORDER By ID DESC NULLS FIRST LIMIT 5)")
+	ResRecentApps = Starter.sql.ExecQuery("SELECT * FROM RecentlyApps ORDER By ID DESC NULLS FIRST LIMIT 5")
 	
 	tagApps.CLV.Clear
 	
 	For i = 0 To ResRecentApps.RowCount - 1
 		ResRecentApps.Position = i
-		Dim value As String = ResRecentApps.GetString("pkgName")
-		Starter.AddToRecently(ResRecentApps.GetString("Name"), value, False)
-'		tagApps.AddTag(ResRecentApps.GetString("Name"), tagColors, value)
-'		RecentlyList.Add(value)
+		Dim pkg As String = ResRecentApps.GetString("pkgName")
+		Starter.AddToRecently(ResRecentApps.GetString("Name"), pkg, False)
+'		tagApps.AddTag(ResRecentApps.GetString("Name"), tagColors, pkg)
+'		RecentlyList.Add(pkg)
 	Next
 	
 	MyLog("# # # # # # LoadRecentlyList END", 0xFF389318, True)
@@ -1309,7 +1314,7 @@ Public Sub Setup
 	Starter.AppsList.SortTypeCaseInsensitive("Name", True)
 	Starter.NormalAppsList.SortTypeCaseInsensitive("Name", True)
 	
-	txtAppsSearch_TextChanged("", "")
+	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
 	
 	MyLog("Setup END", LogListColorEnd, False)
 	
