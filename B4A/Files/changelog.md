@@ -1,13 +1,14 @@
 
-# Version: Build 38 Alpha : 00/03/2023
+# Version: Build 38 Alpha : 10/04/2023
 + Added a new feature with thread that allow super faster startup loading
 + Added a new feature with thread that allows for faster searching within apps by adding a dedicated search thread
 * A big Improve Engine to pre-load SuperFast
 + Added battery widget on deskhome
 * Fix HidenApp issue
 * Fix Alphabet issue
-* Improve tagAppbar
+* Solve tagAppbar issue
 * Improve UI Design for Views and Buttons
+* Change HiddenApp Manager and Set as Default in setting page
 
 # Version: Build 37 Alpha : 06/03/2023
 + Added Log file

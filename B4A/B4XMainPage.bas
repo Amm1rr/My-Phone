@@ -146,6 +146,7 @@ Sub Class_Globals
 	Private lblClearSearch 	As B4XView
 	Private OldSearchText As String
 	Private NewSearchText As String
+	Private btnHiddenApps As Button
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -2311,7 +2312,7 @@ Private Sub lblVersion_Click
 	
 	chkShowToastLog.Checked = Starter.ShowToastLog
 	
-	btnLogClose.Text = "Close (" & Starter.LogList.Size & ")"
+	btnLogClose.Text = $"Close (${Starter.LogList.Size})"$
 	
 	For Each item In Starter.LogList
 		clvLog.AddTextItem(item, item)
@@ -2351,7 +2352,7 @@ End Sub
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog("clvAppRowMenu_ItemClick = Index: " & Index & " - Value: " & Value, LogListColor, True)
+	MyLog($"clvAppRowMenu_ItemClick = Index: ${Index} - Value: ${Value}"$, LogListColor, True)
 	
 	ClickSimulation
 	
@@ -2559,7 +2560,7 @@ Private Sub btnHiddenAppsDelete_Click
 		
 		ClickSimulation
 		
-		If clvHiddenApp.Size = 0 Then Return
+		If clvHiddenApp.Size < 1 Then Return
 		If CLVSelection.SelectedItems.AsList.Size < 1 Then Return
 		
 '		Dim index As Int = clvHiddenApp.GetItemFromView(Sender)
@@ -2974,7 +2975,16 @@ End Sub
 
 
 Private Sub textAboutInfo_CrumbClick (Crumbs As List)
-	Log(Crumbs.Get(Crumbs.Size - 1))
+	LogColor(Crumbs.Get(Crumbs.Size - 1), Colors.Red)
+	Dim ClickedItem As String = Crumbs.Get(Crumbs.Size - 1)
+	Select ClickedItem
+		Case "About":
+			lblVersion_Click
+		Case "Default":
+			btnSetAsDefault_Click
+		Case "Hidden":
+			btnHiddenApps_Click
+	End Select
 End Sub
 
 'Example:
@@ -2999,4 +3009,10 @@ Public Sub SetShadow (View As B4XView, Offset As Double, Color As Int)
     #Else If B4i
     View.As(View).SetShadow(Color, Offset, Offset, 0.5, False)
     #End If
+End Sub
+
+
+Private Sub chklogDebugMode_CheckedChange(Checked As Boolean)
+	btnSetAsDefault.SetVisibleAnimated(400, Checked)
+	btnHiddenApps.SetVisibleAnimated(400, Checked)
 End Sub
