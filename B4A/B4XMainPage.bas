@@ -998,6 +998,8 @@ End Sub
 
 Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	
+	Main.GoHomeAllow = False
+	
 	Starter.LogShowToast = False
 	MyLog("clvApps_ItemClick = Position:" & Position & " - Value:" & Value, LogListColor, False)
 	
@@ -1062,6 +1064,8 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 	HideHomeMenu(True)
 	dragAllow = False
 	
+	Main.GoHomeAllow = False
+	
 	Select Value
 		Case "Info"
 			Run_Info(CurrentHomeApp.PackageName)
@@ -1125,6 +1129,8 @@ End Sub
 Public Sub UninstallApp(pkgName As String)
 	MyLog("UninstallApp", LogListColor, False)
 	
+	Main.GoHomeAllow = False
+	
 	pkgName = GetPackage(pkgName)
 	
 	Dim im As Intent
@@ -1145,7 +1151,7 @@ Private Sub CreateListItemApp(Text 		As String, _
 	Dim p As B4XView = xui.CreatePanel("")
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
 		p.LoadLayout("AppRow")
-		
+	
 	'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
 	dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
 	dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
@@ -1789,6 +1795,8 @@ Private Sub lblClock_Click
 	
 	ClickSimulation
 	
+	Main.GoHomeAllow = False
+	
 	HideHomeMenu(True)
 	If (Starter.Pref.ClockApp = "") Then
 		ToastMessageShow_Custom("First select Clock App from Setting page", False, Colors.Blue - 100)
@@ -1802,6 +1810,7 @@ Private Sub lblClock_Click
 End Sub
 
 Public Sub Run_PhoneDialer
+	Main.GoHomeAllow = False
 	HideHomeMenu(True)
 	Dim Intent1 As Intent
 	Intent1.Initialize(Intent1.ACTION_VIEW, "tel:")
@@ -1810,6 +1819,7 @@ End Sub
 
 Public Sub Run_Calendar
 	Try
+		Main.GoHomeAllow = False
 		Dim i As Intent
 		Dim PhIIID As String = "phid"
 		i.Initialize("android.intent.action.VIEW", "content://com.android.calendar/time/" & DateTime.Now)
@@ -1827,7 +1837,10 @@ Public Sub Run_Alarm
 	Try
 		MyLog("Run_Alarm", LogListColor, True)
 		
+		Main.GoHomeAllow = False
+		
 		HideHomeMenu(True)
+		
 		
 		threadSearchApp.Start(Me, "threadOpenDefaultClockApp", Null)
 		
@@ -1849,6 +1862,8 @@ Private Sub panPhone_Click
 	
 	ClickSimulation
 	
+	Main.GoHomeAllow = False
+	
 	HideHomeMenu(True)
 	If (Starter.Pref.PhoneApp = "") Then
 		Run_PhoneDialer
@@ -1863,6 +1878,8 @@ Private Sub panCamera_Click
 	MyLog("panCamera_Click", LogListColor, True)
 	
 	ClickSimulation
+	
+	Main.GoHomeAllow = False
 	
 	HideHomeMenu(True)
 	If (Starter.Pref.CameraApp = "") Then
@@ -1999,6 +2016,8 @@ Private Sub lblDate_Click
 	
 	ClickSimulation
 	
+	Main.GoHomeAllow = False
+	
 	HideHomeMenu(True)
 	Run_Calendar
 	
@@ -2022,6 +2041,8 @@ End Sub
 Private Sub RunSettings(Setting As String)', _ 
 					   'Setting as AndroidSettings)
 
+	Main.GoHomeAllow = False
+	
 	Dim inte As Intent
 	Dim pm As PackageManager
 	
@@ -2439,8 +2460,8 @@ Private Sub SearchInApp(Old As String, New As String)
 	
 	Dim appsList 		As List = Starter.NormalAppsList
 	Dim numApps 		As Int 	= appsList.Size - 1
-	Dim width 			As Int = clvApps.AsView.Width
-	Dim AppCountFound 	As Int = 0
+	Dim width 			As Int 	= clvApps.AsView.Width
+	Dim AppCountFound 	As Int 	= 0
 	
 	If (New = "") Then
 		
@@ -2947,4 +2968,28 @@ End Sub
 
 Private Sub textAboutInfo_CrumbClick (Crumbs As List)
 	Log(Crumbs.Get(Crumbs.Size - 1))
+End Sub
+
+'Example:
+'SetShadow(Pane1, 4dip, 0xFF757575)
+'SetShadow(Button1, 4dip, 0xFF757575)
+'
+Public Sub SetShadow (View As B4XView, Offset As Double, Color As Int)
+    #if B4J
+    Dim DropShadow As JavaObject
+	'You might prefer to ignore panels as the shadow is different.
+	'If View Is Pane Then Return
+    DropShadow.InitializeNewInstance(IIf(View Is Pane, "javafx.scene.effect.InnerShadow", "javafx.scene.effect.DropShadow"), Null)
+    DropShadow.RunMethod("setOffsetX", Array(Offset))
+    DropShadow.RunMethod("setOffsetY", Array(Offset))
+    DropShadow.RunMethod("setRadius", Array(Offset))
+    Dim fx As JFX
+    DropShadow.RunMethod("setColor", Array(fx.Colors.From32Bit(Color)))
+    View.As(JavaObject).RunMethod("setEffect", Array(DropShadow))
+    #Else If B4A
+	Offset = Offset * 2
+	View.As(JavaObject).RunMethod("setElevation", Array(Offset.As(Float)))
+    #Else If B4i
+    View.As(View).SetShadow(Color, Offset, Offset, 0.5, False)
+    #End If
 End Sub
