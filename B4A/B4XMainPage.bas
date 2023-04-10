@@ -195,13 +195,13 @@ End Sub
 'The thread has terminated. If endedOK is False error holds the reason for failure
 Private Sub thread_Ended(endedOK As Boolean, error As String)
 	If Not (endedOK) Then
-		MyLog("Loading Apps Thread Error: "  & error, Colors.Red, False)
+		MyLog($"Loading Apps Thread Error: ${error}"$, Colors.Red, False)
 	End If
 End Sub
 
 Private Sub threadSearchApp_Ended(endedOK As Boolean, error As String)
 	If Not (endedOK) Then
-		MyLog("Search In Apps Thread Error: "  & error, Colors.Red, False)
+		MyLog($"Search In Apps Thread Error: ${error}"$, Colors.Red, False)
 	End If
 	
 	SearchDone
@@ -339,7 +339,7 @@ Public Sub BatteryVisiblity(show As Boolean, level As Int)
 End Sub
 
 Public Sub BatterySetValue(level As Float)
-	MyLog("BatterySetValue: " & level & "%", LogListColor, True)
+	MyLog($"BatterySetValue: ${level}%"$, LogListColor, True)
 	If cprBattery.IsInitialized Then cprBattery.Value = level
 End Sub
 
@@ -367,7 +367,7 @@ Public Sub ClickSimulation
 		XUIViewsUtils.PerformHapticFeedback(Sender)
 	Catch
 		XUIViewsUtils.PerformHapticFeedback(panApps)
-		LogColor("ClickSimulation: It's a Handaled Runtime Exeption. It's Ok, Leave It." & CRLF & TAB & TAB & LastException, Colors.LightGray)
+		LogColor("ClickSimulation: It's a Handaled Runtime Exeption. It's Ok, Leave It." & CRLF & TAB & TAB & LastException.Message, LogListColorEnd)
 	End Try
 End Sub
 
@@ -530,6 +530,8 @@ Private Sub Run_Info(PackageName As String)
 	
 	MyLog("Run_Info = " & PackageName, LogListColor, True)
 	
+	Main.GoHomeAllow = False
+	
 	Dim p As Phone
 	Dim i As Intent
 
@@ -614,7 +616,7 @@ Private Sub gestHome_gesture(o As Object, ptrID As Int, action As Int, x As Floa
 		' this loop slows the rate down to one comfortable for LogCat
 		' adjust the value for your device if necessary
 		If movecount < 10 Then
-			LogColor("movecount: " & movecount, Colors.Red)
+			MyLog($"movecount: ${movecount}"$, Colors.Red, True)
 			Return True ' need to return true otherwise we don't get any other events in the gesture
 		End If
 		movecount = 0
@@ -704,7 +706,7 @@ Public Sub FontToBitmap (text As String, IsMaterialIcons As Boolean, FontSize As
 End Sub
 
 Public Sub GoHome(ClearSearch As Boolean, HideKeybord As Boolean)
-	MyLog("GoHome = Clear Search: " & ClearSearch, LogListColor, False)
+	MyLog("GoHome = Clear Search: " & ClearSearch, LogListColor, True)
 	Try
 		Tabstrip1.ScrollTo(0, True)
 		HideHomeMenu(True)
@@ -715,13 +717,13 @@ Public Sub GoHome(ClearSearch As Boolean, HideKeybord As Boolean)
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
-		MyLog("GoHome Error = Clear Search : " & ClearSearch & " - "  & LastException, LogListColor, True)
+		MyLog($"GoHome Error = Clear Search : ${ClearSearch} - ${LastException.Message}"$, LogListColor, True)
 	End Try
 End Sub
 
 Private Sub TabStrip1_PageSelected (Position As Int)
 	
-	MyLog("TabStrip1_pageSelected = Position: " & Position, LogListColor, False)
+	MyLog($"TabStrip1_pageSelected = Position: ${Position}"$, LogListColor, False)
 
 	HideHomeMenu(True)
 	DisableEdgeEdit
@@ -847,6 +849,8 @@ Public Sub RemoveAsRecently (Value As String)
 	
 	If Not (RecentlyList.IsInitialized) Then Return
 	
+	Starter.sql.BeginTransaction
+	
 	Dim i As Int
 '	For i = 0 To tagApps.CLV.Size - 1
 	For i = 0 To RecentlyList.Size - 1
@@ -857,6 +861,10 @@ Public Sub RemoveAsRecently (Value As String)
 			Exit
 		End If
 	Next
+	
+	'Commit the database transaction
+	Starter.sql.TransactionSuccessful
+	Starter.sql.EndTransaction
 	
 '	SaveRecentlyList
 	
@@ -875,7 +883,7 @@ End Sub
 Private Sub ConfigCurrentAppApp(Position As String, Value As String)
 	
 	Starter.LogShowToast = False
-	MyLog("ConfigCurrentAppApp => Position: " & Position & " - Value: " & Value, LogListColor, True)
+	MyLog($"ConfigCurrentAppApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
 	
 	CurrentAppApp.index 		= Position
 	CurrentAppApp.PackageName 	= Value.As(String)
@@ -889,7 +897,7 @@ End Sub
 Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
 	
 	Starter.LogShowToast = False
-	MyLog("ConfigCurrentHomeApp => Position: " & Position & " - Value: " & Value, LogListColor, True)
+	MyLog($"ConfigCurrentHomeApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
 	
 	CurrentHomeApp.index = Position
 	CurrentHomeApp.PackageName = Value.As(String)
@@ -900,7 +908,7 @@ End Sub
 Private Sub clvHome_ItemClick (Position As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog("clvHome_ItemClick => Position: " & Position & " - Value: " & Value, LogListColor, True)
+	MyLog($"clvHome_ItemClick => Position: " ${Position}  - Value: ${Value}"$, LogListColor, True)
 	
 	ClickSimulation
 	
@@ -918,7 +926,7 @@ End Sub
 Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog("clvHome_ItemLongClick: => Position: " & Position & " - Value: " & Value, LogListColor, True)
+	MyLog($"clvHome_ItemLongClick: => Position: ${Position}  - Value: ${Value}"$, LogListColor, True)
 	
 	HideHomeMenu(True)
 	Sleep(50)
@@ -964,7 +972,7 @@ Private Sub CreateListItemHomeMenu(Text As String, _
 							   Height As Int) As Panel
 	
 	Starter.ShowToastLog = False
-	MyLog("CreateListItemAppMenu = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	MyLog($"CreateListItemAppMenu = ${Text} : ${Value} : ${Width.As(String)}  : ${Height.As(String)}"$, LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 	
@@ -1001,7 +1009,7 @@ Private Sub clvApps_ItemClick (Position As Int, Value As Object)
 	Main.GoHomeAllow = False
 	
 	Starter.LogShowToast = False
-	MyLog("clvApps_ItemClick = Position:" & Position & " - Value:" & Value, LogListColor, False)
+	MyLog($"clvApps_ItemClick = Position: ${Position}  - Value: ${Value}"$, LogListColor, False)
 	
 	ClickSimulation
 	
@@ -1146,7 +1154,7 @@ Private Sub CreateListItemApp(Text 		As String, _
 							  Height 	As Int) As Panel
 	
 '	Starter.LogShowToast = False
-'	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+'	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width & ":" & Height.As, LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 		p.SetLayoutAnimated(0, 0, 0, Width, Height)
@@ -1190,12 +1198,11 @@ Private Sub CreateListItemAppMenu(Text As String, _
 							   Height As Int) As Panel
 	
 	Starter.LogShowToast = False
-	MyLog("CreateListItemAppMenu = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	MyLog($"CreateListItemAppMenu = ${Text} : ${Value} : ${Width} : ${Height}"$, LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
-	
-	p.SetLayoutAnimated(0, 0, 0, Width, Height)
-	p.LoadLayout("AppRowMenuRow")
+		p.SetLayoutAnimated(0, 0, 0, Width, Height)
+		p.LoadLayout("AppRowMenuRow")
 	
 	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
 	dd.GetViewByName(p, "lblAppRowMenuRowAppTitle").Text = Text
@@ -1224,7 +1231,7 @@ Private Sub CreateListItemHome(Text As String, _
 							   Height As Int) As Panel
 	
 	Starter.LogShowToast = False
-	MyLog("CreateListItemHome = " & Text & ":" & Value & ":" & Width.As(String) & ":" & Height.As(String), LogListColor, False)
+	MyLog($"CreateListItemHome = ${Text} : ${Value}  : ${Width} : ${Height}"$, LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 	

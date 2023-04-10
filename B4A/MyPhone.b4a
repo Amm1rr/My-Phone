@@ -163,8 +163,6 @@ Sub Activity_Resume
 '		B4XPages.MainPage.txtAppsSearch_TextChanged("", B4XPages.MainPage.txtAppsSearch.Text)
 		B4XPages.MainPage.HideKeyboard
 		
-		
-		DateTime.DateFormat = "SSS"
 		If (DateTime.Now - HomeControlSec) < 75 Then
 			B4XPages.MainPage.GoHome(False, True)
 		End If
@@ -184,7 +182,6 @@ Sub Activity_Pause (UserClosed As Boolean)
 	MyLog("Main: Activity_Pause = UserClosed: " & UserClosed, LogListColor, True)
 	
 	If Not (UserClosed) Then
-		DateTime.DateFormat = "SSS"
 		HomeControlSec = DateTime.Now
 	End If
 	
