@@ -14,6 +14,9 @@ Sub Process_Globals
 	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
 	
+	Private CONST TABLE_ALL_APPS As String 	= "AllApps"
+	Private CONST TABLE_APPS As String 		= "Apps"
+	
 	Private PhonEvent 				As PhoneEvents
 	Private PhID 					As PhoneId
 	
@@ -124,15 +127,13 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
 	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
 	
-	SetupAppsList(True)
-	B4XPages.MainPage.SetupHomeList
-	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
-	
 	B4XPages.MainPage.RemoveAppItem_JustFromAppList(Package)
 	B4XPages.MainPage.RemoveAsRecently(Package)
 	B4XPages.MainPage.RemoveHomeItem(Package)
-	B4XPages.MainPage.SaveHomeList
-	ToastMessageShow(name & " Removed!", True)
+	SetupAppsList(True)
+	B4XPages.MainPage.SetupHomeList
+'	B4XPages.MainPage.SaveHomeList
+	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
 End Sub
 
 Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
@@ -321,8 +322,8 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	ShowToastLog = False
 	MyLog("SetupAppsList = Reload: " & ForceReload, LogListColor, False)
 	
-	If Not (AppsList.IsInitialized) Then AppsList.Initialize
-	If Not (NormalAppsList.IsInitialized) Then NormalAppsList.Initialize
+	If Not (AppsList.IsInitialized) 		Then AppsList.Initialize
+	If Not (NormalAppsList.IsInitialized) 	Then NormalAppsList.Initialize
 	
 	AppsList.Clear
 	NormalAppsList.Clear
@@ -333,15 +334,20 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	'// All Apps in Database
 	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name ASC")
 	
-	
 	'// All Apps in OS
 	Dim pm As PackageManager
 	Dim packages As List
 		packages = pm.GetInstalledPackages
 	
-	LogColor("RowCount: " & ResApps.RowCount & " - Package Size: " & packages.Size, Colors.Red)
 	
-	If (ForceReload = True) Or (ResApps.RowCount <> (packages.Size - 1)) Then
+	Dim pkgCount 	As Int = packages.Size - 1
+	Dim dbCount 	As Int = ResApps.RowCount
+	
+	ResApps.Close
+	
+	LogColor($"DB  Count: ${dbCount} : PKG Count: ${pkgCount}"$, Colors.Red)
+	
+	If (ForceReload = True) Or (pkgCount <> dbCount) Then
 		
 		MyLog("SetupAppsList = Reload: TRUE", LogListColor, True)
 		
@@ -349,8 +355,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'#
 		'#------------------------------------
 		
-		sql.ExecNonQuery("DELETE FROM AllApps")
-'		sql.ExecNonQuery("DELETE FROM Apps")
+		sql.ExecNonQuery($"DELETE FROM ${TABLE_ALL_APPS}"$)
 		For i = 0 To packages.Size - 1
 			Dim p As String = packages.Get(i)
 			
@@ -368,8 +373,17 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 					currentapp.IsHidden = False
 					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
-								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
+''				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
+''								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
+'				sql.ExecNonQuery($"INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('${currentapp.Name}','${currentapp.PackageName}', 0, 0,${currentapp.VersionCode});" & _
+'								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('${currentapp.Name}','${currentapp.PackageName}', 0, 1,${currentapp.VersionCode});)"$)
+				
+				sql.ExecNonQuery2($"INSERT OR IGNORE INTO ${TABLE_APPS} (Name, pkgName, IsHome, IsHidden, VersionCode) VALUES (?,?,?,?,?)"$, _
+				Array As Object(currentapp.Name, currentapp.PackageName, 0, 0, currentapp.VersionCode))
+				
+				sql.ExecNonQuery2($"INSERT OR REPLACE INTO ${TABLE_ALL_APPS} (Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES (?,?,?,?,?)"$, _
+				Array As Object(currentapp.Name, currentapp.PackageName, 0, 1, currentapp.VersionCode))
+				
 				
 '				AppMap.Put(p, currentapp.Name)
 '				AppMap.Put(p, CreateMap(p: CreateMap( _
@@ -384,13 +398,15 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 				Dim currentapp As App
 					currentapp.Name = pm.GetApplicationLabel(p)
 					currentapp.PackageName = p
+					currentapp.VersionCode = pm.GetVersionCode(p)
 '					currentapp.index = i + 1
 '					currentapp.Icon = GetPackageIcon(p)
 '					currentapp.IsHomeApp = False
 '					currentapp.IsHidden = False
-					currentapp.VersionCode = pm.GetVersionCode(p)
 				
-				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
+'				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
+				sql.ExecNonQuery2($"INSERT OR REPLACE INTO ${TABLE_ALL_APPS} (Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES (?,?,?,?,?)"$, _
+				Array As Object(currentapp.Name, currentapp.PackageName, 0, 1, currentapp.VersionCode))
 				
 '				AppMap.Put(p, currentapp.Name)
 '				AppMap.Put(p, CreateMap(p: CreateMap( _
@@ -405,8 +421,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
 		
-		ResApps.Close
-		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")
+		ResApps = sql.ExecQuery($"SELECT * FROM ${TABLE_APPS} WHERE IsHidden=0 ORDER BY Name ASC"$)
 		
 		Dim intCount As Int = 0
 		Do While ResApps.NextRow
@@ -433,7 +448,7 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'//----- Config Apps List
 		'
 		ResApps.Close
-		ResApps = sql.ExecQuery("SELECT * FROM Apps WHERE IsHidden=0 ORDER BY Name ASC")
+		ResApps = sql.ExecQuery($"SELECT * FROM ${TABLE_APPS} WHERE IsHidden=0 ORDER BY Name ASC"$)
 		
 		Dim intCount As Int = 0
 		Do While ResApps.NextRow
