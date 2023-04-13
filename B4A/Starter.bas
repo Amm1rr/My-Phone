@@ -76,6 +76,8 @@ Sub Service_Create
 	SetupSettings
 	
 	PhonEvent.InitializeWithPhoneState("PhonEvent", PhID)
+	
+	NormalAppsList.Initialize
 
 End Sub
 

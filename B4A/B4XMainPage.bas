@@ -76,8 +76,8 @@ Sub Class_Globals
 	Private dd 							As DDD
 	Private OP 							As OverlayPermission
 	
-	Private CurrentAppApp As App
-	Private CurrentHomeApp As App
+'	Private CurrentAppApp As App
+'	Private CurrentHomeApp As App
 	
 	Public 	tagApps 					As ASScrollingTags
 	Private lblInfo 					As Label
@@ -221,6 +221,7 @@ Private Sub RunSetupThread
 End Sub
 
 'This event will be called once, before the page becomes visible.
+
 Private Sub B4XPage_Created (Root1 As B4XView)
 	MyLog("B4XPage_Created", LogListColor, False)
 	
@@ -312,13 +313,15 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		End Try
 		
 		
-		
-		thread.Initialise("thread")
-		thread.Start(Me, "RunSetupThread", Null)
-		
-		threadSearchApp.Initialise("threadSearchApp")
-		threadRunDefaultClockApp.Initialise("threadOpenDefaultClockApp")
-		
+		If (IsDebugMode) Then
+			RunSetupThread
+		Else
+			thread.Initialise("thread")
+			thread.Start(Me, "RunSetupThread", Null)
+			
+			threadSearchApp.Initialise("threadSearchApp")
+			threadRunDefaultClockApp.Initialise("threadOpenDefaultClockApp")
+		End If
 '		StartTimeClick = False
 		
 '		EdgeLoad
@@ -381,12 +384,14 @@ Private Sub TimerLongClick_Tick
 		Select clvLongClick
 			Case 0:	'clvHome
 				If panHomRow.Tag = "" Then panHomRow.Tag = 0
-				longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+'				longClickClvPNL.SetColorAndBorder(panHomRow.Tag, 0, Colors.Blue, 15dip)
+				longClickClvPNL.SetColorAnimated(300, Colors.LightGray, Colors.Gray)
 				clvHome_ItemLongClick(longClickClvIndex, clvHome.GetValue(longClickClvIndex))
 				clvLongClick = -1
 			Case 1:	'clvApps
 				If panAppRow.Tag = "" Then panAppRow.Tag = 0
-				longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+'				longClickClvPNL.SetColorAndBorder(panAppRow.Tag, 0, Colors.Blue, 15dip)
+				longClickClvPNL.SetColorAnimated(300, Colors.LightGray, Colors.Gray)
 				clvApps_ItemLongClick(longClickClvIndex, clvApps.GetValue(longClickClvIndex))
 				clvLongClick = -1
 		End Select
@@ -811,7 +816,7 @@ End Sub
 
 Public Sub GetPackage(pkg As String) As String
 	
-	MyLog("GetPackage = pkg: " & pkg, LogListColor, True)
+	MyLog("GetPackage= pkg: " & pkg, LogListColor, True)
 	
 	Dim pkgName As String
 	
@@ -826,9 +831,10 @@ Public Sub GetPackage(pkg As String) As String
 			pkgName = pkg
 		End If
 	Catch
-		Return pkg
+		pkgName = pkg
 	End Try
 	
+	MyLog("GetPackage= pkg> " & pkgName, LogListColor, True)
 	Return pkgName
 	
 End Sub
@@ -881,68 +887,68 @@ Public Sub RemoveAsRecently (Value As String)
 	
 End Sub
 
-Private Sub ConfigCurrentAppApp(Position As String, Value As String)
+'Private Sub ConfigCurrentAppApp(Position As String, Value As String)
+'	
+'	Starter.LogShowToast = False
+'	MyLog($"ConfigCurrentAppApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
+'	
+'	CurrentAppApp.index 		= Position
+'	CurrentAppApp.PackageName 	= Value.As(String)
+'	
+'	'Every custom list view has a panel within
+'	Dim p 		As Panel 	= clvApps.GetRawListItem(Position).Panel.GetView(0)
+'	CurrentAppApp.Name 		= dd.GetViewByName(p, "lblAppTitle").Text
+'
+'End Sub
+
+'Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
+'	
+'	Starter.LogShowToast = False
+'	MyLog($"ConfigCurrentHomeApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
+'	
+'	CurrentHomeApp.index = Position
+'	CurrentHomeApp.PackageName = Value.As(String)
+''	CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
+'End Sub
+
+Private Sub clvHome_ItemClick (Index As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog($"ConfigCurrentAppApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
-	
-	CurrentAppApp.index 		= Position
-	CurrentAppApp.PackageName 	= Value.As(String)
-	
-	'Every custom list view has a panel within
-	Dim p 		As Panel 	= clvApps.GetRawListItem(Position).Panel.GetView(0)
-	CurrentAppApp.Name 		= dd.GetViewByName(p, "lblAppTitle").Text
-
-End Sub
-
-Private Sub ConfigCurrentHomeApp(Position As String, Value As String)
-	
-	Starter.LogShowToast = False
-	MyLog($"ConfigCurrentHomeApp => Position: ${Position} - Value: ${Value}"$, LogListColor, True)
-	
-	CurrentHomeApp.index = Position
-	CurrentHomeApp.PackageName = Value.As(String)
-'	CurrentHomeApp.Name = panHome.GetView(0).Text
-'	CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
-End Sub
-
-Private Sub clvHome_ItemClick (Position As Int, Value As Object)
-	
-	Starter.LogShowToast = False
-	MyLog($"clvHome_ItemClick => Position: " ${Position}  - Value: ${Value}"$, LogListColor, True)
+	MyLog($"clvHome_ItemClick => Index: " ${Index}  - Value: ${Value}"$, LogListColor, True)
 	
 	ClickSimulation
 	
 	If (dragAllow = False) Then
-		ConfigCurrentHomeApp(Position, Value.As(String))
-'		CurrentHomeApp.Name = clvHome.GetPanel(Position).GetView(0).Text
+'		ConfigCurrentHomeApp(Index, Value.As(String))
+''		CurrentHomeApp.Name = clvHome.GetPanel(Index).GetView(0).Text
 		clvHome.AsView.BringToFront
-		RunApp(CurrentHomeApp.PackageName)
+		RunApp(Value)
 	End If
 	HideHomeMenu(True)
 	
 End Sub
 
 
-Private Sub clvHome_ItemLongClick (Position As Int, Value As Object)
+Private Sub clvHome_ItemLongClick (Index As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog($"clvHome_ItemLongClick: => Position: ${Position}  - Value: ${Value}"$, LogListColor, True)
+	MyLog($"clvHome_ItemLongClick= Index: ${Index} - Value: ${Value}"$, LogListColor, True)
 	
 	HideHomeMenu(True)
 	Sleep(50)
 	
 	If (dragAllow = False) Then
-		ConfigCurrentHomeApp(Position, Value.As(String))
-		CreateHomeMenu(Position)
+'		ConfigCurrentHomeApp(Index, Value.As(String))
+		CreateHomeMenu(Index, Value)
 	Else
 		dragger.RemoveDragButtons
 		dragAllow = False
 	End If
 End Sub
 
-Private Sub CreateHomeMenu (Position As Int)
-	MyLog("CreateHomeMenu", LogListColor, True)
+Private Sub CreateHomeMenu (Index As Int, Value As Object)
+	
+	MyLog($"CreateHomeMenu= Index: ${Index} - Value: ${Value}"$, LogListColor, True)
 	
 	panHRowMenuHome.RemoveAllViews
 	panHRowMenuHome.RequestFocus
@@ -950,7 +956,7 @@ Private Sub CreateHomeMenu (Position As Int)
 	panHRowMenuHome.Enabled = True
 	panHRowMenuHome.BringToFront
 
-	Dim Top As Int = clvHome.GetPanel(Position).Parent.Top - clvHome.sv.ScrollViewOffsetY + clvHome.GetBase.Top + clvHome.GetPanel(Position).Height
+	Dim Top As Int = clvHome.GetPanel(Index).Parent.Top - clvHome.sv.ScrollViewOffsetY + clvHome.GetBase.Top + clvHome.GetPanel(Index).Height
 	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 '	panHRowMenuHome.As(B4XView).SetLayoutAnimated(300, clvHome.AsView.Left - (panHRowMenuHome.As(B4XView).Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
 '	panHRowMenuHome.As(B4XView).SetLayoutAnimated(0, clvHome.AsView.Left + (clvHome.AsView.Width - panHRowMenuHome.As(B4XView).Width) / 2, Top, panHRowMenuHome.As(B4XView).Width, panHRowMenuHome.As(B4XView).Height)
@@ -961,19 +967,20 @@ Private Sub CreateHomeMenu (Position As Int)
 '	clvHRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
 	Dim he As Int = 130
 	Dim we As Int = 80
-	clvHRowMenu.Add(CreateListItemHomeMenu("Info", "Info", we, he), "Info")
-	clvHRowMenu.Add(CreateListItemHomeMenu("Delete", "Delete", we, he), "Delete")
-	clvHRowMenu.Add(CreateListItemHomeMenu("Sort", "Sort", we, he), "Sort")
+	clvHRowMenu.Add(CreateListItemHomeMenu("Info", "Info", we, he, Value), "Info")
+	clvHRowMenu.Add(CreateListItemHomeMenu("Delete", "Delete", we, he, Value), "Delete")
+	clvHRowMenu.Add(CreateListItemHomeMenu("Sort", "Sort", we, he, Value), "Sort")
 
 End Sub
 
-Private Sub CreateListItemHomeMenu(Text As String, _
-							   Value As String, _
-							   Width As Int, _
-							   Height As Int) As Panel
+Private Sub CreateListItemHomeMenu(Text 	As String, _
+								   Value 	As String, _
+								   Width 	As Int, _
+								   Height 	As Int, _
+								   Tag 		As String) As Panel
 	
 	Starter.ShowToastLog = False
-	MyLog($"CreateListItemAppMenu = ${Text} : ${Value} : ${Width.As(String)}  : ${Height.As(String)}"$, LogListColor, False)
+	MyLog($"CreateListItemHomeMenu= ${Text} : ${Value} : ${Width.As(String)}  : ${Height.As(String)} : ${Tag}"$, LogListColor, False)
 	
 	Dim p As B4XView = xui.CreatePanel("")
 	
@@ -986,7 +993,7 @@ Private Sub CreateListItemHomeMenu(Text As String, _
 	
 	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
 	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Text = Text
-	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Tag = Value
+	dd.GetViewByName(p, "lblHomRowMenuRowAppTitle").Tag = Tag
 	
 '	If Starter.Pref.ShowIconHomeApp Then
 '		imgHomRowMenuRowIconHome.Visible = True
@@ -1005,22 +1012,26 @@ Private Sub CreateListItemHomeMenu(Text As String, _
 	Return p
 End Sub
 
-Private Sub clvApps_ItemClick (Position As Int, Value As Object)
+Private Sub clvApps_ItemClick (Index As Int, Value As Object)
 	
 	Main.GoHomeAllow = False
 	
 	Starter.LogShowToast = False
-	MyLog($"clvApps_ItemClick = Position: ${Position}  - Value: ${Value}"$, LogListColor, False)
+	MyLog($"clvApps_ItemClick= Index: ${Index}  - Value: ${Value}"$, LogListColor, False)
 	
 	ClickSimulation
 	
-	ConfigCurrentAppApp(Position, Value)
+	Value = Value.As(String)
+	Dim ap As App
+		ap.PackageName = Value
+		ap.Name = GetAppNamebyPackage(ap.Name)
+'	ConfigCurrentAppApp(Position, Value)
 	
 	If (panAppMenuApp.IsInitialized And panAppMenuApp.Visible) Then
 		HideAppMenu(True)
 	Else
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
-		Starter.AddToRecently(CurrentAppApp.Name, CurrentAppApp.PackageName, False)
+		Starter.AddToRecently(ap.Name, ap.PackageName, False)
 '		SaveRecentlyList
 		RunApp(Value.As(String))
 		clvApps.AsView.BringToFront
@@ -1031,13 +1042,16 @@ Private Sub clvApps_ItemLongClick (Position As Int, Value As Object)
 	Starter.LogShowToast = False
 	MyLog("clvApps_ItemLongClick", LogListColor, False)
 	HideKeyboard
-	ConfigCurrentAppApp(Position, Value.As(String))
+'	ConfigCurrentAppApp(Position, Value)
 	CreateAppMenu(Value)
 End Sub
 
 Private Sub CreateAppMenu(Value As Object)
+	
+	
 	Starter.ShowToastLog = False
-	MyLog("CreateAppMenu = " & Value.As(String), LogListColor, False)
+	MyLog($"CreateAppMenu= Value: ${Value}"$, LogListColor, True)
+	
 	HideAppMenu(True)
 	
 	panAppMenuApp.RemoveAllViews
@@ -1047,27 +1061,33 @@ Private Sub CreateAppMenu(Value As Object)
 	panAppMenuApp.BringToFront
 	panAppMenuApp.SetVisibleAnimated(150, True)
 	
+	Value = Value.As(String)
+	
+	Dim ap As App
+		ap.PackageName 	= Value
+		ap.Name 		= GetAppNamebyPackage(Value)
+	
 	clvAppRowMenu.Clear
 '	clvAppRowMenu.sv.SetColorAndBorder(Colors.White, 2dip, Colors.DarkGray, 20dip)
 '	clvAppRowMenu.sv.SetColorAnimated(300, Colors.LightGray, Colors.DarkGray)
 	Dim he As Int = 130
 	Dim we As Int = 80
-	clvAppRowMenu.Add(CreateListItemAppMenu("Info", "Info", we, he), "Info")
-	clvAppRowMenu.Add(CreateListItemAppMenu(CurrentAppApp.Name, CurrentAppApp.PackageName, we, he), CurrentAppApp.PackageName)
-	If (FindHomeItem(CurrentAppApp.PackageName) = True) Then
-		clvAppRowMenu.Add(CreateListItemAppMenu("Remove from Home", "RemoveFromHome", we, he), "RemoveFromHome")
+	clvAppRowMenu.Add(CreateListItemAppMenu("Info", "Info", we, he, Value), "Info")
+	clvAppRowMenu.Add(CreateListItemAppMenu(ap.Name, ap.PackageName, we, he, Value), ap.PackageName)
+	If (FindHomeItem(ap.PackageName) = True) Then
+		clvAppRowMenu.Add(CreateListItemAppMenu("Remove from Home", "RemoveFromHome", we, he, Value), "RemoveFromHome")
 	Else
-		clvAppRowMenu.Add(CreateListItemAppMenu("Add to Home", "AddToHome", we, he), "AddToHome")
+		clvAppRowMenu.Add(CreateListItemAppMenu("Add to Home", "AddToHome", we, he, Value), "AddToHome")
 	End If
-	clvAppRowMenu.Add(CreateListItemAppMenu("Uninstall", "Uninstall", we, he), "Uninstall")
-	clvAppRowMenu.Add(CreateListItemAppMenu("Hidden", "Hidden", we, he), "Hidden")
-	clvAppRowMenu.Add(CreateListItemAppMenu("Rename", "Rename", we, he), "Rename")
-
+	clvAppRowMenu.Add(CreateListItemAppMenu("Uninstall", "Uninstall", we, he, Value), "Uninstall")
+	clvAppRowMenu.Add(CreateListItemAppMenu("Hidden", "Hidden", we, he, Value), "Hidden")
+	clvAppRowMenu.Add(CreateListItemAppMenu("Rename", "Rename", we, he, Value), "Rename")
+	
 End Sub
 
-Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
+Private Sub clvHRowMenu_ItemClick (Index As Int, Value As Object)
 	Starter.LogShowToast = False
-	MyLog("clvRowMenu_Click = " & Value.As(String), LogListColor, True)
+	MyLog($"clvHRowMenu_ItemClick= Index: ${Index}: - Value: ${Value.As(String)}"$, LogListColor, True)
 	
 	ClickSimulation
 	HideHomeMenu(True)
@@ -1075,15 +1095,20 @@ Private Sub clvHRowMenu_ItemClick (Position As Int, Value As Object)
 	
 	Main.GoHomeAllow = False
 	
+	Dim pnl 	As B4XView	= clvHRowMenu.GetPanel(Index)
+	Dim pkg 	As String 	= dd.GetViewByName(pnl, "lblHomRowMenuRowAppTitle").Tag
+	
+	If (pkg = Null) Then Return
+	
 	Select Value
 		Case "Info"
-			Run_Info(CurrentHomeApp.PackageName)
+			Run_Info(pkg)
 '			CurrentHomeApp.index = -1
 		Case "Delete"
-			RemoveHomeItem(CurrentHomeApp.PackageName)
+			RemoveHomeItem(pkg)
 '			CurrentHomeApp.index = -1
-			Log("Delete " & CurrentHomeApp.PackageName)
-			ToastMessageShow("Delete " & CurrentHomeApp.PackageName, False)
+			Log("Delete " & pkg)
+			ToastMessageShow("Delete " & pkg, False)
 		Case "Sort"
 			dragAllow = True
 			dragger.AddDragButtons
@@ -1095,6 +1120,7 @@ Public Sub AddToHomeList(Name As String, pkgName As String, Widt As Int, Save As
 	
 	MyLog("AddToHomeList = pkgName: " & pkgName & " -  Name: " & Name, LogListColor, False)
 	
+'	If (pkgName Or Name = Null Or "" Or "null") Then Return
 	If (pkgName = Null) Or (pkgName.Trim = "") Or (pkgName.ToLowerCase = "null") Then Return
 	If (Name = Null) Or (Name.Trim = "") Or (Name.ToLowerCase = "null") Then Name = GetAppNamebyPackage(pkgName)
 	
@@ -1152,7 +1178,8 @@ End Sub
 Private Sub CreateListItemApp(Text 		As String, _
 							  Value 	As String, _
 							  Width 	As Int, _
-							  Height 	As Int) As Panel
+							  Height 	As Int, _
+							  Tag 		As String) As Panel
 	
 '	Starter.LogShowToast = False
 '	MyLog("CreateListItemApp = " & Text & ":" & Value & ":" & Width & ":" & Height.As, LogListColor, False)
@@ -1163,9 +1190,10 @@ Private Sub CreateListItemApp(Text 		As String, _
 	
 	'Note that we call DDD.CollectViewsData in AppRow designer script. This is required if we want to get views with dd.GetViewByName. 
 	dd.GetViewByName(p, "lblAppTitle").Text = Text.Trim
-	dd.GetViewByName(p, "lblAppTitle").Tag = Value.Trim
+	dd.GetViewByName(p, "lblAppTitle").Tag = Tag
+	
 '	lblAppTitle.Text = Text.Trim
-'	lblAppTitle.Tag = Value.Trim
+'	lblAppTitle.Tag = Tag
 	
 	Try
 
@@ -1193,10 +1221,11 @@ Private Sub CreateListItemApp(Text 		As String, _
 	
 End Sub
 
-Private Sub CreateListItemAppMenu(Text As String, _
-							   Value As String, _
-							   Width As Int, _
-							   Height As Int) As Panel
+Private Sub CreateListItemAppMenu(Text 	 As String, _
+								  Value  As String, _
+								  Width  As Int, _
+								  Height As Int, _
+								  Tag As String) As Panel
 	
 	Starter.LogShowToast = False
 	MyLog($"CreateListItemAppMenu = ${Text} : ${Value} : ${Width} : ${Height}"$, LogListColor, False)
@@ -1207,7 +1236,7 @@ Private Sub CreateListItemAppMenu(Text As String, _
 	
 	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName.
 	dd.GetViewByName(p, "lblAppRowMenuRowAppTitle").Text = Text
-	dd.GetViewByName(p, "lblAppRowMenuRowAppTitle").Tag = Value
+	dd.GetViewByName(p, "lblAppRowMenuRowAppTitle").Tag = Tag
 	
 	If Starter.Pref.ShowIconHomeApp Then
 		imgAppRowMenuRowIconHome.Visible = True
@@ -1226,10 +1255,10 @@ Private Sub CreateListItemAppMenu(Text As String, _
 	Return p
 End Sub
 
-Private Sub CreateListItemHome(Text As String, _
-							   Value As String, _
-							   Width As Int, _
-							   Height As Int) As Panel
+Private Sub CreateListItemHome(Text 	As String, _
+							   Value 	As String, _
+							   Width 	As Int, _
+							   Height 	As Int) As Panel
 	
 	Starter.LogShowToast = False
 	MyLog($"CreateListItemHome = ${Text} : ${Value}  : ${Width} : ${Height}"$, LogListColor, False)
@@ -1241,7 +1270,7 @@ Private Sub CreateListItemHome(Text As String, _
 	
 	'Note that we call DDD.CollectViewsData in HomeRow designer script. This is required if we want to get views with dd.GetViewByName. 
 	dd.GetViewByName(p, "lblHomeAppTitle").Text = Text
-	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
+'	dd.GetViewByName(p, "lblHomeAppTitle").Tag = Value
 	
 	If Starter.Pref.ShowIconHomeApp Then
 		Dim ico As Bitmap = Starter.GetPackageIcon(Value)
@@ -1849,8 +1878,11 @@ Public Sub Run_Alarm
 		
 		HideHomeMenu(True)
 		
-		
-		threadSearchApp.Start(Me, "threadOpenDefaultClockApp", Null)
+		If (IsDebugMode) Then
+			threadOpenDefaultClockApp
+		Else
+			threadSearchApp.Start(Me, "threadOpenDefaultClockApp", Null)
+		End If
 		
 	Catch
 		ToastMessageShow(LastException.Message, True)
@@ -2127,21 +2159,23 @@ End Sub
 
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
 	
+	
 	HideAppMenu(False)
+	CreateAppMenu(Value)
 	
-	Dim Result As Int
 	
-	Msgbox2Async("Do you want to delete this app?", GetAppNamebyPackage(Value), "Yes", "", "No", Null, True)
-	Wait For Msgbox_Result(Result As Int)
-
-	Select Result
-		Case DialogResponse.POSITIVE
-			' User clicked "Yes"
-			RemoveAsRecently(Value.As(String))
-		Case DialogResponse.NEGATIVE
-			' User clicked "No"
-			' Do nothing
-	End Select
+'	Dim Result As Int
+'	Msgbox2Async("Do you want to delete this app?", GetAppNamebyPackage(Value), "Yes", "", "No", Null, True)
+'	Wait For Msgbox_Result(Result As Int)
+'
+'	Select Result
+'		Case DialogResponse.POSITIVE
+'			' User clicked "Yes"
+'			RemoveAsRecently(Value.As(String))
+'		Case DialogResponse.NEGATIVE
+'			' User clicked "No"
+'			' Do nothing
+'	End Select
 	
 	
 End Sub
@@ -2352,42 +2386,47 @@ End Sub
 Private Sub clvAppRowMenu_ItemClick (Index As Int, Value As Object)
 	
 	Starter.LogShowToast = False
-	MyLog($"clvAppRowMenu_ItemClick = Index: ${Index} - Value: ${Value}"$, LogListColor, True)
+	MyLog($"clvAppRowMenu_ItemClick= Index: ${Index} - Value: ${Value}"$, LogListColor, True)
 	
 	ClickSimulation
-	
-	Dim pkgName As String = CurrentAppApp.PackageName
-	Dim Name 	As String = CurrentAppApp.Name
 	
 	HideAppMenu(True)
 	dragAllow = False
 	
+	Dim pnl 	As B4XView	= clvAppRowMenu.GetPanel(Index)
+	Dim pkg 	As String 	= dd.GetViewByName(pnl, "lblAppRowMenuRowAppTitle").Tag
+	
+	If (pkg = Null) Then Return
+	
+	Dim ap As App
+		ap.PackageName = pkg
+		ap.Name = GetAppNamebyPackage(pkg)
 	
 	Main.GoHomeAllow = False
 	
 	Select Value
 		
 		Case "Info"
-			Run_Info(pkgName)
+			Run_Info(pkg)
 			
 		Case "AddToHome"
-			AddToHomeList(Name, pkgName, clvApps.sv.Width, True)
+			AddToHomeList(ap.Name, pkg, clvApps.sv.Width, True)
 		
 		Case "RemoveFromHome"
-			RemoveHomeItem(pkgName)
+			RemoveHomeItem(pkg)
 			
 		Case "Uninstall"
-			UninstallApp(pkgName)
+			UninstallApp(pkg)
 			
 		Case "Hidden"
-			HideApp(pkgName)
+			HideApp(pkg)
 			
 		Case "Rename"
-			ToastMessageShow("Rename => " & Name, False)
+			ToastMessageShow("Rename => " & ap.Name, False)
 			
-		Case pkgName	'Run App
+		Case pkg		'Run App
 '			tagApps.LabelProperties.TextColor = Colors.Magenta
-			Starter.AddToRecently(Name, pkgName, False)
+			Starter.AddToRecently(ap.Name, pkg, False)
 '			SaveRecentlyList
 			RunApp(Value.As(String))
 			clvApps.AsView.BringToFront
@@ -2428,12 +2467,23 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	HideAppMenu(False)
 	
-	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+'	If Not (Starter.NormalAppsList.IsInitialized) Then Return
 	
-	threadSearchAppLock.Initialize(True)
-'	threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
-	threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+	If IsDebugMode Then
+		SearchInApp(Old, New)
+	Else
+		threadSearchAppLock.Initialize(True)
+'		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+	End If
 	
+End Sub
+
+Private Sub IsDebugMode As Boolean
+	Dim r 		As Reflector
+	Dim debug 	As Boolean = r.GetStaticField("anywheresoftware.b4a.BA", "debugMode")
+	If debug Then Return True
+	Return False
 End Sub
 
 Private Sub SearchInApp(Old As String, New As String)
@@ -2477,7 +2527,7 @@ Private Sub SearchInApp(Old As String, New As String)
 		AppCountFound = numApps
 		For i = 0 To numApps
 			Dim App As App = appsList.Get(i)
-			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh), App.PackageName)
+			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh, App.PackageName), App.PackageName)
 			AddtoAlphabetlist(App.Name, i)
 			Sleep(0)
 			If (New <> NewSearchText) Then Exit
@@ -2488,7 +2538,7 @@ Private Sub SearchInApp(Old As String, New As String)
 		For i = 0 To numApps
 			Dim App As App = appsList.Get(i)
 			If App.Name.ToLowerCase.Contains(searchTextLower) Then
-				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh), App.PackageName)
+				clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh, App.PackageName), App.PackageName)
 				AddtoAlphabetlist(App.Name, i)
 				AppCountFound = AppCountFound + 1
 '				Sleep(0)
@@ -2519,7 +2569,6 @@ Private Sub SearchInApp(Old As String, New As String)
 					LastRunApp = pkg
 					Starter.AddToRecently(GetAppNamebyPackage(pkg), pkg, False)
 					RunApp(pkg)
-					clvApps.AsView.BringToFront
 				End If
 			End If
 		End If
@@ -2809,7 +2858,6 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 			longClickClvPNL.SetColorAndBorder(Colors.Gray, 1dip, Colors.Blue, 15dip)
 			ClickPanCLV = True
 			
-			MyLog("panAppRow_Touch Down", LogListColor, True)
 			
 			HideAppMenu(True)
 			
@@ -2820,6 +2868,7 @@ Private Sub panAppRow_Touch (Action As Int, X As Float, Y As Float) As Boolean
 				clvLongClick = 1
 				TimerLongClick.Enabled = True
 			
+			MyLog("panAppRow_Touch Down", LogListColor, True)
 			
 		Case 1 ' Up
 			TimerLongClick.Enabled = False
