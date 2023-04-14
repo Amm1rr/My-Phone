@@ -166,7 +166,6 @@ Sub Activity_Resume
 		If (DateTime.Now - HomeControlSec) < 75 Then
 			B4XPages.MainPage.GoHome(False, True)
 		End If
-		LogColor(DateTime.Now - HomeControlSec, Colors.Blue)
 		
 		
 	Else

@@ -14,8 +14,8 @@ Sub Process_Globals
 	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
 	
-	Private CONST TABLE_ALL_APPS As String 	= "AllApps"
-	Private CONST TABLE_APPS As String 		= "Apps"
+	Public CONST TABLE_ALL_APPS As String 	= "AllApps"
+	Public CONST TABLE_APPS As String 		= "Apps"
 	
 	Private PhonEvent 				As PhoneEvents
 	Private PhID 					As PhoneId
@@ -127,6 +127,8 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
 	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
 	
+	B4XPages.MainPage.txtAppsSearch.Enabled = False
+	
 	B4XPages.MainPage.RemoveAppItem_JustFromAppList(Package)
 	B4XPages.MainPage.RemoveAsRecently(Package)
 	B4XPages.MainPage.RemoveHomeItem(Package)
@@ -134,6 +136,15 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	B4XPages.MainPage.SetupHomeList
 '	B4XPages.MainPage.SaveHomeList
 	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
+	
+	B4XPages.MainPage.txtAppsSearch.Enabled = True
+	
+	If (B4XPages.MainPage.txtAppsSearch.Text = "") Then
+		B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
+	End If
+	
+'	FixDatabase
+	
 End Sub
 
 Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
@@ -320,7 +331,7 @@ End Sub
 Public Sub SetupAppsList(ForceReload As Boolean)
 	
 	ShowToastLog = False
-	MyLog("SetupAppsList = Reload: " & ForceReload, LogListColor, False)
+	MyLog("SetupAppsList= Reload: " & ForceReload, LogListColor, False)
 	
 	If Not (AppsList.IsInitialized) 		Then AppsList.Initialize
 	If Not (NormalAppsList.IsInitialized) 	Then NormalAppsList.Initialize
@@ -332,15 +343,16 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	sql.BeginTransaction
 	
 	'// All Apps in Database
-	Dim ResApps As ResultSet = sql.ExecQuery("SELECT * FROM AllApps ORDER By Name ASC")
+	Dim ResApps As ResultSet = sql.ExecQuery($"SELECT * FROM ${TABLE_ALL_APPS} ORDER By Name ASC"$)
 	
 	'// All Apps in OS
 	Dim pm As PackageManager
 	Dim packages As List
 		packages = pm.GetInstalledPackages
 	
+	Dim currentapp As App
 	
-	Dim pkgCount 	As Int = packages.Size - 1
+	Dim pkgCount 	As Int = packages.Size
 	Dim dbCount 	As Int = ResApps.RowCount
 	
 	ResApps.Close
@@ -356,8 +368,9 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		'#------------------------------------
 		
 		sql.ExecNonQuery($"DELETE FROM ${TABLE_ALL_APPS}"$)
+		Dim p As String
 		For i = 0 To packages.Size - 1
-			Dim p As String = packages.Get(i)
+			p = packages.Get(i)
 			
 			'//-- This will test whether the app is a 'regular' app that
 			'//-- can be launched and if so you can then show it in your app drawer.
@@ -365,25 +378,16 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 			'//-- then it will return false.
 			If pm.GetApplicationIntent(p).IsInitialized Then
 				Dim currentapp As App
-					currentapp.Name = pm.GetApplicationLabel(p)
-					currentapp.PackageName = p
-					currentapp.index = i + 1
-					currentapp.Icon = GetPackageIcon(p)
-					currentapp.IsHomeApp = False
-					currentapp.IsHidden = False
-					currentapp.VersionCode = pm.GetVersionCode(p)
-				
-''				sql.ExecNonQuery("INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ");" & _
-''								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 1," & currentapp.VersionCode & ");)")
-'				sql.ExecNonQuery($"INSERT OR IGNORE  INTO Apps 	(Name, pkgName, IsHome, 	IsHidden, 	VersionCode) 	 VALUES('${currentapp.Name}','${currentapp.PackageName}', 0, 0,${currentapp.VersionCode});" & _
-'								 "INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, 	IsNormalApp,VersionCode) 	 VALUES('${currentapp.Name}','${currentapp.PackageName}', 0, 1,${currentapp.VersionCode});)"$)
+				currentapp.Name = pm.GetApplicationLabel(p)
+				currentapp.PackageName = p
+				currentapp.index = i + 1
+				currentapp.Icon = GetPackageIcon(p)
+				currentapp.IsHomeApp = False
+				currentapp.IsHidden = False
+				currentapp.VersionCode = pm.GetVersionCode(p)
 				
 				sql.ExecNonQuery2($"INSERT OR IGNORE INTO ${TABLE_APPS} (Name, pkgName, IsHome, IsHidden, VersionCode) VALUES (?,?,?,?,?)"$, _
 				Array As Object(currentapp.Name, currentapp.PackageName, 0, 0, currentapp.VersionCode))
-				
-				sql.ExecNonQuery2($"INSERT OR REPLACE INTO ${TABLE_ALL_APPS} (Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES (?,?,?,?,?)"$, _
-				Array As Object(currentapp.Name, currentapp.PackageName, 0, 1, currentapp.VersionCode))
-				
 				
 '				AppMap.Put(p, currentapp.Name)
 '				AppMap.Put(p, CreateMap(p: CreateMap( _
@@ -396,17 +400,13 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '				                      )))
 			Else
 				Dim currentapp As App
-					currentapp.Name = pm.GetApplicationLabel(p)
-					currentapp.PackageName = p
-					currentapp.VersionCode = pm.GetVersionCode(p)
-'					currentapp.index = i + 1
-'					currentapp.Icon = GetPackageIcon(p)
-'					currentapp.IsHomeApp = False
-'					currentapp.IsHidden = False
-				
-'				sql.ExecNonQuery("INSERT OR REPLACE INTO AllApps(Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES('" & currentapp.Name & "','" & currentapp.PackageName & "', 0, 0," & currentapp.VersionCode & ")")
-				sql.ExecNonQuery2($"INSERT OR REPLACE INTO ${TABLE_ALL_APPS} (Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES (?,?,?,?,?)"$, _
-				Array As Object(currentapp.Name, currentapp.PackageName, 0, 1, currentapp.VersionCode))
+				currentapp.Name = pm.GetApplicationLabel(p)
+				currentapp.PackageName = p
+				currentapp.VersionCode = pm.GetVersionCode(p)
+'				currentapp.index = i + 1
+'				currentapp.Icon = GetPackageIcon(p)
+'				currentapp.IsHomeApp = False
+'				currentapp.IsHidden = False
 				
 '				AppMap.Put(p, currentapp.Name)
 '				AppMap.Put(p, CreateMap(p: CreateMap( _
@@ -416,10 +416,19 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 '						                "VersionCode": pm.GetVersionCode(p) _
 '				                      )))
 			End If
+			
+			sql.ExecNonQuery2($"INSERT OR REPLACE INTO ${TABLE_ALL_APPS} (Name, pkgName, IsHomeApp, IsNormalApp, VersionCode) VALUES (?,?,?,?,?)"$, _
+			Array As Object(currentapp.Name, currentapp.PackageName, 0, 1, currentapp.VersionCode))
+			
 			AppsList.Add(currentapp)
 			
 		Next
 		AppsList.SortTypeCaseInsensitive("Name", True)
+		
+		'# برای اینکه برنامه های مخفی شده رو نشان ندهیم
+		'# اینجا مجددا نرم افزارها رو از دیتابیس میگیریم این روش
+		'# سرعت اجرای بیشتری هم نسبت به روش های دیگر
+		'# موجود دارد
 		
 		ResApps = sql.ExecQuery($"SELECT * FROM ${TABLE_APPS} WHERE IsHidden=0 ORDER BY Name ASC"$)
 		
@@ -427,15 +436,15 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		Do While ResApps.NextRow
 			
 			Dim currentapp As App
-				currentapp.PackageName = ResApps.GetString("pkgName")
-				currentapp.Name = ResApps.GetString("Name")
-				currentapp.IsHomeApp = False
+			currentapp.PackageName = ResApps.GetString("pkgName")
+			currentapp.Name = ResApps.GetString("Name")
+			currentapp.IsHomeApp = False
 			intCount = intCount + 1
-				currentapp.index = intCount
-				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
-				currentapp.IsHomeApp = False
-				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
-				currentapp.VersionCode = ResApps.GetInt("VersionCode")
+			currentapp.index = intCount
+			currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+			currentapp.IsHomeApp = False
+			currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+			currentapp.VersionCode = ResApps.GetInt("VersionCode")
 				
 			NormalAppsList.Add(currentapp)
 			
@@ -452,12 +461,11 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		
 		Dim intCount As Int = 0
 		Do While ResApps.NextRow
-			
-			Dim currentapp As App
+				Dim currentapp As App
 				currentapp.PackageName = ResApps.GetString("pkgName")
 				currentapp.Name = ResApps.GetString("Name")
 				currentapp.IsHomeApp = False
-			intCount = intCount + 1
+				intCount = intCount + 1
 				currentapp.index = intCount
 				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
 				currentapp.IsHomeApp = False
@@ -492,6 +500,71 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 	
 End Sub
 
+'این متد نرم افزارهای سیستم رو با نرم افزارهای توی دیتابیس مطابقت میده
+'و اگه پیدا نکنه از توی دیتابیس هم حذفش میکنه
+'
+'PS: این تابع فقط برای دیباگ نوشته شده و توی منطق برنامه نیازی
+' نباید باشه به استفاده از این متد
+Public Sub FixDatabase
+	
+	MyLog("FixDatabase - Start", LogListColor, False)
+	
+	If Not (AppsList.IsInitialized) 		Then Return
+	If Not (NormalAppsList.IsInitialized) 	Then Return
+	
+	sql.BeginTransaction
+	
+	'// All Apps in OS
+	Dim pm 			As PackageManager
+	Dim packages 	As List
+		packages = pm.GetInstalledPackages
+	
+	Dim ResApps 	As ResultSet
+	
+	Dim pkg 		As String
+	Dim pkg2		As String
+	
+	Dim Count		As Int
+	Dim Found		As Boolean = False
+	
+		ResApps = sql.ExecQuery($"SELECT * FROM ${TABLE_APPS}"$)
+		
+		Do While ResApps.NextRow
+			pkg = ResApps.GetString("pkgName")
+			
+			For i = 0 To packages.Size - 1
+'				If pm.GetApplicationIntent(pkg).IsInitialized Then
+					Found = False
+					pkg2 = packages.Get(i)
+					If (pkg = pkg2) Then
+						Found = True
+						Exit
+					End If
+'				End If
+			Next
+			
+			If (Found = False) Then
+				
+				Count = Count + 1
+				Dim query As String = $"DELETE FROM ${TABLE_APPS} WHERE pkgName=?"$
+				
+				sql.ExecNonQuery2(query, Array As String(pkg))
+				MyLog(query, Colors.Green, False)
+				
+			End If
+		
+		Loop
+	
+	sql.TransactionSuccessful
+	sql.EndTransaction
+	
+	SetupAppsList(False)
+	
+	ToastMessageShow($"${Count} Database Issue Fixed!"$, False)
+	MyLog($"FixDatabase - END: ${Count} Database Issue Fixed!"$, LogListColor, False)
+	
+End Sub
+
 Public Sub GetPackageIcon(pkgName As String) As Bitmap
 	Try
 '		LogShowToast = False
@@ -506,6 +579,8 @@ Public Sub GetPackageIcon(pkgName As String) As Bitmap
 		End If
 	Catch
 		If (LastException.Message = "java.lang.Exception:  android.content.pm.PackageManager$NameNotFoundException: yes") Then
+			Return Null
+		Else If (LastException.Message.Contains("android.content.pm.PackageManager$NameNotFoundException") = True) Then
 			Return Null
 		Else
 			MyLog("GetPackageIcon: " & pkgName & " - " & LastException.Message, LogListColor, True)

@@ -1365,7 +1365,6 @@ End Sub
 
 Public Sub Is_HomeApp(pkgName As String) As Boolean
 	
-	Starter.LogShowToast = False
 	MyLog("Is_HomeApps = pkgName: " & pkgName, LogListColor, True)
 	
 	Dim i As Int
@@ -1384,7 +1383,6 @@ End Sub
 
 public Sub RemoveHomeItem(pkgName As String)
 	
-	Starter.LogShowToast = False
 	MyLog("RemoveHomeItem = " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
@@ -1422,25 +1420,28 @@ End Sub
 
 public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 	
-	Starter.LogShowToast = False
 	MyLog("RemoveAppItem_JustFromAppList = " & pkgName, LogListColor, True)
 	
 	pkgName = GetPackage(pkgName)
 	
-	Dim query As String = "DELETE FROM Apps WHERE pkgName='" & pkgName & "'"
-	Starter.sql.ExecNonQuery(query)
+	Starter.sql.BeginTransaction
+	
+	Dim query As String = $"DELETE FROM ${Starter.TABLE_APPS} WHERE pkgName=?"$
+	Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+	
+	query = $"DELETE FROM ${Starter.TABLE_ALL_APPS} WHERE pkgName=?"$
+	Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+	
+	Starter.sql.TransactionSuccessful
+	Starter.sql.EndTransaction
 	
 	For i = 0 To clvApps.Size - 1
-		If (i < clvApps.Size) Then ' I used this IF just for fix array size issue. I don't know why error happen without this IF
-			Dim appvalue As String = clvApps.GetValue(i).As(String).ToLowerCase
-			If appvalue = pkgName Then
-				clvApps.RemoveAt(i)
-'				Exit
-			End If
+		If (pkgName = clvApps.GetValue(i).As(String).ToLowerCase) Then
+			clvApps.RemoveAt(i)
+			Exit
 		End If
 	Next
 	
-'	LogColor(query, Colors.Green)
 	MyLog("RemoveAppItem_JustFromAppList END = " & query, LogListColorEnd, True)
 	
 End Sub
@@ -1920,8 +1921,8 @@ Private Sub panCamera_Click
 	ClickSimulation
 	
 	Main.GoHomeAllow = False
-	
 	HideHomeMenu(True)
+	
 	If (Starter.Pref.CameraApp = "") Then
 		ToastMessageShow_Custom("First select Camera App from Setting page", False, Colors.Blue - 100)
 		Tabstrip1.ScrollTo(1, True)
@@ -2460,6 +2461,19 @@ Private Sub txtAppsSearch_FocusChanged (HasFocus As Boolean)
 	HideAppMenu(Not(HasFocus))
 End Sub
 
+Private Sub CheckCommand(cmd As String) As Boolean
+	Select cmd.ToLowerCase
+		Case "!fixdb"
+			Dim res As Int
+			res = Msgbox2("Check to Fix Database?", "Fix DB", "Yes", "", "No", Null)
+			If (res = DialogResponse.POSITIVE) Then
+				Starter.FixDatabase
+			End If
+			Return True
+	End Select
+	Return False
+End Sub
+
 Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	OldSearchText = Old
@@ -2467,7 +2481,9 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	HideAppMenu(False)
 	
-'	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+	
+	If (CheckCommand(New)) Then Return
 	
 	If IsDebugMode Then
 		SearchInApp(Old, New)
@@ -2783,8 +2799,8 @@ Private Sub btnSetAsDefault_LongClick
 			LoadRecentlyList
 			txtAppsSearch.Text = txtAppsSearch.Text
 			CloseSetting
-			
 			ToastMessageShow("Database Replaced and Apps Rebuild Successfully!", False)
+			
 		Case DialogResponse.NEGATIVE
 			' User clicked "No"
 			' Do nothing
