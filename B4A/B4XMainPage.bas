@@ -1026,7 +1026,6 @@ Private Sub clvApps_ItemClick (Index As Int, Value As Object)
 	
 	ClickSimulation
 	
-	Value = Value.As(String)
 	Dim ap As App
 		ap.PackageName = Value
 		ap.Name = GetAppNamebyPackage(ap.Name)
@@ -1038,8 +1037,7 @@ Private Sub clvApps_ItemClick (Index As Int, Value As Object)
 '		tagApps.LabelProperties.TextColor = Colors.Magenta
 		Starter.AddToRecently(ap.Name, ap.PackageName, False)
 '		SaveRecentlyList
-		RunApp(Value.As(String))
-		clvApps.AsView.BringToFront
+		RunApp(Value)
 	End If
 End Sub
 
@@ -2161,6 +2159,7 @@ Private Sub tagApps_ItemClick (Index As Int, Value As Object)
 	ClickSimulation
 	HideAppMenu(True)
 	RunApp(Value.As(String))
+	Starter.AddToRecently(GetAppNamebyPackage(Value), Value, False)
 End Sub
 
 Private Sub tagApps_ItemLongClick (Index As Int, Value As Object)
