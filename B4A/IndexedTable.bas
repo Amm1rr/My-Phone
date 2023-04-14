@@ -73,7 +73,7 @@ End Sub
 Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 	
 	If (Action = pnlIndex.ACTION_DOWN) Then _
-		Starter.MyLog("****** IndexedTable: pnlIndex_Touch Down= Action: " & Action, 0, True)
+		Starter.MyLog("****** IndexedTable: pnlIndex_Touch Down= Action: " & Action, Colors.DarkGray, True)
 	
 	hoverLabel.Visible = False
 	B4XPages.MainPage.HideAppMenu(True)
@@ -100,7 +100,9 @@ Private Sub pnlIndex_Touch(Action As Int, X As Float, Y As Float)
 			B4XPages.MainPage.clvApps.ScrollToItem(lbl.Tag)
 		End If
 	Catch
-		Log("pnlIndex_Touch: " & LastException)
+		If Not (LastException.Message.Contains("java.lang.IndexOutOfBoundsException")) Then
+			Starter.MyLog("pnlIndex_Touch: " & LastException.Message, Colors.Gray, False)
+		End If
 	End Try
 End Sub
 

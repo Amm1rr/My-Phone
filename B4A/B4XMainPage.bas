@@ -147,7 +147,7 @@ Sub Class_Globals
 	Private OldSearchText As String
 	Private NewSearchText As String
 	Private btnHiddenApps As Button
-	Public IsBusy As Boolean		'این متغیر برای چک کردن وضعیت جستجو است
+	Private IsBusy As Boolean		'این متغیر برای چک کردن وضعیت جستجو است
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
