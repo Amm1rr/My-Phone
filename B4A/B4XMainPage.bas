@@ -147,6 +147,7 @@ Sub Class_Globals
 	Private OldSearchText As String
 	Private NewSearchText As String
 	Private btnHiddenApps As Button
+	Public IsBusy As Boolean		'این متغیر برای چک کردن وضعیت جستجو است
 End Sub
 
 Private Sub MyLog (Text As String, color As Int, JustInDebugMode As Boolean)
@@ -745,7 +746,11 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 		' This IF conditation maybe is not need, Because on the module Main.bas
 		' event Activity_Resume, We have another IF condition that make sure to
 		' check if clvApps listview is empty or not, like IF condition below
-		If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then txtAppsSearch.Text = ""
+		If Not (IsBusy) Then
+			If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then
+					txtAppsSearch.Text = ""
+			End If
+		end if
 	Else					'// Home
 		cleanSearchTimer.Enabled = True
 		HideAppMenu(True)
@@ -2479,6 +2484,9 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	OldSearchText = Old
 	NewSearchText = New
 	
+	If (IsBusy) Then Return
+	SearchStart
+	
 	HideAppMenu(False)
 	
 	If Not (Starter.NormalAppsList.IsInitialized) Then Return
@@ -2500,6 +2508,13 @@ Private Sub IsDebugMode As Boolean
 	Dim debug 	As Boolean = r.GetStaticField("anywheresoftware.b4a.BA", "debugMode")
 	If debug Then Return True
 	Return False
+End Sub
+
+Private Sub SearchCanceled
+	IsBusy = False
+End Sub
+Private Sub SearchStart
+	IsBusy = True
 End Sub
 
 Private Sub SearchInApp(Old As String, New As String)
@@ -2546,7 +2561,10 @@ Private Sub SearchInApp(Old As String, New As String)
 			clvApps.Add(CreateListItemApp(App.Name, App.PackageName, width, AppRowHeigh, App.PackageName), App.PackageName)
 			AddtoAlphabetlist(App.Name, i)
 			Sleep(0)
-			If (New <> NewSearchText) Then Exit
+			If (New <> NewSearchText) Then
+				SearchCanceled
+				Return
+			End If
 		Next
 	Else
 		
@@ -2558,7 +2576,10 @@ Private Sub SearchInApp(Old As String, New As String)
 				AddtoAlphabetlist(App.Name, i)
 				AppCountFound = AppCountFound + 1
 '				Sleep(0)
-				If (New <> NewSearchText) Then Exit
+				If (New <> NewSearchText) Then
+					SearchCanceled
+					Exit
+				End If
 			End If
 		Next
 		
@@ -2566,7 +2587,10 @@ Private Sub SearchInApp(Old As String, New As String)
 		
 	End If
 	
-	If (New <> NewSearchText) Then Return
+	If (New <> NewSearchText) Then
+		SearchCanceled
+		Return
+	End If
 	
 	If (AppCountFound > 20) Then
 		AlphabetTable.LoadAlphabetlist(panApps, Alphabet, False, clvApps.AsView.Top)
@@ -2590,6 +2614,7 @@ Private Sub SearchInApp(Old As String, New As String)
 		End If
 	End If
 	
+	SearchCanceled
 '	SearchDone
 	
 '	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
