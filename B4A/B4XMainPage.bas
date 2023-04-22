@@ -318,7 +318,8 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			RunSetupThread
 		Else
 			thread.Initialise("thread")
-			thread.Start(Me, "RunSetupThread", Null)
+'			thread.Start(Me, "RunSetupThread", Null)
+			thread.RunOnGuiThread("RunSetupThread", Null)
 			
 			threadSearchApp.Initialise("threadSearchApp")
 			threadRunDefaultClockApp.Initialise("threadOpenDefaultClockApp")
@@ -2496,8 +2497,8 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		SearchInApp(Old, New)
 	Else
 		threadSearchAppLock.Initialize(True)
-'		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
-		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+'		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
 	End If
 	
 End Sub
