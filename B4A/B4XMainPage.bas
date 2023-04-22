@@ -199,6 +199,7 @@ Private Sub thread_Ended(endedOK As Boolean, error As String)
 	If Not (endedOK) Then
 		MyLog($"Loading Apps Thread Error: ${error}"$, Colors.Red, False)
 	End If
+	
 End Sub
 
 Private Sub threadSearchApp_Ended(endedOK As Boolean, error As String)
@@ -2497,8 +2498,8 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		SearchInApp(Old, New)
 	Else
 		threadSearchAppLock.Initialize(True)
-		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
-'		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+'		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
 	End If
 	
 End Sub
