@@ -129,7 +129,7 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	
 	B4XPages.MainPage.txtAppsSearch.Enabled = False
 	
-	B4XPages.MainPage.RemoveAppItem_JustFromAppList(Package)
+	B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, True)
 	B4XPages.MainPage.RemoveAsRecently(Package)
 	B4XPages.MainPage.RemoveHomeItem(Package)
 	SetupAppsList(True)

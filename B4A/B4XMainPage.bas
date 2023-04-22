@@ -1155,14 +1155,15 @@ Public Sub HideApp(pkgName As String)
 	MyLog("HideApp: " & pkgName, LogListColor, False)
 	
 	pkgName = GetPackage(pkgName)
-'	RemoveAppItem_JustFromAppList(pkgName)
+	RemoveHideAppItem_JustFromAppList(pkgName, False)
 	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
 	Starter.sql.ExecNonQuery(query)
 	Starter.SetupAppsList(False)
 '	SetupHomeList
 	RemoveAsRecently(pkgName)
 	RemoveHomeItem(pkgName)
-	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+'	txtAppsSearch_TextChanged("", txtAppsSearch.Text)
+	
 	MyLog("HideApp END: " & pkgName, LogListColorEnd, True)
 End Sub
 
@@ -1423,22 +1424,26 @@ public Sub RemoveHomeItem(pkgName As String)
 	
 End Sub
 
-public Sub RemoveAppItem_JustFromAppList(pkgName As String)
+public Sub RemoveHideAppItem_JustFromAppList(pkgName As String, Remove As Boolean)
 	
 	MyLog("RemoveAppItem_JustFromAppList = " & pkgName, LogListColor, True)
+	
+	IsBusy = True
 	
 	pkgName = GetPackage(pkgName)
 	
 	Starter.sql.BeginTransaction
 	
-	Dim query As String = $"DELETE FROM ${Starter.TABLE_APPS} WHERE pkgName=?"$
-	Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
-	
-	query = $"DELETE FROM ${Starter.TABLE_ALL_APPS} WHERE pkgName=?"$
-	Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
-	
-	Starter.sql.TransactionSuccessful
-	Starter.sql.EndTransaction
+	If (Remove) Then
+		Dim query As String = $"DELETE FROM ${Starter.TABLE_APPS} WHERE pkgName=?"$
+		Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+		
+		query = $"DELETE FROM ${Starter.TABLE_ALL_APPS} WHERE pkgName=?"$
+		Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+		
+		Starter.sql.TransactionSuccessful
+		Starter.sql.EndTransaction
+	End If
 	
 	For i = 0 To clvApps.Size - 1
 		If (pkgName = clvApps.GetValue(i).As(String).ToLowerCase) Then
@@ -1446,6 +1451,8 @@ public Sub RemoveAppItem_JustFromAppList(pkgName As String)
 			Exit
 		End If
 	Next
+	
+	IsBusy = False
 	
 	MyLog("RemoveAppItem_JustFromAppList END = " & query, LogListColorEnd, True)
 	
