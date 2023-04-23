@@ -167,7 +167,7 @@ Sub PhonEvent_BatteryChanged (Level As Int, Scale As Int, Plugged As Boolean, In
 	Try
 '		MyLog("PhonEvent_BatteryChanged= Plugged: " & Plugged & " - " & Level & "%", LogListColor, True)
 		
-		If Plugged <> flagPlugged Then ' = True Then
+		If Plugged <> flagPlugged Then ' Meaning is when Plugged = True then
 			flagPlugged = Plugged
 			If Plugged = True Then
 				
