@@ -25,13 +25,16 @@ Sub Process_Globals
 	Public NormalAppsList 			As List		'-- Normal Apps to show
 	Public ShowToastLog 			As Boolean  = True
 	Public LogMode 					As Boolean  = True
-	Public LogShowToast				As Boolean  = True
+	Public LogShowToast				As Boolean  = False
 	Public LogList 					As List
 	Public Pref 					As Settings
 	Public const NAVBARHEIGHT		As Int 		= 80dip
 	Private LogListColor			As Int		= 0xFF4040FF
 	Private LogListColorEnd			As Int 		= 0xFF8989FF
 	Private flagPlugged 	As Boolean
+	Public UninstallMap				As Map
+	Public UninstallList			As List
+	Public uninstallTimer			As Timer	'5 sec after Package Remove Event, It's going to Check for Update or Uninstall
 	
 	Type App(Name As String, _
 			PackageName As String, _
@@ -81,6 +84,11 @@ Sub Service_Create
 	PhonEvent.InitializeWithPhoneState("PhonEvent", PhID)
 	
 	NormalAppsList.Initialize
+	UninstallList.Initialize
+	UninstallMap.Initialize
+	
+	uninstallTimer.Initialize("uninstallTimerCheck", 5000)	'900000 = 1000*60*15(the 15 = 15 minutes)
+	uninstallTimer.Enabled = False
 
 End Sub
 
@@ -97,7 +105,7 @@ End Sub
 Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
 	
 	Dim ls As List
-	ls.Initialize
+		ls.Initialize
 	
 	For i = 0 To LogList.Size - 1
 		
@@ -127,15 +135,53 @@ Sub PhonEvent_PackageRemoved (Package As String, Intent As Intent)
 	LogShowToast = False
 	MyLog("PE_PackageRemoved: " & Package, LogListColor, False)
 	
+	UninstallMap.Put("pkgName", Package)
+	UninstallList.Add(UninstallMap)
+	uninstallTimer.Enabled = True
+	
+End Sub
+
+Private Sub IsPackageInstalled(pkgName As String) As Boolean
+	Dim pm As PackageManager
+	Dim installedApps As List = pm.GetInstalledPackages
+
+	For Each installedPkg As String In installedApps
+		If installedPkg.EqualsIgnoreCase(pkgName) Then
+			Return True
+		End If
+	Next
+	Return False
+End Sub
+
+Private Sub uninstallTimerCheck_Tick
+	
+	MyLog("uninstallTimerCheck_Tick", LogListColor, False)
+	
+	uninstallTimer.Enabled = False
 	B4XPages.MainPage.txtAppsSearch.Enabled = False
 	
-	B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, True)
-	B4XPages.MainPage.RemoveAsRecently(Package)
-	B4XPages.MainPage.RemoveHomeItem(Package)
+	For Each pkg As Map In UninstallList ' Define the variable type
+		Dim Package As String = pkg.Get("pkgName")
+		
+		If Not (IsPackageInstalled(B4XPages.MainPage.GetPackage(Package))) Then
+			'Uninstall
+			LogColor("Uninstall: " & pkg, Colors.Red)
+			B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, True)
+			B4XPages.MainPage.RemoveAsRecently(Package)
+			B4XPages.MainPage.RemoveHomeItem(Package)
+			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
+		Else
+			'Update
+			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Updated!", True)
+			LogColor("Updated: " & Package, Colors.Red)
+		End If
+	Next
+	
+	UninstallList.Initialize
+	
 	SetupAppsList(True)
 	B4XPages.MainPage.SetupHomeList
-'	B4XPages.MainPage.SaveHomeList
-	ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
+'	SaveHomeList
 	
 	B4XPages.MainPage.txtAppsSearch.Enabled = True
 	
@@ -152,6 +198,15 @@ Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
 	LogShowToast = False
 	MyLog("PE_PackageAdded: " & Package, LogListColor, False)
 	
+	Package = B4XPages.MainPage.GetPackage(Package)
+	
+	For Each pkg As Map In UninstallList
+		If B4XPages.MainPage.GetPackage(pkg.Get("pkgName")) = Package Then
+			Return
+		End If
+	Next
+	
+'	B4XPages.MainPage.uninstallTimer.Enabled = True
 	SetupAppsList(True)
 	B4XPages.MainPage.SetupHomeList
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)

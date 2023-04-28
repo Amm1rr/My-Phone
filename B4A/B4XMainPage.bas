@@ -163,6 +163,14 @@ Public Sub Initialize
 	StartService(Starter)
 '	StartTimeClick = True
 	
+	DateTime.TimeFormat = "hh:mm:ss"
+	lblClock.Initialize("")
+	lblClock.Text = DateTime.Time(DateTime.Now)
+	
+	DateTime.DateFormat = "dd.MMM.yyyy"
+	lblDate.Initialize("")
+	lblDate.Text = DateTime.Time(DateTime.Now)
+	
 	dd.Initialize
 	'The designer script calls the DDD class. A new class instance will be created if needed.
 	'In this case we want to create it ourselves as we want to access it in our code.
@@ -172,14 +180,6 @@ Public Sub Initialize
 	
 	Alphabet.Initialize
 	AlphabetTable.Initialize("")
-	
-	DateTime.TimeFormat = "hh:mm:ss"
-	lblClock.Initialize("")
-	lblClock.Text = DateTime.Time(DateTime.Now)
-	
-	DateTime.DateFormat = "dd.MMM.yyyy"
-	lblDate.Initialize("")
-	lblDate.Text = DateTime.Time(DateTime.Now)
 	
 	clocktimer.Initialize("clocktimer", 1000)
 	clocktimer.Enabled = True
@@ -1156,8 +1156,18 @@ Public Sub HideApp(pkgName As String)
 	
 	pkgName = GetPackage(pkgName)
 	RemoveHideAppItem_JustFromAppList(pkgName, False)
-	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
-	Starter.sql.ExecNonQuery(query)
+	
+'	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
+'	Starter.sql.ExecNonQuery(query)
+	
+	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES(?, ?, 0, 1)"
+	Dim appName As String = GetAppNamebyPackage(pkgName)
+	Dim args As List
+		args.Initialize
+		args.Add(appName)
+		args.Add(pkgName)
+	Starter.sql.ExecNonQuery2(query, args)
+	
 	Starter.SetupAppsList(False)
 '	SetupHomeList
 	RemoveAsRecently(pkgName)
