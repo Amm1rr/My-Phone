@@ -142,6 +142,7 @@ Sub Class_Globals
 	Private thread 						As Thread
 	Private threadSearchApp 			As Thread
 	Private threadRunDefaultClockApp	As Thread
+	Private threadFixWallpaper			As Thread
 	Private threadSearchAppLock		As Lock
 	Private lblClearSearch 	As B4XView
 	Private OldSearchText As String
@@ -220,6 +221,10 @@ Private Sub RunSetupThread
 	Starter.SetupAppsList(False)
 	Setup
 '	LoadRecentlyList
+End Sub
+
+Private Sub threadFixWall_Ended(endedOK As Boolean, error As String) 'The thread has terminated. If endedOK is False error holds the reason for failure
+	
 End Sub
 
 'This event will be called once, before the page becomes visible.
@@ -317,6 +322,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 		
 		If (IsDebugMode) Then
 			RunSetupThread
+			Starter.FixWallTrans
 		Else
 			thread.Initialise("thread")
 '			thread.Start(Me, "RunSetupThread", Null)
@@ -324,6 +330,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 			
 			threadSearchApp.Initialise("threadSearchApp")
 			threadRunDefaultClockApp.Initialise("threadOpenDefaultClockApp")
+			
+			threadFixWallpaper.Initialise("threadFixWallpaper")
+			threadFixWallpaper.Start(Me, "threadFixWall", Null)
 		End If
 '		StartTimeClick = False
 		
@@ -337,6 +346,10 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	
 	MyLog("B4XPage_Created END", LogListColorEnd, False)
 	
+End Sub
+
+Private Sub threadFixWall
+	Starter.FixWallTrans
 End Sub
 
 Public Sub BatteryVisiblity(show As Boolean, level As Int)

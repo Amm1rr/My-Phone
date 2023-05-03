@@ -77,7 +77,7 @@ Sub Service_Create
 	
 	CreateDB(False)
 	
-	FixWallTrans
+'	FixWallTrans
 	
 	SetupSettings
 	
