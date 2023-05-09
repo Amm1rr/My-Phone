@@ -169,7 +169,7 @@ Private Sub uninstallTimerCheck_Tick
 			B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, True)
 			B4XPages.MainPage.RemoveAsRecently(Package)
 			B4XPages.MainPage.RemoveHomeItem(Package)
-			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
+'			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
 		Else
 			'Update
 			Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
