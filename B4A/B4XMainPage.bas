@@ -2520,16 +2520,22 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
 	HideAppMenu(False)
 	
-	If Not (Starter.NormalAppsList.IsInitialized) Then Return
+	If Not (Starter.NormalAppsList.IsInitialized) Then
+		SearchDone
+		Return
+	End If
 	
-	If (CheckCommand(New)) Then Return
+	If (CheckCommand(New)) Then
+		SearchDone
+		Return
+	End If
 	
 	If IsDebugMode Then
 		SearchInApp(Old, New)
 	Else
 		threadSearchAppLock.Initialize(True)
-'		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
-		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
+		threadSearchApp.RunOnGuiThread("SearchInApp", Array(Old, New))
+'		threadSearchApp.Start(Me, "SearchInApp", Array(Old, New))
 	End If
 	
 End Sub
@@ -2594,6 +2600,8 @@ Private Sub SearchInApp(Old As String, New As String)
 			Sleep(0)
 			If (New <> NewSearchText) Then
 				SearchCanceled
+				clvApps.Clear
+				SearchDone
 				Return
 			End If
 		Next
@@ -2609,6 +2617,8 @@ Private Sub SearchInApp(Old As String, New As String)
 '				Sleep(0)
 				If (New <> NewSearchText) Then
 					SearchCanceled
+					clvApps.Clear
+					SearchDone
 					Exit
 				End If
 			End If
@@ -2620,6 +2630,8 @@ Private Sub SearchInApp(Old As String, New As String)
 	
 	If (New <> NewSearchText) Then
 		SearchCanceled
+		clvApps.Clear
+		SearchDone
 		Return
 	End If
 	
@@ -2646,7 +2658,7 @@ Private Sub SearchInApp(Old As String, New As String)
 	End If
 	
 	SearchCanceled
-'	SearchDone
+	SearchDone
 	
 '	MyLog("SearchApp END = " & OldTextSearch & " : " & NewTextSearch, LogListColorEnd, True)
 	
@@ -3070,6 +3082,7 @@ Private Sub lblClearSearch_Click
 	'	 running and loading clvApps listview
 	Dim count As Int = clvApps.Size
 	Sleep(0)
+	LogColor($"Count: ${count} - clvApps: ${clvApps.Size}"$, Colors.Red)
 	If (clvApps.Size <> count) Then Return
 	'###
 	
