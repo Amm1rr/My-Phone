@@ -1204,7 +1204,7 @@ Public Sub UninstallApp(pkgName As String)
 	
 End Sub
 
-Private Sub CreateListItemApp(Text 		As String, _
+Public Sub CreateListItemApp(Text 		As String, _
 							  Value 	As String, _
 							  Width 	As Int, _
 							  Height 	As Int, _

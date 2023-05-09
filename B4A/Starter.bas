@@ -185,13 +185,13 @@ Private Sub uninstallTimerCheck_Tick
 	B4XPages.MainPage.SetupHomeList
 '	SaveHomeList
 	
-	B4XPages.MainPage.txtAppsSearch.Enabled = True
 	
+'	B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, False)
 '	If (B4XPages.MainPage.txtAppsSearch.Text = "") Then
 '		B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
 '	End If
 	
-	B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, False)
+	B4XPages.MainPage.txtAppsSearch.Enabled = True
 	
 '	FixDatabase
 	
@@ -216,8 +216,14 @@ Sub PhonEvent_PackageAdded (Package As String, Intent As Intent)
 	Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
 	
 	AddToRecently(name, Package, True)
-'	B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
-	B4XPages.MainPage.txtAppsSearch_TextChanged("", B4XPages.MainPage.txtAppsSearch.Text)
+	
+	If (B4XPages.MainPage.txtAppsSearch.Text.Length > 0) Then
+'		B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
+		B4XPages.MainPage.txtAppsSearch_TextChanged("", B4XPages.MainPage.txtAppsSearch.Text)
+	Else
+		B4XPages.MainPage.clvApps.InsertAt(0,B4XPages.MainPage.CreateListItemApp("_____", "_____", B4XPages.MainPage.clvApps.sv.Width, B4XPages.MainPage.AppRowHeigh, "_____"), "_____")
+		B4XPages.MainPage.clvApps.InsertAt(0,B4XPages.MainPage.CreateListItemApp(name, Package, B4XPages.MainPage.clvApps.sv.Width, B4XPages.MainPage.AppRowHeigh, Package), Package)
+	End If
 	ToastMessageShow(name & " Installed!", True)
 End Sub
 
