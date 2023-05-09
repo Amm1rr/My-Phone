@@ -185,9 +185,11 @@ Private Sub uninstallTimerCheck_Tick
 	
 	B4XPages.MainPage.txtAppsSearch.Enabled = True
 	
-	If (B4XPages.MainPage.txtAppsSearch.Text = "") Then
-		B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
-	End If
+'	If (B4XPages.MainPage.txtAppsSearch.Text = "") Then
+'		B4XPages.MainPage.txtAppsSearch.Text = B4XPages.MainPage.txtAppsSearch.Text
+'	End If
+	
+	B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, False)
 	
 '	FixDatabase
 	
