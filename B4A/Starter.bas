@@ -172,8 +172,10 @@ Private Sub uninstallTimerCheck_Tick
 			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
 		Else
 			'Update
-			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Updated!", True)
-			LogColor("Updated: " & Package, Colors.Red)
+			Dim name As String = B4XPages.MainPage.GetAppNamebyPackage(Package)
+			AddToRecently(name, Package, True)
+			ToastMessageShow($"${name} Updated!"$, True)
+			LogColor($"Updated: ${name}"$, Colors.Red)
 		End If
 	Next
 	
@@ -679,82 +681,15 @@ Private Sub AddItemToRecentlyList(item As String, lst As List) As List
 	
 End Sub
 
-Private Sub AddToRecentlyOLD(Text As String, Value As String, IsNewInstalledApp As Boolean)
-	
-	MyLog("AddToRecently = " & Text & " - " & Value, LogListColor, True)
-	
-	Value = B4XPages.MainPage.GetPackage(Value)
-	
-	If Not 	(B4XPages.MainPage.RecentlyList.IsInitialized) Then B4XPages.MainPage.RecentlyList.Initialize
-	
-	If 		(B4XPages.MainPage.FindRecentlyItem(Value)) Then Return
-	If Not 	(B4XPages.MainPage.Is_NormalApp(Value)) 	Then Return
-	
-	If Text = "" Then _
-	   Text = B4XPages.MainPage.GetAppNamebyPackage(Value)
-	
-	B4XPages.MainPage.tagApps.mBase.Enabled = False
-	B4XPages.MainPage.tagApps.CLV.Clear
-	B4XPages.MainPage.tagColors = Colors.DarkGray
-	
-	B4XPages.MainPage.RecentlyList.AddAllAt(0, Array(Value))
-	
-	If (B4XPages.MainPage.RecentlyList.Size > 5) Then _
-		B4XPages.MainPage.RecentlyList.RemoveAt(B4XPages.MainPage.RecentlyList.Size - 1)
-	
-	sql.ExecNonQuery("DELETE FROM RecentlyApps")
-	
-	Dim j As Int
-	If (IsNewInstalledApp) Then
-		B4XPages.MainPage.tagApps.LabelProperties.TextColor = Colors.Yellow
-		B4XPages.MainPage.tagApps.AddTag(Text, B4XPages.MainPage.tagColors, Value)
-		j = 1
-	Else
-		j = 0
-	End If
-	B4XPages.MainPage.tagApps.LabelProperties.TextColor = Colors.LightGray
-	
-	Dim query As String = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES"
-	Dim tmp As String
-	For i = j To B4XPages.MainPage.RecentlyList.Size - 1
-		Dim appName As String = B4XPages.MainPage.GetAppNamebyPackage(B4XPages.MainPage.RecentlyList.Get(i))
-		B4XPages.MainPage.tagApps.AddTag(appName, B4XPages.MainPage.tagColors, B4XPages.MainPage.RecentlyList.Get(i))
-		tmp = "('" & appName & "','" & B4XPages.MainPage.RecentlyList.Get(i) & "')," & tmp
-	Next
-	If (tmp.Length > 0) Then
-		query = query & tmp.SubString2(0, tmp.Length - 1)
-		sql.ExecNonQuery(query)
-	End If
-	
-	'	Dim tmp As String
-	'	For Each pkg In RecentlyList
-	'		tmp = "('" & GetAppNamebyPackage(pkg) & "','" & pkg & "')," & tmp
-	'	Next
-	'	If (tmp <> "") Then
-	'		tmp = tmp.SubString2(0, tmp.Length - 1)
-	'		query = "INSERT OR REPLACE INTO RecentlyApps(Name, pkgName) VALUES" & tmp
-	'		Starter.sql.ExecNonQuery(query)
-	'	End If
-	
-	B4XPages.MainPage.tagApps.mBase.Enabled = True
-	
-	MyLog("AddToRecently END = " & Text & " - " & Value, LogListColorEnd, True)
-	
-'	'//----- Reset RecentlyBar Color to Default for OLD Method used
-'	tagColors = Colors.DarkGray
-'	tagApps.LabelProperties.TextColor = Colors.LightGray
-	
-End Sub
-
 Public Sub AddToRecently(Text As String, Value As String, IsNewInstalledApp As Boolean)
 	
 	MyLog("AddToRecently = " & Text & " - " & Value, LogListColor, True)
 	
 	Value = B4XPages.MainPage.GetPackage(Value)
 	
-	If Not 	(B4XPages.MainPage.RecentlyList.IsInitialized) Then B4XPages.MainPage.RecentlyList.Initialize
+	If Not 	(B4XPages.MainPage.RecentlyList.IsInitialized) 	Then B4XPages.MainPage.RecentlyList.Initialize
 	
-	If Not 	(B4XPages.MainPage.Is_NormalApp(Value)) 	Then Return
+	If Not 	(B4XPages.MainPage.Is_NormalApp(Value)) 		Then Return
 	
 	If Text = "" Then _
 	   Text = B4XPages.MainPage.GetAppNamebyPackage(Value)
