@@ -2482,7 +2482,22 @@ Private Sub SetBackgroundTintList(View As View,Active As Int, Enabled As Int)
 		CSL.InitializeNewInstance("android.content.res.ColorStateList",Array As Object(States,Color))
 	Dim jo As JavaObject
 		jo.InitializeStatic("android.support.v4.view.ViewCompat")
-		jo.RunMethod("setBackgroundTintList", Array(View, CSL))
+	jo.RunMethod("setBackgroundTintList", Array(View, CSL))
+End Sub
+
+'Level between 0 (transparent) to 1 (opaque)
+Public Sub SetAlpha (View As B4XView, Level As Float)
+    #if B4A
+	Dim jo As JavaObject = View
+	Dim alpha As Float = Level
+	jo.RunMethod("setAlpha", Array(alpha))
+    #Else If B4J
+    Dim n As Node = View
+    n.Alpha = Level
+    #else if B4i
+    Dim v As View = View
+    v.Alpha = Level
+    #End If
 End Sub
 
 Private Sub txtAppsSearch_EnterPressed
