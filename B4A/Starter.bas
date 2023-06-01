@@ -293,6 +293,8 @@ Public Sub MyLog (Text As String, color As Int, JustShowInDebugMode As Boolean)
 	
 	If Not (LogList.IsInitialized) Then LogList.Initialize
 	
+	Return
+	
 	If (JustShowInDebugMode) Then
 		LogColor(Text & " (" & time & ")", color)
 		If (Pref.DebugMode) Then _

@@ -2527,13 +2527,13 @@ End Sub
 
 Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 	
+	
 	OldSearchText = Old
 	NewSearchText = New
 	
-	If (IsBusy) Then Return
-	SearchStart
-	
 	HideAppMenu(False)
+	
+	If (IsBusy) Then Return
 	
 	If Not (Starter.NormalAppsList.IsInitialized) Then
 		SearchDone
@@ -2544,6 +2544,8 @@ Public Sub txtAppsSearch_TextChanged(Old As String, New As String)
 		SearchDone
 		Return
 	End If
+	
+	IsBusy = True
 	
 	If IsDebugMode Then
 		SearchInApp(Old, New)
@@ -2564,9 +2566,6 @@ End Sub
 
 Private Sub SearchCanceled
 	IsBusy = False
-End Sub
-Private Sub SearchStart
-	IsBusy = True
 End Sub
 
 Private Sub SearchInApp(Old As String, New As String)
@@ -2606,6 +2605,8 @@ Private Sub SearchInApp(Old As String, New As String)
 	
 	If (New = "") Then
 		
+		Log("New Empty")
+		
 		lblInfo.Text = (numApps + 1) & " apps"
 		AppCountFound = numApps
 		For i = 0 To numApps
@@ -2614,6 +2615,7 @@ Private Sub SearchInApp(Old As String, New As String)
 			AddtoAlphabetlist(App.Name, i)
 			Sleep(0)
 			If (New <> NewSearchText) Then
+				Log("new text search: " & NewSearchText)
 				SearchCanceled
 				clvApps.Clear
 				SearchDone
@@ -2621,6 +2623,8 @@ Private Sub SearchInApp(Old As String, New As String)
 			End If
 		Next
 	Else
+		
+		Log("New: " & New)
 		
 		Dim searchTextLower As String = New.ToLowerCase
 		For i = 0 To numApps
@@ -2631,6 +2635,7 @@ Private Sub SearchInApp(Old As String, New As String)
 				AppCountFound = AppCountFound + 1
 '				Sleep(0)
 				If (New <> NewSearchText) Then
+					Log("Text Search: " & New & " : " & NewSearchText)
 					SearchCanceled
 					clvApps.Clear
 					SearchDone
@@ -2640,10 +2645,12 @@ Private Sub SearchInApp(Old As String, New As String)
 		Next
 		
 		lblInfo.Text = AppCountFound & " matching apps"
+		Log("Last")
 		
 	End If
 	
 	If (New <> NewSearchText) Then
+		Log("Here: " & NewSearchText)
 		SearchCanceled
 		clvApps.Clear
 		SearchDone
@@ -2659,6 +2666,8 @@ Private Sub SearchInApp(Old As String, New As String)
 	End If
 	AlphabetLastChars = ""
 	
+	Log("Alphabet")
+	
 	If (Old <> New) Then
 		If (txtAppsSearch.Text = New) And (AppCountFound = 1) Then
 			If (Starter.Pref.AutoRunApp = True) Then
@@ -2671,6 +2680,8 @@ Private Sub SearchInApp(Old As String, New As String)
 			End If
 		End If
 	End If
+	
+	Log("Run")
 	
 	SearchCanceled
 	SearchDone
