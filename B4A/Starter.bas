@@ -166,7 +166,7 @@ Private Sub uninstallTimerCheck_Tick
 		If Not (IsPackageInstalled(B4XPages.MainPage.GetPackage(Package))) Then
 			'Uninstall
 			LogColor("Uninstall: " & pkg, Colors.Red)
-			B4XPages.MainPage.RemoveHideAppItem_JustFromAppList(Package, True)
+			B4XPages.MainPage.RemoveHideAppItem(Package, True)
 			B4XPages.MainPage.RemoveAsRecently(Package)
 			B4XPages.MainPage.RemoveHomeItem(Package)
 '			ToastMessageShow(B4XPages.MainPage.GetAppNamebyPackage(Package) & " Removed!", True)
@@ -503,15 +503,15 @@ Public Sub SetupAppsList(ForceReload As Boolean)
 		Do While ResApps.NextRow
 			
 			Dim currentapp As App
-			currentapp.PackageName = ResApps.GetString("pkgName")
-			currentapp.Name = ResApps.GetString("Name")
-			currentapp.IsHomeApp = False
-			intCount = intCount + 1
-			currentapp.index = intCount
-			currentapp.Icon = GetPackageIcon(currentapp.PackageName)
-			currentapp.IsHomeApp = False
-			currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
-			currentapp.VersionCode = ResApps.GetInt("VersionCode")
+				currentapp.PackageName = ResApps.GetString("pkgName")
+				currentapp.Name = ResApps.GetString("Name")
+				currentapp.IsHomeApp = False
+				intCount = intCount + 1
+				currentapp.index = intCount
+				currentapp.Icon = GetPackageIcon(currentapp.PackageName)
+				currentapp.IsHomeApp = False
+				currentapp.IsHidden = False 'ValToBool(ResApps.GetInt("IsHidden"))
+				currentapp.VersionCode = ResApps.GetInt("VersionCode")
 				
 			NormalAppsList.Add(currentapp)
 			

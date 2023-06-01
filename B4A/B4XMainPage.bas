@@ -765,7 +765,7 @@ Private Sub TabStrip1_PageSelected (Position As Int)
 			If (txtAppsSearch.Text = "") And (clvApps.Size  < 1) Then
 					txtAppsSearch.Text = ""
 			End If
-		end if
+		End If
 	Else					'// Home
 		cleanSearchTimer.Enabled = True
 		HideAppMenu(True)
@@ -1168,7 +1168,7 @@ Public Sub HideApp(pkgName As String)
 	MyLog("HideApp: " & pkgName, LogListColor, False)
 	
 	pkgName = GetPackage(pkgName)
-	RemoveHideAppItem_JustFromAppList(pkgName, False)
+	RemoveHideAppItem(pkgName, False)
 	
 '	Dim query As String = "INSERT OR REPLACE INTO Apps(Name, pkgName, IsHome, IsHidden) VALUES('" & GetAppNamebyPackage(pkgName) & "','" & pkgName & "', 0, 1)"
 '	Starter.sql.ExecNonQuery(query)
@@ -1447,7 +1447,7 @@ public Sub RemoveHomeItem(pkgName As String)
 	
 End Sub
 
-public Sub RemoveHideAppItem_JustFromAppList(pkgName As String, Remove As Boolean)
+public Sub RemoveHideAppItem(pkgName As String, Remove As Boolean)
 	
 	MyLog("RemoveAppItem_JustFromAppList = " & pkgName, LogListColor, True)
 	
@@ -1455,21 +1455,22 @@ public Sub RemoveHideAppItem_JustFromAppList(pkgName As String, Remove As Boolea
 	
 	pkgName = GetPackage(pkgName)
 	
-	Starter.sql.BeginTransaction
 	
 	If (Remove) Then
-		Dim query As String = $"DELETE FROM ${Starter.TABLE_APPS} WHERE pkgName=?"$
-		Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+		Starter.sql.BeginTransaction
 		
-		query = $"DELETE FROM ${Starter.TABLE_ALL_APPS} WHERE pkgName=?"$
-		Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+			Dim query As String = $"DELETE FROM ${Starter.TABLE_APPS} WHERE pkgName=?"$
+			Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
+			
+			query = $"DELETE FROM ${Starter.TABLE_ALL_APPS} WHERE pkgName=?"$
+			Starter.sql.ExecNonQuery2(query, Array As String(pkgName))
 		
 		Starter.sql.TransactionSuccessful
 		Starter.sql.EndTransaction
 	End If
 	
 	For i = 0 To clvApps.Size - 1
-		If (pkgName = clvApps.GetValue(i).As(String).ToLowerCase) Then
+		If (pkgName.ToLowerCase = clvApps.GetValue(i).As(String).ToLowerCase) Then
 			clvApps.RemoveAt(i)
 			Exit
 		End If
